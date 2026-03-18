@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+
+# PyInstaller
+build/
+dist/
+*.spec.bak
+
+# Logs
+logs/
+*.log
+
+# Database
+*.db
+*.db-journal
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Generated files
+*.pdf
+nul
+.ruff_cache/
+
+# Licenses/Configs
+*license.json
+*config.json
+installer/
