@@ -1,17 +1,20 @@
+"""
+Servicio de corte de caja.
+Recibe sesión inyectada.
+"""
+
 from models.producto import CorteCaja, GastoCaja
 from repositories.venta_repo import VentaRepository
 from datetime import datetime
 
 
 class CorteCajaService:
-    """Servicio para lógica de negocio de corte de caja"""
-
     def __init__(self, session):
         self.session = session
         self.venta_repo = VentaRepository(session)
 
     def get_corte_actual(self):
-        """Retorna el corte de caja del día"""
+        """Retorna el corte de caja del día (sin cerrar)."""
         return (
             self.session.query(CorteCaja)
             .filter(CorteCaja.fecha_cierre.is_(None))
@@ -19,7 +22,7 @@ class CorteCajaService:
         )
 
     def abrir_caja(self):
-        """Abre la caja creando un nuevo corte"""
+        """Abre la caja creando un nuevo corte si no existe."""
         corte_existente = self.get_corte_actual()
         if corte_existente:
             return corte_existente
@@ -30,7 +33,7 @@ class CorteCajaService:
         return corte
 
     def registrar_gasto(self, concepto, monto):
-        """Registra un gasto de caja en el corte actual"""
+        """Registra un gasto de caja en el corte actual."""
         corte = self.get_corte_actual()
         if not corte:
             raise ValueError("No hay caja abierta")
@@ -38,6 +41,7 @@ class CorteCajaService:
             raise ValueError("El concepto es obligatorio")
         if monto <= 0:
             raise ValueError("El monto debe ser mayor a cero")
+
         gasto = GastoCaja(
             corte_id=corte.id,
             concepto=concepto.strip(),
@@ -49,7 +53,7 @@ class CorteCajaService:
         return gasto
 
     def get_gastos_hoy(self):
-        """Retorna los gastos del corte actual"""
+        """Retorna los gastos del corte actual."""
         corte = self.get_corte_actual()
         if not corte:
             return []
@@ -61,12 +65,12 @@ class CorteCajaService:
         )
 
     def get_total_gastos_hoy(self):
-        """Retorna el total de gastos del día"""
+        """Retorna el total de gastos del día."""
         gastos = self.get_gastos_hoy()
         return sum(g.monto for g in gastos)
 
     def cerrar_caja(self):
-        """Cierra la caja actual"""
+        """Cierra la caja actual y retorna el corte."""
         corte = self.get_corte_actual()
         if not corte:
             return None
@@ -87,33 +91,25 @@ class CorteCajaService:
         corte.total_iva = total_iva
         self.session.commit()
 
-        try:
-            from utils.backup import backup_database
-
-            backup_database()
-        except Exception as e:
-            print(f"Error al crear backup: {e}")
-
         return corte
 
     def obtener_total_vendido(self):
-        """Retorna el total vendido hoy"""
         return self.venta_repo.get_total_hoy()
 
     def obtener_numero_ventas(self):
-        """Retorna el número de ventas hoy"""
         return self.venta_repo.get_count_hoy()
 
     def esta_caja_abierta(self):
-        """Retorna True si la caja está abierta"""
+        """Retorna True si hay caja abierta."""
         return self.get_corte_actual() is not None
 
     def get_estadisticas_hoy(self):
-        """Retorna las estadísticas de ventas de hoy"""
+        """Retorna las estadísticas de ventas de hoy."""
         gastos = self.get_gastos_hoy()
         total_ventas = self.venta_repo.get_total_hoy()
         total_gastos = sum(g.monto for g in gastos)
         totales_metodo = self.venta_repo.get_totales_por_metodo_hoy()
+
         return {
             "total": total_ventas,
             "num_ventas": self.venta_repo.get_count_hoy(),
@@ -127,7 +123,7 @@ class CorteCajaService:
         }
 
     def get_historial_cortes(self):
-        """Retorna el historial de cortes de caja"""
+        """Retorna el historial de cortes de caja."""
         return (
             self.session.query(CorteCaja)
             .order_by(CorteCaja.fecha_apertura.desc())

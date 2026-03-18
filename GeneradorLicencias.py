@@ -28,6 +28,18 @@ class GeneradorWindow(QWidget):
         super().__init__()
         self.setWindowTitle("Generador de Licencias — TuCajero")
         self.setFixedSize(460, 360)
+        try:
+            import sys as _sys, os as _os
+
+            _sys.path.insert(
+                0,
+                _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "tucajero"),
+            )
+            from utils.icon_helper import get_app_icon
+
+            self.setWindowIcon(get_app_icon())
+        except Exception:
+            pass
         self._licencia_actual = ""
         self.init_ui()
 
@@ -64,8 +76,12 @@ class GeneradorWindow(QWidget):
         self.input_machine.setPlaceholderText("Pega aquí el Machine ID del cliente...")
         self.input_machine.setMinimumHeight(38)
         self.input_machine.setStyleSheet(
+            "QLineEdit {"
             "font-size: 13px; font-family: Consolas, monospace;"
-            "padding: 6px 10px; border: 1px solid #bdc3c7; border-radius: 6px;"
+            "padding: 8px 10px; border: 1px solid #bdc3c7; border-radius: 6px;"
+            "background-color: white; color: #2c3e50;"
+            "}"
+            "QLineEdit:focus { border: 1px solid #27ae60; }"
         )
         self.input_machine.returnPressed.connect(self.generar)
         layout.addWidget(self.input_machine)

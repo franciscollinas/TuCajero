@@ -99,6 +99,9 @@ class MainWindow(QMainWindow):
 
     def crear_header(self):
         """Crea el encabezado con información de la tienda"""
+        from utils.icon_helper import get_app_icon
+
+        self.setWindowIcon(get_app_icon())
         from utils.store_config import (
             get_store_name,
             get_logo_path,
@@ -292,3 +295,15 @@ class MainWindow(QMainWindow):
 
     def switch_to_historial(self):
         self.switch_view(4)
+
+    def closeEvent(self, event):
+        """Maneja el cierre de la aplicación."""
+        import logging
+
+        try:
+            from config.database import close_db
+
+            close_db()
+        except Exception as e:
+            logging.warning(f"Error en closeEvent: {e}")
+        event.accept()

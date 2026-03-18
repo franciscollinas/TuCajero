@@ -1,16 +1,19 @@
+"""
+Repositorio de ventas e inventario.
+Las operaciones usan la sesión inyectada.
+"""
+
 from models.producto import Venta, VentaItem, MovimientoInventario, PagoVenta
 from sqlalchemy import and_
-from datetime import datetime, timedelta
+from datetime import datetime
 
 
 class VentaRepository:
-    """Repositorio para acceso a datos de ventas"""
-
     def __init__(self, session):
         self.session = session
 
     def create_venta(self, items, pagos=None, metodo_pago="efectivo"):
-        """Crea una venta con sus items, pagos e IVA"""
+        """Crea una venta con sus items, pagos e IVA."""
         IVA_RATE = 0.19
         total = 0
         for item in items:
@@ -50,7 +53,7 @@ class VentaRepository:
         return venta
 
     def anular_venta(self, venta_id, motivo):
-        """Anula una venta y retorna sus items para restaurar stock"""
+        """Anula una venta."""
         venta = self.session.query(Venta).filter(Venta.id == venta_id).first()
         if not venta:
             raise ValueError("Venta no encontrada")
@@ -62,7 +65,7 @@ class VentaRepository:
         return venta
 
     def get_ventas_hoy(self):
-        """Retorna las ventas de hoy (incluidas anuladas para mostrar)"""
+        """Retorna las ventas de hoy (incluidas anuladas)."""
         hoy = datetime.now().date()
         inicio_dia = datetime.combine(hoy, datetime.min.time())
         fin_dia = datetime.combine(hoy, datetime.max.time())
@@ -74,20 +77,21 @@ class VentaRepository:
         )
 
     def get_total_hoy(self):
-        """Retorna el total de ventas válidas de hoy"""
+        """Retorna el total de ventas válidas de hoy."""
         ventas = self.get_ventas_hoy()
         return sum(v.total for v in ventas if not v.anulada)
 
     def get_count_hoy(self):
-        """Retorna el número de ventas válidas de hoy"""
+        """Retorna el número de ventas válidas de hoy."""
         return len([v for v in self.get_ventas_hoy() if not v.anulada])
 
     def get_totales_por_metodo_hoy(self):
-        """Retorna totales desglosados por método de pago del día"""
+        """Retorna totales por método de pago del día."""
         ventas = [v for v in self.get_ventas_hoy() if not v.anulada]
         total_efectivo = 0
         total_transferencias = 0
         metodos = ["nequi", "daviplata", "transferencia"]
+
         for v in ventas:
             if v.metodo_pago == "mixto":
                 for pago in v.pagos:
@@ -99,14 +103,15 @@ class VentaRepository:
                 total_efectivo += v.total
             else:
                 total_transferencias += v.total
+
         return {"efectivo": total_efectivo, "transferencias": total_transferencias}
 
     def get_all(self):
-        """Retorna todas las ventas"""
+        """Retorna todas las ventas."""
         return self.session.query(Venta).order_by(Venta.fecha.desc()).all()
 
     def get_total_iva_hoy(self):
-        """Retorna el total de IVA recaudado hoy"""
+        """Retorna el total de IVA recaudado hoy."""
         ventas = [v for v in self.get_ventas_hoy() if not v.anulada]
         total = 0
         for v in ventas:
@@ -116,13 +121,11 @@ class VentaRepository:
 
 
 class InventarioRepository:
-    """Repositorio para acceso a datos de inventario"""
-
     def __init__(self, session):
         self.session = session
 
     def create_movimiento(self, producto_id, tipo, cantidad):
-        """Crea un movimiento de inventario"""
+        """Crea un movimiento de inventario."""
         movimiento = MovimientoInventario(
             producto_id=producto_id, tipo=tipo, cantidad=cantidad, fecha=datetime.now()
         )
@@ -131,7 +134,7 @@ class InventarioRepository:
         return movimiento
 
     def get_movimientos_producto(self, producto_id):
-        """Retorna los movimientos de un producto"""
+        """Retorna los movimientos de un producto."""
         return (
             self.session.query(MovimientoInventario)
             .filter(MovimientoInventario.producto_id == producto_id)
@@ -140,7 +143,7 @@ class InventarioRepository:
         )
 
     def get_movimientos_hoy(self):
-        """Retorna los movimientos de hoy"""
+        """Retorna los movimientos de hoy."""
         hoy = datetime.now().date()
         inicio_dia = datetime.combine(hoy, datetime.min.time())
         fin_dia = datetime.combine(hoy, datetime.max.time())

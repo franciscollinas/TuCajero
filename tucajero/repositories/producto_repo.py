@@ -1,23 +1,26 @@
+"""
+Repositorio de productos.
+Las operaciones usan session_scope() para manejo seguro de sesiones.
+"""
+
 from models.producto import Producto
 from sqlalchemy import and_
 
 
 class ProductoRepository:
-    """Repositorio para acceso a datos de productos"""
-
     def __init__(self, session):
         self.session = session
 
     def get_all(self):
-        """Retorna todos los productos activos"""
+        """Retorna todos los productos activos."""
         return self.session.query(Producto).filter(Producto.activo == True).all()
 
     def get_by_id(self, producto_id):
-        """Retorna un producto por su ID"""
+        """Retorna un producto por su ID."""
         return self.session.query(Producto).filter(Producto.id == producto_id).first()
 
     def get_by_codigo(self, codigo):
-        """Retorna un producto por su código de barras"""
+        """Retorna un producto por código de barras."""
         return (
             self.session.query(Producto)
             .filter(and_(Producto.codigo == codigo, Producto.activo == True))
@@ -25,14 +28,14 @@ class ProductoRepository:
         )
 
     def existe_codigo(self, codigo, exclude_id=None):
-        """Verifica si existe un código (excluyendo un ID opcional)"""
+        """Verifica si existe un código (excluyendo un ID opcional)."""
         query = self.session.query(Producto).filter(Producto.codigo == codigo)
         if exclude_id:
             query = query.filter(Producto.id != exclude_id)
         return query.filter(Producto.activo == True).first() is not None
 
     def create(self, codigo, nombre, precio, costo=0, stock=0):
-        """Crea un nuevo producto"""
+        """Crea un nuevo producto."""
         producto = Producto(
             codigo=codigo, nombre=nombre, precio=precio, costo=costo, stock=stock
         )
@@ -41,7 +44,7 @@ class ProductoRepository:
         return producto
 
     def update(self, producto_id, **kwargs):
-        """Actualiza un producto"""
+        """Actualiza un producto."""
         producto = self.get_by_id(producto_id)
         if producto:
             for key, value in kwargs.items():
@@ -50,7 +53,7 @@ class ProductoRepository:
         return producto
 
     def delete(self, producto_id):
-        """Elimina (desactiva) un producto"""
+        """Elimina (desactiva) un producto."""
         producto = self.get_by_id(producto_id)
         if producto:
             producto.activo = False
@@ -58,7 +61,7 @@ class ProductoRepository:
         return producto
 
     def update_stock(self, producto_id, cantidad):
-        """Actualiza el stock de un producto"""
+        """Actualiza el stock de un producto."""
         producto = self.get_by_id(producto_id)
         if producto:
             producto.stock += cantidad
@@ -66,7 +69,7 @@ class ProductoRepository:
         return producto
 
     def search(self, query):
-        """Busca productos por código, nombre o parte del nombre"""
+        """Busca productos por código o nombre."""
         search_term = f"%{query}%"
         return (
             self.session.query(Producto)
@@ -83,33 +86,23 @@ class ProductoRepository:
         )
 
     def search_por_nombre(self, nombre):
-        """Busca productos solo por nombre (búsqueda parcial)"""
+        """Busca productos solo por nombre."""
         search_term = f"%{nombre}%"
         return (
             self.session.query(Producto)
-            .filter(
-                and_(
-                    Producto.activo == True,
-                    Producto.nombre.ilike(search_term),
-                )
-            )
+            .filter(and_(Producto.activo == True, Producto.nombre.ilike(search_term)))
             .order_by(Producto.nombre.asc())
             .all()
         )
 
     def search_por_categoria(self, categoria_id):
-        """Retorna productos de una categoría específica"""
+        """Retorna productos de una categoría específica."""
         from models.producto import Categoria
 
         return (
             self.session.query(Producto)
             .join(Producto.categorias)
-            .filter(
-                and_(
-                    Producto.activo == True,
-                    Categoria.id == categoria_id,
-                )
-            )
+            .filter(and_(Producto.activo == True, Categoria.id == categoria_id))
             .order_by(Producto.nombre.asc())
             .all()
         )
