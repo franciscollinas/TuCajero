@@ -1,47 +1,4 @@
-# TuCajero - Código Completo del Proyecto
-
-> **Versión:** 1.0  
-> **Framework:** PySide6 + SQLAlchemy + SQLite  
-> **Última actualización:** 2026-03-18  
-
----
-
-## Tabla de Contenidos
-
-1. [## 1. main.py — Punto de Entrada](###-1-mainpy)
-2. [## 2. config/database.py — Base de Datos](###-2-config/databasepy)
-3. [## 3. config/app_config.py](###-3-config/app_configpy)
-4. [## 4. models/producto.py — Modelos](###-4-models/productopy)
-5. [## 5. utils/store_config.py — Configuración de Tienda](###-5-utils/store_configpy)
-6. [## 6. repositories/producto_repo.py](###-6-repositories/producto_repopy)
-7. [## 7. repositories/venta_repo.py](###-7-repositories/venta_repopy)
-8. [## 8. services/producto_service.py](###-8-services/producto_servicepy)
-9. [## 9. services/corte_service.py](###-9-services/corte_servicepy)
-10. [## 10. services/historial_service.py](###-10-services/historial_servicepy)
-11. [## 11. services/categoria_service.py](###-11-services/categoria_servicepy)
-12. [## 12. security/license_manager.py](###-12-security/license_managerpy)
-13. [## 13. ui/main_window.py — Ventana Principal](###-13-ui/main_windowpy)
-14. [## 14. ui/setup_view.py — Configuración Inicial](###-14-ui/setup_viewpy)
-15. [## 15. ui/ventas_view.py — Ventas](###-15-ui/ventas_viewpy)
-16. [## 16. ui/productos_view.py — Productos](###-16-ui/productos_viewpy)
-17. [## 17. ui/corte_view.py — Corte de Caja](###-17-ui/corte_viewpy)
-18. [## 18. ui/historial_view.py — Historial](###-18-ui/historial_viewpy)
-19. [## 19. ui/inventario_view.py — Inventario](###-19-ui/inventario_viewpy)
-20. [## 20. ui/buscador_productos.py](###-20-ui/buscador_productospy)
-21. [## 21. ui/activate_view.py](###-21-ui/activate_viewpy)
-22. [## 22. ui/about_view.py](###-22-ui/about_viewpy)
-23. [## 23. ui/config_view.py](###-23-ui/config_viewpy)
-24. [## 24. utils/ticket.py](###-24-utils/ticketpy)
-25. [## 25. utils/factura_diaria.py](###-25-utils/factura_diariapy)
-26. [## 26. utils/backup.py](###-26-utils/backuppy)
-27. [## 27. utils/excel_exporter.py](###-27-utils/excel_exporterpy)
-28. [## 28. tools/license_generator.py](###-28-tools/license_generatorpy)
-29. [## 29. verificar_iva.py](###-29-verificar_ivapy)
-30. [## 30. migrar_iva.py](###-30-migrar_ivapy)
-
----
-
-## 1. main.py — Punto de Entrada
+## tucajero/main.py
 
 ```python
 """
@@ -209,12 +166,17 @@ if __name__ == "__main__":
         except:
             print(f"Error crítico: {e}")
         sys.exit(1)
-
 ```
 
----
+## tucajero/config/app_config.py
 
-## 2. config/database.py — Base de Datos
+```python
+APP_NAME = "TuCajero"
+VERSION = "1.0"
+AUTHOR = "TuCajero"
+```
+
+## tucajero/config/database.py
 
 ```python
 import os
@@ -334,23 +296,9 @@ def close_db():
                 _engine = None
         except Exception as e:
             logging.error(f"Engine dispose error: {e}")
-
 ```
 
----
-
-## 3. config/app_config.py
-
-```python
-APP_NAME = "TuCajero"
-VERSION = "1.0"
-AUTHOR = "TuCajero"
-
-```
-
----
-
-## 4. models/producto.py — Modelos
+## tucajero/models/producto.py
 
 ```python
 from sqlalchemy import (
@@ -502,141 +450,9 @@ class GastoCaja(Base):
 
     def __repr__(self):
         return f"<GastoCaja {self.concepto} - {self.monto}>"
-
 ```
 
----
-
-## 5. utils/store_config.py — Configuración de Tienda
-
-```python
-import json
-import os
-import sys
-
-DEFAULT_CONFIG = {
-    "store_name": "",
-    "logo_path": "",
-    "address": "",
-    "phone": "",
-    "email": "",
-    "nit": "",
-    "setup_complete": False,
-}
-
-_store_config = None
-
-
-def get_config_dir():
-    """Retorna el directorio de configuración en %LOCALAPPDATA%"""
-    if sys.platform == "win32":
-        base = os.environ.get("LOCALAPPDATA", os.environ.get("APPDATA", ""))
-        return os.path.join(base, "TuCajero", "config")
-    return os.path.join(os.path.expanduser("~"), ".tucajero", "config")
-
-
-def _get_config_path():
-    config_dir = get_config_dir()
-    os.makedirs(config_dir, exist_ok=True)
-    return os.path.join(config_dir, "store_config.json")
-
-
-def config_exists():
-    """Retorna True si ya existe configuración guardada"""
-    path = _get_config_path()
-    if not os.path.exists(path):
-        return False
-    try:
-        with open(path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        return bool(data.get("store_name", "").strip())
-    except Exception:
-        return False
-
-
-def load_store_config():
-    global _store_config
-    config_path = _get_config_path()
-    try:
-        if os.path.exists(config_path):
-            with open(config_path, "r", encoding="utf-8") as f:
-                _store_config = json.load(f)
-        else:
-            _store_config = DEFAULT_CONFIG.copy()
-    except (json.JSONDecodeError, IOError):
-        _store_config = DEFAULT_CONFIG.copy()
-    return _store_config
-
-
-def save_store_config(config_data):
-    config_path = _get_config_path()
-    try:
-        with open(config_path, "w", encoding="utf-8") as f:
-            json.dump(config_data, f, indent=2, ensure_ascii=False)
-        global _store_config
-        _store_config = config_data
-        return True
-    except IOError:
-        return False
-
-
-def get_store_name():
-    if _store_config is None:
-        load_store_config()
-    return _store_config.get("store_name", "")
-
-
-def _get_default_logo():
-    base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    logo = os.path.join(base, "assets", "icons", "logo.png")
-    if os.path.exists(logo):
-        return logo
-    return ""
-
-
-def get_logo_path():
-    if _store_config is None:
-        load_store_config()
-    logo = _store_config.get("logo_path", "")
-    if logo and os.path.exists(logo):
-        return logo
-    return _get_default_logo()
-
-
-def get_address():
-    if _store_config is None:
-        load_store_config()
-    return _store_config.get("address", "")
-
-
-def get_phone():
-    if _store_config is None:
-        load_store_config()
-    return _store_config.get("phone", "")
-
-
-def get_email():
-    if _store_config is None:
-        load_store_config()
-    return _store_config.get("email", "")
-
-
-def get_nit():
-    if _store_config is None:
-        load_store_config()
-    return _store_config.get("nit", "")
-
-
-def is_setup_complete():
-    if _store_config is None:
-        load_store_config()
-    return _store_config.get("setup_complete", False)
-
-```
-
----
-
-## 6. repositories/producto_repo.py
+## tucajero/repositories/producto_repo.py
 
 ```python
 from models.producto import Producto
@@ -754,12 +570,9 @@ class ProductoRepository:
             )
             .all()
         )
-
 ```
 
----
-
-## 7. repositories/venta_repo.py
+## tucajero/repositories/venta_repo.py
 
 ```python
 from models.producto import Venta, VentaItem, MovimientoInventario
@@ -895,12 +708,378 @@ class InventarioRepository:
             )
             .all()
         )
-
 ```
 
----
+## tucajero/security/license_manager.py
 
-## 8. services/producto_service.py
+```python
+import uuid
+import hashlib
+import json
+import os
+import sys
+import platform
+
+SECRET = "tito_castilla_pos_secret"
+
+
+def get_config_dir():
+    """Retorna el directorio de configuración.
+
+    Compilado (frozen): usa %LOCALAPPDATA%\\TuCajero\\config (evita C:\\Program Files).
+    Desarrollo: usa ruta relativa security/../config/.
+    """
+    if getattr(sys, "frozen", False):
+        if sys.platform == "win32":
+            base = os.environ.get("LOCALAPPDATA", os.environ.get("APPDATA", ""))
+            return os.path.join(base, "TuCajero", "config")
+        return os.path.join(os.path.expanduser("~"), ".tucajero", "config")
+    else:
+        base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        return os.path.join(base, "config")
+
+
+def get_machine_id():
+    """Obtiene un identificador único robusto de la computadora"""
+    components = [
+        str(uuid.getnode()),
+        platform.node(),
+        platform.processor() or "unknown",
+        platform.machine() or "unknown",
+    ]
+    combined = "|".join(components)
+    return hashlib.sha256(combined.encode()).hexdigest()[:16]
+
+
+def generar_licencia(machine_id):
+    """Genera una licencia basada en el machine_id"""
+    licencia = hashlib.sha256((machine_id + SECRET).encode()).hexdigest()[:16]
+    return licencia.upper()
+
+
+def get_license_path():
+    """Retorna la ruta del archivo de licencia en %LOCALAPPDATA%"""
+    config_dir = get_config_dir()
+    os.makedirs(config_dir, exist_ok=True)
+    return os.path.join(config_dir, "license.json")
+
+
+def cargar_licencia():
+    """Carga la configuración de licencia"""
+    license_path = get_license_path()
+    if not os.path.exists(license_path):
+        return {"activated": False, "license_key": ""}
+
+    try:
+        with open(license_path, "r") as f:
+            return json.load(f)
+    except:
+        return {"activated": False, "license_key": ""}
+
+
+def guardar_licencia(license_key):
+    """Guarda la licencia en el archivo"""
+    license_path = get_license_path()
+    data = {"activated": True, "license_key": license_key.upper()}
+    with open(license_path, "w") as f:
+        json.dump(data, f, indent=4)
+    return True
+
+
+def validar_licencia():
+    """Valida si la licencia es correcta"""
+    licencia_data = cargar_licencia()
+
+    if not licencia_data.get("activated", False):
+        return False
+
+    machine_id = get_machine_id()
+    licencia_correcta = generar_licencia(machine_id)
+
+    return licencia_data.get("license_key", "").upper() == licencia_correcta
+
+
+def crear_license_default():
+    """Crea el archivo de licencia por defecto"""
+    license_path = get_license_path()
+    if not os.path.exists(license_path):
+        data = {"activated": False, "license_key": ""}
+        with open(license_path, "w") as f:
+            json.dump(data, f, indent=4)
+```
+
+## tucajero/services/categoria_service.py
+
+```python
+from models.producto import Categoria, Producto
+from sqlalchemy.exc import IntegrityError
+
+COLORES_DEFAULT = [
+    "#3498db",
+    "#27ae60",
+    "#e67e22",
+    "#8e44ad",
+    "#e74c3c",
+    "#16a085",
+    "#d35400",
+    "#2980b9",
+    "#1abc9c",
+    "#f39c12",
+]
+
+
+class CategoriaService:
+    def __init__(self, session):
+        self.session = session
+
+    def get_all(self):
+        return self.session.query(Categoria).order_by(Categoria.nombre.asc()).all()
+
+    def crear(self, nombre, color=None):
+        nombre = nombre.strip()
+        if not nombre:
+            raise ValueError("El nombre de la categoría es obligatorio")
+        if not color:
+            total = self.session.query(Categoria).count()
+            color = COLORES_DEFAULT[total % len(COLORES_DEFAULT)]
+        cat = Categoria(nombre=nombre, color=color)
+        self.session.add(cat)
+        try:
+            self.session.commit()
+        except IntegrityError:
+            self.session.rollback()
+            raise ValueError(f"La categoría '{nombre}' ya existe")
+        return cat
+
+    def renombrar(self, categoria_id, nuevo_nombre):
+        cat = self.session.query(Categoria).filter(Categoria.id == categoria_id).first()
+        if not cat:
+            raise ValueError("Categoría no encontrada")
+        cat.nombre = nuevo_nombre.strip()
+        try:
+            self.session.commit()
+        except IntegrityError:
+            self.session.rollback()
+            raise ValueError(f"Ya existe una categoría con ese nombre")
+        return cat
+
+    def eliminar(self, categoria_id):
+        cat = self.session.query(Categoria).filter(Categoria.id == categoria_id).first()
+        if cat:
+            self.session.delete(cat)
+            self.session.commit()
+
+    def asignar_a_producto(self, producto_id, categoria_ids):
+        """Reemplaza las categorías de un producto con la lista dada"""
+        producto = (
+            self.session.query(Producto).filter(Producto.id == producto_id).first()
+        )
+        if not producto:
+            raise ValueError("Producto no encontrado")
+        categorias = (
+            self.session.query(Categoria).filter(Categoria.id.in_(categoria_ids)).all()
+        )
+        producto.categorias = categorias
+        self.session.commit()
+        return producto
+
+    def get_productos_de_categoria(self, categoria_id):
+        cat = self.session.query(Categoria).filter(Categoria.id == categoria_id).first()
+        if not cat:
+            return []
+        return [p for p in cat.productos if p.activo]
+```
+
+## tucajero/services/corte_service.py
+
+```python
+from models.producto import CorteCaja, GastoCaja
+from repositories.venta_repo import VentaRepository
+from datetime import datetime
+
+
+class CorteCajaService:
+    """Servicio para lógica de negocio de corte de caja"""
+
+    def __init__(self, session):
+        self.session = session
+        self.venta_repo = VentaRepository(session)
+
+    def get_corte_actual(self):
+        """Retorna el corte de caja del día"""
+        return (
+            self.session.query(CorteCaja)
+            .filter(CorteCaja.fecha_cierre.is_(None))
+            .first()
+        )
+
+    def abrir_caja(self):
+        """Abre la caja creando un nuevo corte"""
+        corte_existente = self.get_corte_actual()
+        if corte_existente:
+            return corte_existente
+
+        corte = CorteCaja(fecha_apertura=datetime.now(), total_ventas=0)
+        self.session.add(corte)
+        self.session.commit()
+        return corte
+
+    def registrar_gasto(self, concepto, monto):
+        """Registra un gasto de caja en el corte actual"""
+        corte = self.get_corte_actual()
+        if not corte:
+            raise Exception("No hay caja abierta")
+        gasto = GastoCaja(corte_id=corte.id, concepto=concepto, monto=monto)
+        self.session.add(gasto)
+        self.session.commit()
+        return gasto
+
+    def get_gastos_hoy(self):
+        """Retorna los gastos del corte actual"""
+        corte = self.get_corte_actual()
+        if not corte:
+            return []
+        return (
+            self.session.query(GastoCaja).filter(GastoCaja.corte_id == corte.id).all()
+        )
+
+    def get_total_gastos_hoy(self):
+        """Retorna el total de gastos de hoy"""
+        return sum(g.monto for g in self.get_gastos_hoy())
+
+    def cerrar_caja(self):
+        """Cierra la caja actual"""
+        corte = self.get_corte_actual()
+        if not corte:
+            return None
+
+        total = self.venta_repo.get_total_hoy()
+        num_ventas = self.venta_repo.get_count_hoy()
+        total_gastos = self.get_total_gastos_hoy()
+        corte.fecha_cierre = datetime.now()
+        corte.total_ventas = total
+        corte.numero_ventas = num_ventas
+        corte.total_gastos = total_gastos
+        corte.ganancia_neta = total - total_gastos
+        self.session.commit()
+
+        try:
+            from utils.backup import backup_database
+
+            backup_database()
+        except Exception as e:
+            print(f"Error al crear backup: {e}")
+
+        return corte
+
+    def obtener_total_vendido(self):
+        """Retorna el total vendido hoy"""
+        return self.venta_repo.get_total_hoy()
+
+    def obtener_numero_ventas(self):
+        """Retorna el número de ventas hoy"""
+        return self.venta_repo.get_count_hoy()
+
+    def esta_caja_abierta(self):
+        """Retorna True si la caja está abierta"""
+        return self.get_corte_actual() is not None
+
+    def get_estadisticas_hoy(self):
+        """Retorna las estadísticas de ventas de hoy"""
+        gastos = self.get_gastos_hoy()
+        total_gastos = sum(g.monto for g in gastos)
+        total_ventas = self.venta_repo.get_total_hoy()
+        return {
+            "total": total_ventas,
+            "num_ventas": self.venta_repo.get_count_hoy(),
+            "ventas": self.venta_repo.get_ventas_hoy(),
+            "gastos": gastos,
+            "total_gastos": total_gastos,
+            "ganancia_neta": total_ventas - total_gastos,
+        }
+
+    def get_historial_cortes(self):
+        """Retorna el historial de cortes de caja"""
+        return (
+            self.session.query(CorteCaja)
+            .order_by(CorteCaja.fecha_apertura.desc())
+            .all()
+        )
+```
+
+## tucajero/services/historial_service.py
+
+```python
+from models.producto import CorteCaja, Venta, VentaItem, Producto, GastoCaja
+from sqlalchemy import and_, func
+from datetime import datetime
+
+
+class HistorialService:
+    def __init__(self, session):
+        self.session = session
+
+    def get_cierres(self, fecha_desde=None, fecha_hasta=None):
+        """Retorna cierres cerrados con filtro opcional de fechas"""
+        query = self.session.query(CorteCaja).filter(CorteCaja.fecha_cierre.isnot(None))
+        if fecha_desde:
+            query = query.filter(CorteCaja.fecha_apertura >= fecha_desde)
+        if fecha_hasta:
+            query = query.filter(CorteCaja.fecha_apertura <= fecha_hasta)
+        return query.order_by(CorteCaja.fecha_apertura.desc()).all()
+
+    def get_ventas_del_cierre(self, corte_id):
+        """Retorna las ventas de un corte específico"""
+        corte = self.session.query(CorteCaja).filter(CorteCaja.id == corte_id).first()
+        if not corte:
+            return []
+        return (
+            self.session.query(Venta)
+            .filter(
+                and_(
+                    Venta.fecha >= corte.fecha_apertura,
+                    Venta.fecha <= corte.fecha_cierre,
+                )
+            )
+            .order_by(Venta.fecha.asc())
+            .all()
+        )
+
+    def get_ranking_productos(self, fecha_desde=None, fecha_hasta=None):
+        """Retorna ranking de productos más y menos vendidos"""
+        query = (
+            self.session.query(
+                Producto.codigo,
+                Producto.nombre,
+                func.sum(VentaItem.cantidad).label("total_vendido"),
+                func.sum(VentaItem.cantidad * VentaItem.precio).label("total_ingresos"),
+            )
+            .join(VentaItem, Producto.id == VentaItem.producto_id)
+            .join(Venta, VentaItem.venta_id == Venta.id)
+        )
+        if fecha_desde:
+            query = query.filter(Venta.fecha >= fecha_desde)
+        if fecha_hasta:
+            query = query.filter(Venta.fecha <= fecha_hasta)
+        return (
+            query.group_by(Producto.id)
+            .order_by(func.sum(VentaItem.cantidad).desc())
+            .all()
+        )
+
+    def get_resumen_periodo(self, fecha_desde=None, fecha_hasta=None):
+        """Retorna totales consolidados del período"""
+        cierres = self.get_cierres(fecha_desde, fecha_hasta)
+        return {
+            "total_ventas": sum(c.total_ventas for c in cierres),
+            "total_gastos": sum(c.total_gastos or 0 for c in cierres),
+            "ganancia_neta": sum(c.ganancia_neta or 0 for c in cierres),
+            "num_cierres": len(cierres),
+            "num_ventas": sum(c.numero_ventas for c in cierres),
+        }
+```
+
+## tucajero/services/producto_service.py
 
 ```python
 from repositories.producto_repo import ProductoRepository
@@ -1124,213 +1303,421 @@ class InventarioService:
     def get_all_productos(self):
         """Retorna todos los productos con su stock"""
         return self.producto_repo.get_all()
-
 ```
 
----
-
-## 9. services/corte_service.py
+## tucajero/tools/license_generator.py
 
 ```python
-from models.producto import CorteCaja, GastoCaja
-from repositories.venta_repo import VentaRepository
-from datetime import datetime
+"""
+TuCajero - Generador de Licencias
+Herramienta para generar licencias para clientes.
+"""
+
+import sys
+import os
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from security.license_manager import get_machine_id, generar_licencia
+from utils.store_config import get_store_name
 
 
-class CorteCajaService:
-    """Servicio para lógica de negocio de corte de caja"""
+def main():
+    """Función principal"""
+    store_name = get_store_name()
+    print()
+    print("=" * 30)
+    print(f"{store_name.upper()}")
+    print("GENERADOR DE LICENCIAS")
+    print("=" * 30)
+    print()
 
-    def __init__(self, session):
-        self.session = session
-        self.venta_repo = VentaRepository(session)
+    print("Opciones:")
+    print("1. Generar licencia para esta computadora")
+    print("2. Generar licencia con Machine ID personalizado")
+    print()
 
-    def get_corte_actual(self):
-        """Retorna el corte de caja del día"""
-        return (
-            self.session.query(CorteCaja)
-            .filter(CorteCaja.fecha_cierre.is_(None))
-            .first()
-        )
+    opcion = input("Seleccione una opcion (1/2): ").strip()
 
-    def abrir_caja(self):
-        """Abre la caja creando un nuevo corte"""
-        corte_existente = self.get_corte_actual()
-        if corte_existente:
-            return corte_existente
+    print()
 
-        corte = CorteCaja(fecha_apertura=datetime.now(), total_ventas=0)
-        self.session.add(corte)
-        self.session.commit()
-        return corte
+    if opcion == "1":
+        machine_id = get_machine_id()
+        print(f"Machine ID de esta computadora:")
+        print(f"  {machine_id}")
+    elif opcion == "2":
+        machine_id = input("Ingresar Machine ID: ").strip()
+        if not machine_id:
+            print("Error: Debe ingresar un Machine ID")
+            return
+    else:
+        print("Opcion invalida")
+        return
 
-    def registrar_gasto(self, concepto, monto):
-        """Registra un gasto de caja en el corte actual"""
-        corte = self.get_corte_actual()
-        if not corte:
-            raise Exception("No hay caja abierta")
-        gasto = GastoCaja(corte_id=corte.id, concepto=concepto, monto=monto)
-        self.session.add(gasto)
-        self.session.commit()
-        return gasto
+    licencia = generar_licencia(machine_id)
 
-    def get_gastos_hoy(self):
-        """Retorna los gastos del corte actual"""
-        corte = self.get_corte_actual()
-        if not corte:
-            return []
-        return (
-            self.session.query(GastoCaja).filter(GastoCaja.corte_id == corte.id).all()
-        )
+    print()
+    print("-" * 30)
+    print("RESULTADO:")
+    print("-" * 30)
+    print()
+    print(f"Machine ID: {machine_id}")
+    print(f"Licencia:   {licencia}")
+    print()
+    print("=" * 30)
+    print()
+    print("Instrucciones:")
+    print("1. Copie la licencia generada")
+    print("2. En el sistema del cliente, vaya a Activacion")
+    print("3. Ingrese la licencia")
+    print("4. El sistema se activara automaticamente")
+    print()
 
-    def get_total_gastos_hoy(self):
-        """Retorna el total de gastos de hoy"""
-        return sum(g.monto for g in self.get_gastos_hoy())
 
-    def cerrar_caja(self):
-        """Cierra la caja actual"""
-        corte = self.get_corte_actual()
-        if not corte:
-            return None
-
-        total = self.venta_repo.get_total_hoy()
-        num_ventas = self.venta_repo.get_count_hoy()
-        total_gastos = self.get_total_gastos_hoy()
-        corte.fecha_cierre = datetime.now()
-        corte.total_ventas = total
-        corte.numero_ventas = num_ventas
-        corte.total_gastos = total_gastos
-        corte.ganancia_neta = total - total_gastos
-        self.session.commit()
-
-        try:
-            from utils.backup import backup_database
-
-            backup_database()
-        except Exception as e:
-            print(f"Error al crear backup: {e}")
-
-        return corte
-
-    def obtener_total_vendido(self):
-        """Retorna el total vendido hoy"""
-        return self.venta_repo.get_total_hoy()
-
-    def obtener_numero_ventas(self):
-        """Retorna el número de ventas hoy"""
-        return self.venta_repo.get_count_hoy()
-
-    def esta_caja_abierta(self):
-        """Retorna True si la caja está abierta"""
-        return self.get_corte_actual() is not None
-
-    def get_estadisticas_hoy(self):
-        """Retorna las estadísticas de ventas de hoy"""
-        gastos = self.get_gastos_hoy()
-        total_gastos = sum(g.monto for g in gastos)
-        total_ventas = self.venta_repo.get_total_hoy()
-        return {
-            "total": total_ventas,
-            "num_ventas": self.venta_repo.get_count_hoy(),
-            "ventas": self.venta_repo.get_ventas_hoy(),
-            "gastos": gastos,
-            "total_gastos": total_gastos,
-            "ganancia_neta": total_ventas - total_gastos,
-        }
-
-    def get_historial_cortes(self):
-        """Retorna el historial de cortes de caja"""
-        return (
-            self.session.query(CorteCaja)
-            .order_by(CorteCaja.fecha_apertura.desc())
-            .all()
-        )
-
+if __name__ == "__main__":
+    main()
 ```
 
----
-
-## 10. services/historial_service.py
+## tucajero/ui/about_view.py
 
 ```python
-from models.producto import CorteCaja, Venta, VentaItem, Producto, GastoCaja
-from sqlalchemy import and_, func
-from datetime import datetime
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QDialog
+from PySide6.QtCore import Qt
+from utils.store_config import get_store_name, get_address, get_phone, get_nit
 
 
-class HistorialService:
-    def __init__(self, session):
-        self.session = session
+class AboutView(QDialog):
+    """Ventana Acerca de"""
 
-    def get_cierres(self, fecha_desde=None, fecha_hasta=None):
-        """Retorna cierres cerrados con filtro opcional de fechas"""
-        query = self.session.query(CorteCaja).filter(CorteCaja.fecha_cierre.isnot(None))
-        if fecha_desde:
-            query = query.filter(CorteCaja.fecha_apertura >= fecha_desde)
-        if fecha_hasta:
-            query = query.filter(CorteCaja.fecha_apertura <= fecha_hasta)
-        return query.order_by(CorteCaja.fecha_apertura.desc()).all()
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        store_name = get_store_name()
+        self.setWindowTitle(f"Acerca de {store_name}")
+        self.setFixedSize(400, 350)
+        self.setModal(True)
+        self.init_ui()
 
-    def get_ventas_del_cierre(self, corte_id):
-        """Retorna las ventas de un corte específico"""
-        corte = self.session.query(CorteCaja).filter(CorteCaja.id == corte_id).first()
-        if not corte:
-            return []
-        return (
-            self.session.query(Venta)
-            .filter(
-                and_(
-                    Venta.fecha >= corte.fecha_apertura,
-                    Venta.fecha <= corte.fecha_cierre,
-                )
+    def init_ui(self):
+        """Inicializa la interfaz"""
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+
+        titulo = QLabel(get_store_name())
+        titulo.setStyleSheet("font-size: 28px; font-weight: bold; color: #2c3e50;")
+        titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(titulo)
+
+        descripcion = QLabel("Sistema de ventas para pequeños negocios")
+        descripcion.setStyleSheet("font-size: 14px; color: #7f8c8d;")
+        descripcion.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(descripcion)
+
+        version = QLabel("Versión 1.0")
+        version.setStyleSheet(
+            "font-size: 16px; color: #27ae60; font-weight: bold; margin-top: 20px;"
+        )
+        version.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(version)
+
+        address = get_address()
+        if address:
+            addr_label = QLabel(address)
+            addr_label.setStyleSheet("font-size: 12px; color: #7f8c8d;")
+            addr_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            layout.addWidget(addr_label)
+
+        phone = get_phone()
+        if phone:
+            phone_label = QLabel(f"Tel: {phone}")
+            phone_label.setStyleSheet("font-size: 12px; color: #7f8c8d;")
+            phone_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            layout.addWidget(phone_label)
+
+        nit = get_nit()
+        if nit:
+            nit_label = QLabel(f"NIT: {nit}")
+            nit_label.setStyleSheet("font-size: 12px; color: #7f8c8d;")
+            nit_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            layout.addWidget(nit_label)
+
+        separator = QLabel("")
+        separator.setFixedHeight(20)
+        layout.addWidget(separator)
+
+        desarrollado = QLabel("Desarrollado por:")
+        desarrollado.setStyleSheet("font-size: 12px; color: #95a5a6;")
+        desarrollado.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(desarrollado)
+
+        autor = QLabel("Ingeniero Francisco Llinas P.")
+        autor.setStyleSheet("font-size: 16px; font-weight: bold; color: #2c3e50;")
+        autor.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(autor)
+
+        layout.addStretch()
+
+        btn_cerrar = QPushButton("Cerrar")
+        btn_cerrar.setStyleSheet("""
+            QPushButton {
+                background-color: #3498db;
+                color: white;
+                padding: 10px 30px;
+                font-size: 14px;
+                border: none;
+            }
+            QPushButton:hover {
+                background-color: #2980b9;
+            }
+        """)
+        btn_cerrar.clicked.connect(self.accept)
+        layout.addWidget(btn_cerrar)
+```
+
+## tucajero/ui/activate_view.py
+
+```python
+from PySide6.QtWidgets import (
+    QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QMessageBox,
+    QDialog,
+)
+from PySide6.QtCore import Qt
+from security.license_manager import (
+    get_machine_id,
+    generar_licencia,
+    guardar_licencia,
+    validar_licencia,
+)
+from utils.store_config import get_store_name
+
+
+class ActivateView(QWidget):
+    """Vista de activación del sistema"""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.activation_success = False
+        self.init_ui()
+
+    def init_ui(self):
+        """Inicializa la interfaz"""
+        store_name = get_store_name()
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+        self.setFixedSize(400, 300)
+        self.setWindowTitle(f"Activación - {store_name}")
+
+        titulo = QLabel(f"Activación de {store_name}")
+        titulo.setStyleSheet("font-size: 20px; font-weight: bold; color: #2c3e50;")
+        titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(titulo)
+
+        subtitulo = QLabel("Ingrese su licencia para activar el sistema")
+        subtitulo.setStyleSheet("color: #7f8c8d; padding-bottom: 20px;")
+        subtitulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(subtitulo)
+
+        machine_id = get_machine_id()
+        machine_label = QLabel(f"Machine ID:")
+        machine_label.setStyleSheet("font-weight: bold;")
+        layout.addWidget(machine_label)
+
+        self.machine_id_display = QLabel(machine_id)
+        self.machine_id_display.setStyleSheet(
+            "background-color: #ecf0f1; padding: 10px; font-family: monospace; font-size: 14px;"
+        )
+        self.machine_id_display.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.machine_id_display)
+
+        info_label = QLabel(
+            "Envía tu Machine ID al administrador\npara recibir tu licencia de activación."
+        )
+        info_label.setStyleSheet("color: #7f8c8d; font-size: 12px; padding: 8px;")
+        info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(info_label)
+
+        self.licencia_input = QLineEdit()
+        self.licencia_input.setPlaceholderText("Ingrese su licencia")
+        self.licencia_input.setStyleSheet("padding: 10px; font-size: 16px;")
+        self.licencia_input.setMaxLength(16)
+        layout.addWidget(self.licencia_input)
+
+        btn_layout = QHBoxLayout()
+
+        self.btn_activar = QPushButton("ACTIVAR")
+        self.btn_activar.setStyleSheet("""
+            QPushButton {
+                background-color: #27ae60;
+                color: white;
+                font-size: 16px;
+                font-weight: bold;
+                padding: 12px;
+            }
+            QPushButton:hover {
+                background-color: #2ecc71;
+            }
+        """)
+        self.btn_activar.clicked.connect(self.activar)
+        btn_layout.addWidget(self.btn_activar)
+
+        layout.addLayout(btn_layout)
+
+    def activar(self):
+        """Activa el sistema con la licencia"""
+        licencia = self.licencia_input.text().strip().upper()
+
+        if not licencia:
+            QMessageBox.warning(self, "Error", "Ingrese una licencia")
+            return
+
+        machine_id = get_machine_id()
+        licencia_correcta = generar_licencia(machine_id)
+
+        if licencia == licencia_correcta:
+            guardar_licencia(licencia)
+            QMessageBox.information(
+                self,
+                "Sistema Activado",
+                f"{get_store_name()} ha sido activado correctamente.\n\nEl sistema se cerrará. Vuelve a abrirlo.",
             )
-            .order_by(Venta.fecha.asc())
-            .all()
-        )
-
-    def get_ranking_productos(self, fecha_desde=None, fecha_hasta=None):
-        """Retorna ranking de productos más y menos vendidos"""
-        query = (
-            self.session.query(
-                Producto.codigo,
-                Producto.nombre,
-                func.sum(VentaItem.cantidad).label("total_vendido"),
-                func.sum(VentaItem.cantidad * VentaItem.precio).label("total_ingresos"),
+            self.activation_success = True
+            self.close()
+        else:
+            QMessageBox.critical(
+                self,
+                "Licencia Inválida",
+                "La licencia ingresada no es válida para esta computadora.",
             )
-            .join(VentaItem, Producto.id == VentaItem.producto_id)
-            .join(Venta, VentaItem.venta_id == Venta.id)
-        )
-        if fecha_desde:
-            query = query.filter(Venta.fecha >= fecha_desde)
-        if fecha_hasta:
-            query = query.filter(Venta.fecha <= fecha_hasta)
-        return (
-            query.group_by(Producto.id)
-            .order_by(func.sum(VentaItem.cantidad).desc())
-            .all()
-        )
+            self.licencia_input.clear()
 
-    def get_resumen_periodo(self, fecha_desde=None, fecha_hasta=None):
-        """Retorna totales consolidados del período"""
-        cierres = self.get_cierres(fecha_desde, fecha_hasta)
-        return {
-            "total_ventas": sum(c.total_ventas for c in cierres),
-            "total_gastos": sum(c.total_gastos or 0 for c in cierres),
-            "ganancia_neta": sum(c.ganancia_neta or 0 for c in cierres),
-            "num_cierres": len(cierres),
-            "num_ventas": sum(c.numero_ventas for c in cierres),
-        }
 
+class ActivationDialog(QDialog):
+    """Diálogo de activación"""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        store_name = get_store_name()
+        self.setWindowTitle(f"Activación - {store_name}")
+        self.setModal(True)
+        self.activation_success = False
+
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+        self.setFixedSize(450, 380)
+
+        titulo = QLabel(f"Activación de {store_name}")
+        titulo.setStyleSheet("font-size: 20px; font-weight: bold; color: #2c3e50;")
+        titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(titulo)
+
+        subtitulo = QLabel("Ingrese su licencia para activar el sistema")
+        subtitulo.setStyleSheet("color: #7f8c8d; padding-bottom: 10px;")
+        subtitulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(subtitulo)
+
+        machine_id = get_machine_id()
+
+        machine_label = QLabel("Machine ID de esta computadora:")
+        machine_label.setStyleSheet("font-weight: bold; margin-top: 10px;")
+        layout.addWidget(machine_label)
+
+        self.machine_id_display = QLabel(machine_id)
+        self.machine_id_display.setStyleSheet(
+            "background-color: #ecf0f1; padding: 10px; font-family: monospace; font-size: 12px;"
+        )
+        self.machine_id_display.setWordWrap(True)
+        layout.addWidget(self.machine_id_display)
+
+        info_label = QLabel(
+            "Envía tu Machine ID al administrador\npara recibir tu licencia de activación."
+        )
+        info_label.setStyleSheet("color: #7f8c8d; font-size: 12px; padding: 8px;")
+        info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(info_label)
+
+        self.licencia_input = QLineEdit()
+        self.licencia_input.setPlaceholderText("Ingrese su licencia de 16 caracteres")
+        self.licencia_input.setStyleSheet("padding: 10px; font-size: 14px;")
+        self.licencia_input.setMaxLength(16)
+        layout.addWidget(self.licencia_input)
+
+        btn_activar = QPushButton("ACTIVAR SISTEMA")
+        btn_activar.setStyleSheet("""
+            QPushButton {
+                background-color: #27ae60;
+                color: white;
+                font-size: 16px;
+                font-weight: bold;
+                padding: 15px;
+            }
+            QPushButton:hover {
+                background-color: #2ecc71;
+            }
+        """)
+        btn_activar.clicked.connect(self.activar)
+        layout.addWidget(btn_activar)
+
+    def activar(self):
+        """Activa el sistema"""
+        licencia = self.licencia_input.text().strip().upper()
+
+        if not licencia:
+            QMessageBox.warning(self, "Error", "Ingrese una licencia")
+            return
+
+        if len(licencia) != 16:
+            QMessageBox.warning(self, "Error", "La licencia debe tener 16 caracteres")
+            return
+
+        machine_id = get_machine_id()
+        licencia_correcta = generar_licencia(machine_id)
+
+        if licencia == licencia_correcta:
+            guardar_licencia(licencia)
+            QMessageBox.information(
+                self,
+                "Sistema Activado",
+                f"{get_store_name()} ha sido activado correctamente.\n\nEl sistema se cerrará. Vuélvelo a abrir.",
+            )
+            self.activation_success = True
+            self.accept()
+        else:
+            QMessageBox.critical(
+                self,
+                "Licencia Inválida",
+                "La licencia ingresada no es válida para esta computadora.",
+            )
+            self.licencia_input.clear()
 ```
 
----
-
-## 11. services/categoria_service.py
+## tucajero/ui/buscador_productos.py
 
 ```python
-from models.producto import Categoria, Producto
-from sqlalchemy.exc import IntegrityError
+from PySide6.QtWidgets import (
+    QDialog,
+    QVBoxLayout,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QTableWidget,
+    QTableWidgetItem,
+    QPushButton,
+    QHeaderView,
+    QTabWidget,
+    QWidget,
+    QScrollArea,
+    QFrame,
+    QSizePolicy,
+)
+from PySide6.QtCore import Qt, QTimer
+from PySide6.QtGui import QColor
 
-COLORES_DEFAULT = [
+COLORES_CATEGORIA = [
     "#3498db",
     "#27ae60",
     "#e67e22",
@@ -1344,165 +1731,1538 @@ COLORES_DEFAULT = [
 ]
 
 
-class CategoriaService:
-    def __init__(self, session):
+class BuscadorProductosDialog(QDialog):
+    """Diálogo de búsqueda con 3 modos: código, nombre y categoría"""
+
+    def __init__(self, productos, session=None, parent=None):
+        super().__init__(parent)
+        self.productos = productos
         self.session = session
+        self.producto_seleccionado = None
+        self.setWindowTitle("Buscar Producto")
+        self.setMinimumSize(620, 500)
+        self.init_ui()
+        self._timer = QTimer()
+        self._timer.setSingleShot(True)
+        self._timer.timeout.connect(self._filtrar_debounced)
 
-    def get_all(self):
-        return self.session.query(Categoria).order_by(Categoria.nombre.asc()).all()
+    def init_ui(self):
+        layout = QVBoxLayout()
+        self.setLayout(layout)
 
-    def crear(self, nombre, color=None):
-        nombre = nombre.strip()
-        if not nombre:
-            raise ValueError("El nombre de la categoría es obligatorio")
-        if not color:
-            total = self.session.query(Categoria).count()
-            color = COLORES_DEFAULT[total % len(COLORES_DEFAULT)]
-        cat = Categoria(nombre=nombre, color=color)
-        self.session.add(cat)
-        try:
-            self.session.commit()
-        except IntegrityError:
-            self.session.rollback()
-            raise ValueError(f"La categoría '{nombre}' ya existe")
-        return cat
+        titulo = QLabel("Buscar Producto")
+        titulo.setStyleSheet("font-size: 18px; font-weight: bold; padding-bottom: 4px;")
+        layout.addWidget(titulo)
 
-    def renombrar(self, categoria_id, nuevo_nombre):
-        cat = self.session.query(Categoria).filter(Categoria.id == categoria_id).first()
-        if not cat:
-            raise ValueError("Categoría no encontrada")
-        cat.nombre = nuevo_nombre.strip()
-        try:
-            self.session.commit()
-        except IntegrityError:
-            self.session.rollback()
-            raise ValueError(f"Ya existe una categoría con ese nombre")
-        return cat
-
-    def eliminar(self, categoria_id):
-        cat = self.session.query(Categoria).filter(Categoria.id == categoria_id).first()
-        if cat:
-            self.session.delete(cat)
-            self.session.commit()
-
-    def asignar_a_producto(self, producto_id, categoria_ids):
-        """Reemplaza las categorías de un producto con la lista dada"""
-        producto = (
-            self.session.query(Producto).filter(Producto.id == producto_id).first()
+        search_layout = QHBoxLayout()
+        self.buscador_input = QLineEdit()
+        self.buscador_input.setPlaceholderText(
+            "Buscar por código o nombre del producto..."
         )
-        if not producto:
-            raise ValueError("Producto no encontrado")
-        categorias = (
-            self.session.query(Categoria).filter(Categoria.id.in_(categoria_ids)).all()
+        self.buscador_input.setStyleSheet("padding: 10px; font-size: 14px;")
+        self.buscador_input.textChanged.connect(self._on_text_changed)
+        self.buscador_input.returnPressed.connect(self._seleccionar_primero)
+        search_layout.addWidget(self.buscador_input)
+        layout.addLayout(search_layout)
+
+        self.tabs = QTabWidget()
+        self.tabs.setStyleSheet("font-size: 13px;")
+        layout.addWidget(self.tabs)
+
+        tab_resultados = QWidget()
+        tab_resultados_layout = QVBoxLayout()
+        tab_resultados.setLayout(tab_resultados_layout)
+
+        self.lbl_resultados = QLabel("Mostrando todos los productos")
+        self.lbl_resultados.setStyleSheet(
+            "color: #7f8c8d; font-size: 12px; padding: 2px;"
         )
-        producto.categorias = categorias
-        self.session.commit()
-        return producto
+        tab_resultados_layout.addWidget(self.lbl_resultados)
 
-    def get_productos_de_categoria(self, categoria_id):
-        cat = self.session.query(Categoria).filter(Categoria.id == categoria_id).first()
-        if not cat:
-            return []
-        return [p for p in cat.productos if p.activo]
+        self.tabla = QTableWidget()
+        self.tabla.setColumnCount(4)
+        self.tabla.setHorizontalHeaderLabels(["Código", "Nombre", "Stock", "Precio"])
+        self.tabla.horizontalHeader().setSectionResizeMode(
+            1, QHeaderView.ResizeMode.Stretch
+        )
+        self.tabla.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.tabla.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.tabla.doubleClicked.connect(self.seleccionar_producto)
+        self.tabla.setStyleSheet("font-size: 13px;")
+        tab_resultados_layout.addWidget(self.tabla)
+        self.tabs.addTab(tab_resultados, "🔍  Búsqueda")
 
+        tab_categorias = QWidget()
+        tab_cat_layout = QVBoxLayout()
+        tab_categorias.setLayout(tab_cat_layout)
+
+        lbl_cat = QLabel("Selecciona una categoría para filtrar productos:")
+        lbl_cat.setStyleSheet("color: #7f8c8d; font-size: 12px; padding: 2px;")
+        tab_cat_layout.addWidget(lbl_cat)
+
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFixedHeight(120)
+        scroll.setStyleSheet("border: none;")
+        self.cat_buttons_widget = QWidget()
+        self.cat_buttons_layout = QHBoxLayout()
+        self.cat_buttons_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        self.cat_buttons_widget.setLayout(self.cat_buttons_layout)
+        scroll.setWidget(self.cat_buttons_widget)
+        tab_cat_layout.addWidget(scroll)
+
+        self.tabla_cat = QTableWidget()
+        self.tabla_cat.setColumnCount(4)
+        self.tabla_cat.setHorizontalHeaderLabels(
+            ["Código", "Nombre", "Stock", "Precio"]
+        )
+        self.tabla_cat.horizontalHeader().setSectionResizeMode(
+            1, QHeaderView.ResizeMode.Stretch
+        )
+        self.tabla_cat.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.tabla_cat.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.tabla_cat.doubleClicked.connect(self._seleccionar_de_cat)
+        self.tabla_cat.setStyleSheet("font-size: 13px;")
+        tab_cat_layout.addWidget(self.tabla_cat)
+        self.tabs.addTab(tab_categorias, "🏷️  Categorías")
+
+        btn_layout = QHBoxLayout()
+        btn_seleccionar = QPushButton("Seleccionar")
+        btn_seleccionar.setStyleSheet("""
+            QPushButton {
+                background-color: #27ae60;
+                color: white;
+                padding: 10px 20px;
+                font-weight: bold;
+                font-size: 14px;
+            }
+            QPushButton:hover { background-color: #2ecc71; }
+        """)
+        btn_seleccionar.clicked.connect(self.seleccionar_producto)
+        btn_layout.addWidget(btn_seleccionar)
+
+        btn_cancelar = QPushButton("Cancelar")
+        btn_cancelar.setStyleSheet("""
+            QPushButton {
+                background-color: #95a5a6;
+                color: white;
+                padding: 10px 20px;
+            }
+            QPushButton:hover { background-color: #7f8c8d; }
+        """)
+        btn_cancelar.clicked.connect(self.reject)
+        btn_layout.addWidget(btn_cancelar)
+        layout.addLayout(btn_layout)
+
+        self.llenar_tabla(self.productos, self.tabla)
+        self._cargar_categorias()
+        self.buscador_input.setFocus()
+
+    def _on_text_changed(self):
+        self._timer.start(200)
+
+    def _filtrar_debounced(self):
+        texto = self.buscador_input.text().strip().lower()
+        if not texto:
+            productos_filtrados = self.productos
+            self.lbl_resultados.setText(
+                f"Mostrando todos los productos ({len(self.productos)})"
+            )
+        else:
+            productos_filtrados = [
+                p
+                for p in self.productos
+                if texto in p.codigo.lower() or texto in p.nombre.lower()
+            ]
+            self.lbl_resultados.setText(
+                f'{len(productos_filtrados)} resultado(s) para "{texto}"'
+            )
+        self.llenar_tabla(productos_filtrados, self.tabla)
+        if productos_filtrados:
+            self.tabla.selectRow(0)
+
+    def _seleccionar_primero(self):
+        """Al presionar Enter selecciona el primer resultado"""
+        if self.tabla.rowCount() > 0:
+            self.tabla.selectRow(0)
+            self.seleccionar_producto()
+
+    def llenar_tabla(self, productos, tabla):
+        tabla.setRowCount(len(productos))
+        for i, p in enumerate(productos):
+            tabla.setItem(i, 0, QTableWidgetItem(p.codigo))
+            tabla.setItem(i, 1, QTableWidgetItem(p.nombre))
+            stock_item = QTableWidgetItem(str(p.stock))
+            if p.stock <= 0:
+                stock_item.setForeground(QColor("#e74c3c"))
+            elif p.stock < 5:
+                stock_item.setForeground(QColor("#e67e22"))
+            tabla.setItem(i, 2, stock_item)
+            tabla.setItem(i, 3, QTableWidgetItem(f"${p.precio:,.2f}"))
+
+    def _cargar_categorias(self):
+        """Carga los botones de categorías"""
+        if not self.session:
+            return
+        try:
+            from models.producto import Categoria
+
+            categorias = (
+                self.session.query(Categoria).order_by(Categoria.nombre.asc()).all()
+            )
+            while self.cat_buttons_layout.count():
+                item = self.cat_buttons_layout.takeAt(0)
+                if item.widget():
+                    item.widget().deleteLater()
+
+            btn_todos = QPushButton("Todos")
+            btn_todos.setStyleSheet("""
+                QPushButton {
+                    background-color: #2c3e50;
+                    color: white;
+                    padding: 8px 16px;
+                    border-radius: 16px;
+                    font-weight: bold;
+                    font-size: 12px;
+                }
+                QPushButton:hover { background-color: #34495e; }
+            """)
+            btn_todos.clicked.connect(
+                lambda: self.llenar_tabla(self.productos, self.tabla_cat)
+            )
+            self.cat_buttons_layout.addWidget(btn_todos)
+
+            for i, cat in enumerate(categorias):
+                color = cat.color or COLORES_CATEGORIA[i % len(COLORES_CATEGORIA)]
+                btn = QPushButton(f"🏷 {cat.nombre}")
+                btn.setStyleSheet(f"""
+                    QPushButton {{
+                        background-color: {color};
+                        color: white;
+                        padding: 8px 16px;
+                        border-radius: 16px;
+                        font-size: 12px;
+                    }}
+                    QPushButton:hover {{ opacity: 0.85; }}
+                """)
+                btn.clicked.connect(
+                    lambda checked, c=cat: self._filtrar_por_categoria(c)
+                )
+                self.cat_buttons_layout.addWidget(btn)
+        except Exception as e:
+            print(f"[WARN] No se pudieron cargar categorías: {e}")
+
+    def _filtrar_por_categoria(self, categoria):
+        """Filtra productos por categoría"""
+        if not self.session:
+            return
+        try:
+            from repositories.producto_repo import ProductoRepository
+
+            repo = ProductoRepository(self.session)
+            productos = repo.search_por_categoria(categoria.id)
+            self.llenar_tabla(productos, self.tabla_cat)
+        except Exception as e:
+            print(f"[WARN] Error filtrando por categoría: {e}")
+
+    def seleccionar_producto(self):
+        """Selecciona de la tab activa"""
+        tab_actual = self.tabs.currentIndex()
+        if tab_actual == 0:
+            self._seleccionar_de_tabla(self.tabla)
+        else:
+            self._seleccionar_de_cat()
+
+    def _seleccionar_de_cat(self):
+        self._seleccionar_de_tabla(self.tabla_cat)
+
+    def _seleccionar_de_tabla(self, tabla):
+        row = tabla.currentRow()
+        if row >= 0:
+            item = tabla.item(row, 0)
+            if item is not None:
+                codigo = item.text()
+                for p in self.productos:
+                    if p.codigo == codigo:
+                        self.producto_seleccionado = p
+                        self.accept()
+                        return
+                if self.session:
+                    from repositories.producto_repo import ProductoRepository
+
+                    repo = ProductoRepository(self.session)
+                    p = repo.get_by_codigo(codigo)
+                    if p:
+                        self.producto_seleccionado = p
+                        self.accept()
 ```
 
----
-
-## 12. security/license_manager.py
+## tucajero/ui/config_view.py
 
 ```python
-import uuid
-import hashlib
-import json
 import os
-import sys
-import platform
-
-SECRET = "tito_castilla_pos_secret"
-
-
-def get_config_dir():
-    """Retorna el directorio de configuración en %LOCALAPPDATA%"""
-    if sys.platform == "win32":
-        base = os.environ.get("LOCALAPPDATA", os.environ.get("APPDATA", ""))
-        return os.path.join(base, "TuCajero", "config")
-    return os.path.join(os.path.expanduser("~"), ".tucajero", "config")
-
-
-def get_machine_id():
-    """Obtiene un identificador único robusto de la computadora"""
-    components = [
-        str(uuid.getnode()),
-        platform.node(),
-        platform.processor() or "unknown",
-        platform.machine() or "unknown",
-    ]
-    combined = "|".join(components)
-    return hashlib.sha256(combined.encode()).hexdigest()[:16]
+from PySide6.QtWidgets import (
+    QDialog,
+    QVBoxLayout,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QFileDialog,
+    QMessageBox,
+    QFormLayout,
+    QWidget,
+)
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QPixmap
 
 
-def generar_licencia(machine_id):
-    """Genera una licencia basada en el machine_id"""
-    licencia = hashlib.sha256((machine_id + SECRET).encode()).hexdigest()[:16]
-    return licencia.upper()
+class ConfigNegocioDialog(QDialog):
+    def __init__(self, parent=None, primera_vez=False):
+        super().__init__(parent)
+        self.primera_vez = primera_vez
+        self.logo_path_seleccionado = ""
+        self.setWindowTitle("Configuración del Negocio")
+        self.setMinimumWidth(480)
+        self.setMinimumHeight(500)
+        if primera_vez:
+            self.setWindowFlags(
+                self.windowFlags() & ~Qt.WindowType.WindowCloseButtonHint
+            )
+        self.init_ui()
+        self.cargar_datos_existentes()
 
+    def init_ui(self):
+        layout = QVBoxLayout()
+        self.setLayout(layout)
 
-def get_license_path():
-    """Retorna la ruta del archivo de licencia en %LOCALAPPDATA%"""
-    config_dir = get_config_dir()
-    os.makedirs(config_dir, exist_ok=True)
-    return os.path.join(config_dir, "license.json")
+        header = QWidget()
+        header.setStyleSheet(
+            "background-color: #1a252f; border-radius: 8px; padding: 16px;"
+        )
+        header_layout = QVBoxLayout()
+        header.setLayout(header_layout)
 
+        if self.primera_vez:
+            titulo = QLabel("¡Bienvenido a TuCajero!")
+            titulo.setStyleSheet("color: white; font-size: 20px; font-weight: bold;")
+            subtitulo = QLabel("Configura los datos de tu negocio antes de comenzar.")
+            subtitulo.setStyleSheet("color: #a0b0c0; font-size: 13px;")
+            header_layout.addWidget(titulo)
+            header_layout.addWidget(subtitulo)
+        else:
+            titulo = QLabel("Configuración del Negocio")
+            titulo.setStyleSheet("color: white; font-size: 18px; font-weight: bold;")
+            header_layout.addWidget(titulo)
 
-def cargar_licencia():
-    """Carga la configuración de licencia"""
-    license_path = get_license_path()
-    if not os.path.exists(license_path):
-        return {"activated": False, "license_key": ""}
+        layout.addWidget(header)
 
-    try:
-        with open(license_path, "r") as f:
-            return json.load(f)
-    except:
-        return {"activated": False, "license_key": ""}
+        form_widget = QWidget()
+        form = QFormLayout()
+        form.setSpacing(12)
+        form_widget.setLayout(form)
 
+        self.nombre_input = QLineEdit()
+        self.nombre_input.setPlaceholderText("Ej: Droguería El Carmen")
+        self.nombre_input.setStyleSheet("padding: 8px; font-size: 14px;")
+        form.addRow("Nombre del negocio *:", self.nombre_input)
 
-def guardar_licencia(license_key):
-    """Guarda la licencia en el archivo"""
-    license_path = get_license_path()
-    data = {"activated": True, "license_key": license_key.upper()}
-    with open(license_path, "w") as f:
-        json.dump(data, f, indent=4)
-    return True
+        self.direccion_input = QLineEdit()
+        self.direccion_input.setPlaceholderText("Ej: Calle 10 # 5-20")
+        self.direccion_input.setStyleSheet("padding: 8px; font-size: 14px;")
+        form.addRow("Dirección:", self.direccion_input)
 
+        self.telefono_input = QLineEdit()
+        self.telefono_input.setPlaceholderText("Ej: 3001234567")
+        self.telefono_input.setStyleSheet("padding: 8px; font-size: 14px;")
+        form.addRow("Teléfono:", self.telefono_input)
 
-def validar_licencia():
-    """Valida si la licencia es correcta"""
-    licencia_data = cargar_licencia()
+        self.email_input = QLineEdit()
+        self.email_input.setPlaceholderText("Ej: minegocio@gmail.com")
+        self.email_input.setStyleSheet("padding: 8px; font-size: 14px;")
+        form.addRow("Email:", self.email_input)
 
-    if not licencia_data.get("activated", False):
-        return False
+        self.nit_input = QLineEdit()
+        self.nit_input.setPlaceholderText("Ej: 900123456-1")
+        self.nit_input.setStyleSheet("padding: 8px; font-size: 14px;")
+        form.addRow("NIT:", self.nit_input)
 
-    machine_id = get_machine_id()
-    licencia_correcta = generar_licencia(machine_id)
+        logo_widget = QWidget()
+        logo_layout = QHBoxLayout()
+        logo_layout.setContentsMargins(0, 0, 0, 0)
+        logo_widget.setLayout(logo_layout)
 
-    return licencia_data.get("license_key", "").upper() == licencia_correcta
+        self.logo_preview = QLabel()
+        self.logo_preview.setFixedSize(80, 80)
+        self.logo_preview.setStyleSheet(
+            "border: 2px dashed #bdc3c7; border-radius: 8px;background: #f8f9fa;"
+        )
+        self.logo_preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.logo_preview.setText("Sin logo")
+        logo_layout.addWidget(self.logo_preview)
 
+        logo_btn_layout = QVBoxLayout()
+        btn_seleccionar_logo = QPushButton("Seleccionar logo...")
+        btn_seleccionar_logo.setStyleSheet(
+            "background-color: #3498db; color: white; padding: 8px 16px;"
+        )
+        btn_seleccionar_logo.clicked.connect(self.seleccionar_logo)
+        logo_btn_layout.addWidget(btn_seleccionar_logo)
 
-def crear_license_default():
-    """Crea el archivo de licencia por defecto"""
-    license_path = get_license_path()
-    if not os.path.exists(license_path):
-        data = {"activated": False, "license_key": ""}
-        with open(license_path, "w") as f:
-            json.dump(data, f, indent=4)
+        self.lbl_logo_path = QLabel("Ningún archivo seleccionado")
+        self.lbl_logo_path.setStyleSheet("color: #7f8c8d; font-size: 11px;")
+        self.lbl_logo_path.setWordWrap(True)
+        logo_btn_layout.addWidget(self.lbl_logo_path)
+        logo_btn_layout.addStretch()
+        logo_layout.addLayout(logo_btn_layout)
 
+        form.addRow("Logo del negocio:", logo_widget)
+        layout.addWidget(form_widget)
+
+        nota = QLabel("* Campo obligatorio")
+        nota.setStyleSheet("color: #e74c3c; font-size: 11px;")
+        layout.addWidget(nota)
+
+        layout.addStretch()
+
+        btn_layout = QHBoxLayout()
+        btn_guardar = QPushButton(
+            "GUARDAR Y CONTINUAR" if self.primera_vez else "GUARDAR"
+        )
+        btn_guardar.setStyleSheet("""
+            QPushButton {
+                background-color: #27ae60;
+                color: white;
+                font-size: 15px;
+                font-weight: bold;
+                padding: 12px 24px;
+            }
+            QPushButton:hover { background-color: #2ecc71; }
+        """)
+        btn_guardar.clicked.connect(self.guardar)
+        btn_layout.addWidget(btn_guardar)
+
+        if not self.primera_vez:
+            btn_cancelar = QPushButton("Cancelar")
+            btn_cancelar.setStyleSheet(
+                "background-color: #95a5a6; color: white; padding: 12px 24px;"
+            )
+            btn_cancelar.clicked.connect(self.reject)
+            btn_layout.addWidget(btn_cancelar)
+
+        layout.addLayout(btn_layout)
+
+    def cargar_datos_existentes(self):
+        from utils.store_config import (
+            load_store_config,
+            get_store_name,
+            get_address,
+            get_phone,
+            get_email,
+            get_nit,
+            get_logo_path,
+        )
+
+        load_store_config()
+        self.nombre_input.setText(get_store_name())
+        self.direccion_input.setText(get_address())
+        self.telefono_input.setText(get_phone())
+        self.email_input.setText(get_email())
+        self.nit_input.setText(get_nit())
+        logo = get_logo_path()
+        if logo and os.path.exists(logo):
+            self.logo_path_seleccionado = logo
+            self._mostrar_preview_logo(logo)
+            self.lbl_logo_path.setText(os.path.basename(logo))
+
+    def seleccionar_logo(self):
+        archivo, _ = QFileDialog.getOpenFileName(
+            self,
+            "Seleccionar logo del negocio",
+            "",
+            "Imágenes (*.png *.jpg *.jpeg *.bmp *.ico)",
+        )
+        if archivo:
+            self.logo_path_seleccionado = archivo
+            self._mostrar_preview_logo(archivo)
+            self.lbl_logo_path.setText(os.path.basename(archivo))
+
+    def _mostrar_preview_logo(self, path):
+        pm = QPixmap(path)
+        if not pm.isNull():
+            scaled = pm.scaled(
+                76,
+                76,
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation,
+            )
+            self.logo_preview.setPixmap(scaled)
+            self.logo_preview.setText("")
+
+    def guardar(self):
+        nombre = self.nombre_input.text().strip()
+        if not nombre:
+            QMessageBox.warning(
+                self, "Campo requerido", "El nombre del negocio es obligatorio."
+            )
+            self.nombre_input.setFocus()
+            return
+
+        logo_guardado = ""
+        if self.logo_path_seleccionado:
+            try:
+                import shutil
+                from utils.store_config import get_config_dir
+
+                assets_dir = os.path.join(os.path.dirname(get_config_dir()), "assets")
+                os.makedirs(assets_dir, exist_ok=True)
+                ext = os.path.splitext(self.logo_path_seleccionado)[1]
+                destino = os.path.join(assets_dir, f"logo{ext}")
+                shutil.copy2(self.logo_path_seleccionado, destino)
+                logo_guardado = destino
+            except Exception as e:
+                print(f"[WARN] No se pudo copiar el logo: {e}")
+                logo_guardado = self.logo_path_seleccionado
+
+        config = {
+            "store_name": nombre,
+            "logo_path": logo_guardado,
+            "address": self.direccion_input.text().strip(),
+            "phone": self.telefono_input.text().strip(),
+            "email": self.email_input.text().strip(),
+            "nit": self.nit_input.text().strip(),
+        }
+
+        from utils.store_config import save_store_config
+
+        if save_store_config(config):
+            if not self.primera_vez:
+                QMessageBox.information(
+                    self,
+                    "Guardado",
+                    "Configuración guardada.\n"
+                    "Reinicia la aplicación para ver los cambios en el header.",
+                )
+            self.accept()
+        else:
+            QMessageBox.critical(self, "Error", "No se pudo guardar la configuración.")
 ```
 
----
+## tucajero/ui/corte_view.py
 
-## 13. ui/main_window.py — Ventana Principal
+```python
+from PySide6.QtWidgets import (
+    QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QTableWidget,
+    QTableWidgetItem,
+    QMessageBox,
+    QHeaderView,
+    QDialog,
+    QFormLayout,
+    QLineEdit,
+    QDoubleSpinBox,
+    QDialogButtonBox,
+)
+from PySide6.QtCore import Qt
+from datetime import datetime
+
+
+class CorteView(QWidget):
+    """Vista de corte de caja"""
+
+    def __init__(self, session, parent=None):
+        super().__init__(parent)
+        self.session = session
+        self.init_ui()
+        self.cargar_estadisticas()
+
+    def init_ui(self):
+        """Inicializa la interfaz"""
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+
+        titulo = QLabel("Corte de Caja")
+        titulo.setStyleSheet("font-size: 24px; font-weight: bold;")
+        layout.addWidget(titulo)
+
+        self.info_widget = QWidget()
+        self.info_widget.setStyleSheet("""
+            QWidget {
+                background-color: #ecf0f1;
+                border-radius: 10px;
+                padding: 20px;
+            }
+        """)
+        info_layout = QVBoxLayout()
+        self.info_widget.setLayout(info_layout)
+
+        self.lbl_fecha = QLabel(f"Fecha: {datetime.now().strftime('%d/%m/%Y')}")
+        self.lbl_fecha.setStyleSheet("font-size: 18px;")
+        info_layout.addWidget(self.lbl_fecha)
+
+        self.lbl_estado = QLabel("Caja: ABIERTA")
+        self.lbl_estado.setStyleSheet(
+            "font-size: 18px; font-weight: bold; color: #27ae60;"
+        )
+        info_layout.addWidget(self.lbl_estado)
+
+        self.lbl_total = QLabel("Total vendido: $0.00")
+        self.lbl_total.setStyleSheet(
+            "font-size: 28px; font-weight: bold; color: #27ae60;"
+        )
+        info_layout.addWidget(self.lbl_total)
+
+        self.lbl_num_ventas = QLabel("Número de ventas: 0")
+        self.lbl_num_ventas.setStyleSheet("font-size: 18px;")
+        info_layout.addWidget(self.lbl_num_ventas)
+
+        layout.addWidget(self.info_widget)
+
+        botones_layout = QHBoxLayout()
+
+        self.btn_abrir = QPushButton("ABRIR CAJA")
+        self.btn_abrir.setStyleSheet("""
+            QPushButton {
+                background-color: #27ae60;
+                color: white;
+                font-size: 16px;
+                font-weight: bold;
+                padding: 15px;
+            }
+            QPushButton:hover {
+                background-color: #2ecc71;
+            }
+        """)
+        self.btn_abrir.clicked.connect(self.abrir_caja)
+        botones_layout.addWidget(self.btn_abrir)
+
+        self.btn_cerrar = QPushButton("CERRAR CAJA")
+        self.btn_cerrar.setStyleSheet("""
+            QPushButton {
+                background-color: #e74c3c;
+                color: white;
+                font-size: 16px;
+                font-weight: bold;
+                padding: 15px;
+            }
+            QPushButton:hover {
+                background-color: #c0392b;
+            }
+        """)
+        self.btn_cerrar.clicked.connect(self.cerrar_caja)
+        botones_layout.addWidget(self.btn_cerrar)
+
+        layout.addLayout(botones_layout)
+
+        self.btn_gasto = QPushButton("Registrar Gasto de Caja")
+        self.btn_gasto.setStyleSheet("""
+            QPushButton {
+                background-color: #e67e22;
+                color: white;
+                font-size: 14px;
+                font-weight: bold;
+                padding: 12px;
+            }
+            QPushButton:hover {
+                background-color: #d35400;
+            }
+            QPushButton:disabled {
+                background-color: #bdc3c7;
+            }
+        """)
+        self.btn_gasto.clicked.connect(self.registrar_gasto)
+        layout.addWidget(self.btn_gasto)
+
+        self.btn_anular = QPushButton("Anular Venta")
+        self.btn_anular.setStyleSheet("""
+            QPushButton {
+                background-color: #c0392b;
+                color: white;
+                font-size: 14px;
+                font-weight: bold;
+                padding: 12px;
+            }
+            QPushButton:hover {
+                background-color: #e74c3c;
+            }
+            QPushButton:disabled {
+                background-color: #bdc3c7;
+            }
+        """)
+        self.btn_anular.clicked.connect(self.anular_venta)
+        layout.addWidget(self.btn_anular)
+
+        self.btn_facturas = QPushButton("Ver Facturas del Día")
+        self.btn_facturas.setStyleSheet("""
+            QPushButton {
+                background-color: #2980b9;
+                color: white;
+                font-size: 14px;
+                font-weight: bold;
+                padding: 12px;
+            }
+            QPushButton:hover {
+                background-color: #3498db;
+            }
+        """)
+        self.btn_facturas.clicked.connect(self.ver_facturas_dia)
+        layout.addWidget(self.btn_facturas)
+
+        self.lbl_ganancia = QLabel("Ganancia neta: $0.00")
+        self.lbl_ganancia.setStyleSheet(
+            "font-size: 20px; font-weight: bold; color: #8e44ad; padding: 8px;"
+        )
+        layout.addWidget(self.lbl_ganancia)
+
+        historial_label = QLabel("Ventas del día")
+        historial_label.setStyleSheet(
+            "font-size: 18px; font-weight: bold; margin-top: 20px;"
+        )
+        layout.addWidget(historial_label)
+
+        self.tabla_ventas = QTableWidget()
+        self.tabla_ventas.setColumnCount(3)
+        self.tabla_ventas.setHorizontalHeaderLabels(["ID", "Hora", "Total"])
+        self.tabla_ventas.horizontalHeader().setSectionResizeMode(
+            1, QHeaderView.ResizeMode.Stretch
+        )
+        self.tabla_ventas.setStyleSheet("font-size: 14px;")
+        layout.addWidget(self.tabla_ventas)
+
+        gastos_label = QLabel("Gastos del día")
+        gastos_label.setStyleSheet(
+            "font-size: 16px; font-weight: bold; margin-top: 15px;"
+        )
+        layout.addWidget(gastos_label)
+
+        self.tabla_gastos = QTableWidget()
+        self.tabla_gastos.setColumnCount(3)
+        self.tabla_gastos.setHorizontalHeaderLabels(["Hora", "Concepto", "Monto"])
+        self.tabla_gastos.horizontalHeader().setSectionResizeMode(
+            1, QHeaderView.ResizeMode.Stretch
+        )
+        self.tabla_gastos.setStyleSheet("font-size: 13px;")
+        layout.addWidget(self.tabla_gastos)
+
+    def cargar_estadisticas(self):
+        """Carga las estadísticas del día"""
+        from services.corte_service import CorteCajaService
+
+        service = CorteCajaService(self.session)
+        stats = service.get_estadisticas_hoy()
+        caja_abierta = service.esta_caja_abierta()
+
+        if caja_abierta:
+            self.lbl_estado.setText("Caja: ABIERTA")
+            self.lbl_estado.setStyleSheet(
+                "font-size: 18px; font-weight: bold; color: #27ae60;"
+            )
+            self.btn_abrir.setEnabled(False)
+            self.btn_cerrar.setEnabled(True)
+            self.btn_gasto.setEnabled(True)
+            self.btn_anular.setEnabled(True)
+        else:
+            self.lbl_estado.setText("Caja: CERRADA")
+            self.lbl_estado.setStyleSheet(
+                "font-size: 18px; font-weight: bold; color: #e74c3c;"
+            )
+            self.btn_abrir.setEnabled(True)
+            self.btn_cerrar.setEnabled(False)
+            self.btn_gasto.setEnabled(False)
+            self.btn_anular.setEnabled(False)
+
+        self.lbl_total.setText(f"Total vendido: ${stats['total']:.2f}")
+        self.lbl_num_ventas.setText(f"Número de ventas: {stats['num_ventas']}")
+        self.lbl_ganancia.setText(
+            f"Ganancia neta: ${stats['ganancia_neta']:.2f} "
+            f"(Gastos: ${stats['total_gastos']:.2f})"
+        )
+
+        ventas = stats["ventas"]
+        self.tabla_ventas.setRowCount(len(ventas))
+
+        for i, venta in enumerate(ventas):
+            self.tabla_ventas.setItem(i, 0, QTableWidgetItem(str(venta.id)))
+            self.tabla_ventas.setItem(
+                i, 1, QTableWidgetItem(venta.fecha.strftime("%H:%M:%S"))
+            )
+            self.tabla_ventas.setItem(i, 2, QTableWidgetItem(f"${venta.total:.2f}"))
+
+        gastos = stats["gastos"]
+        self.tabla_gastos.setRowCount(len(gastos))
+
+        for i, gasto in enumerate(gastos):
+            self.tabla_gastos.setItem(
+                i, 0, QTableWidgetItem(gasto.fecha.strftime("%H:%M"))
+            )
+            self.tabla_gastos.setItem(i, 1, QTableWidgetItem(gasto.concepto))
+            self.tabla_gastos.setItem(i, 2, QTableWidgetItem(f"${gasto.monto:.2f}"))
+
+    def abrir_caja(self):
+        """Abre la caja"""
+        from services.corte_service import CorteCajaService
+
+        service = CorteCajaService(self.session)
+        service.abrir_caja()
+
+        QMessageBox.information(
+            self,
+            "Caja Abierta",
+            "La caja ha sido abierta correctamente.\n\nYa puedes comenzar a registrar ventas.",
+        )
+
+        self.cargar_estadisticas()
+
+    def registrar_gasto(self):
+        """Abre diálogo para registrar gasto"""
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Registrar Gasto de Caja")
+        dialog.setMinimumWidth(380)
+        layout = QFormLayout()
+        dialog.setLayout(layout)
+
+        info = QLabel("El monto será descontado de la ganancia del día.")
+        info.setStyleSheet("color: #7f8c8d; font-size: 12px;")
+        layout.addRow("", info)
+
+        concepto_input = QLineEdit()
+        concepto_input.setPlaceholderText("Ej: Compra de bolsas, Pasaje, Luz...")
+        concepto_input.setStyleSheet("padding: 8px; font-size: 14px;")
+        layout.addRow("Concepto:", concepto_input)
+
+        monto_input = QDoubleSpinBox()
+        monto_input.setRange(0.01, 999999)
+        monto_input.setDecimals(2)
+        monto_input.setStyleSheet("padding: 8px; font-size: 16px;")
+        layout.addRow("Monto:", monto_input)
+
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        )
+        buttons.button(QDialogButtonBox.StandardButton.Ok).setText("REGISTRAR")
+        buttons.button(QDialogButtonBox.StandardButton.Ok).setStyleSheet(
+            "background-color: #e67e22; color: white; padding: 8px 16px;"
+        )
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
+        layout.addRow("", buttons)
+
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            concepto = concepto_input.text().strip()
+            monto = monto_input.value()
+            if not concepto:
+                QMessageBox.warning(self, "Error", "El concepto es obligatorio")
+                return
+            if monto <= 0:
+                QMessageBox.warning(self, "Error", "El monto debe ser mayor a cero")
+                return
+            try:
+                from services.corte_service import CorteCajaService
+
+                service = CorteCajaService(self.session)
+                service.registrar_gasto(concepto, monto)
+                self.cargar_estadisticas()
+                QMessageBox.information(
+                    self,
+                    "Gasto Registrado",
+                    f"Gasto registrado:\n{concepto}: ${monto:.2f}",
+                )
+            except Exception as e:
+                QMessageBox.critical(self, "Error", str(e))
+
+    def cerrar_caja(self):
+        """Cierra la caja"""
+        respuesta = QMessageBox.question(
+            self,
+            "Confirmar",
+            "¿Está seguro de cerrar la caja?\nSe registrará el corte del día.",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        )
+
+        if respuesta == QMessageBox.StandardButton.Yes:
+            from services.corte_service import CorteCajaService
+
+            service = CorteCajaService(self.session)
+            stats = service.get_estadisticas_hoy()
+
+            corte = service.cerrar_caja()
+
+            if corte:
+                QMessageBox.information(
+                    self,
+                    "Corte de Caja",
+                    f"Corte de caja cerrado!\n\n"
+                    f"Total vendido: ${corte.total_ventas:.2f}\n"
+                    f"Gastos: ${stats['total_gastos']:.2f}\n"
+                    f"Ganancia neta: ${stats['ganancia_neta']:.2f}\n\n"
+                    f"Ventas: {stats['num_ventas']}",
+                )
+            else:
+                QMessageBox.warning(self, "Error", "No hay caja abierta")
+
+            self.cargar_estadisticas()
+
+    def anular_venta(self):
+        """Anula una venta del día"""
+        from services.corte_service import CorteCajaService
+        from services.producto_service import VentaService
+        from ui.ventas_view import VentasView
+
+        service = CorteCajaService(self.session)
+        stats = service.get_estadisticas_hoy()
+        ventas = stats["ventas"]
+
+        if not ventas:
+            QMessageBox.warning(self, "Sin ventas", "No hay ventas registradas hoy")
+            return
+
+        from PySide6.QtWidgets import QInputDialog
+
+        venta_ids = [str(v.id) for v in ventas]
+        venta_id_str, ok = QInputDialog.getItem(
+            self,
+            "Anular Venta",
+            "Seleccione la venta a anular:",
+            venta_ids,
+            0,
+            False,
+        )
+
+        if not ok or not venta_id_str:
+            return
+
+        venta_id = int(venta_id_str)
+
+        respuesta = QMessageBox.question(
+            self,
+            "Confirmar Anulación",
+            f"¿Está seguro de anular la venta #{venta_id}?\n"
+            "El stock de los productos será restaurado.",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        )
+
+        if respuesta != QMessageBox.StandardButton.Yes:
+            return
+
+        try:
+            venta_service = VentaService(self.session)
+            venta_service.anular_venta(venta_id)
+            QMessageBox.information(
+                self,
+                "Venta Anulada",
+                f"Venta #{venta_id} ha sido anulada.\nEl stock ha sido restaurado.",
+            )
+            self.cargar_estadisticas()
+        except ValueError as e:
+            QMessageBox.warning(self, "Error", str(e))
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Error al anular venta: {str(e)}")
+
+    def ver_facturas_dia(self):
+        """Abre o genera el PDF de facturas del día"""
+        from utils.factura_diaria import get_factura_diaria_path
+        import subprocess
+        import os
+
+        pdf_path = get_factura_diaria_path()
+        if not os.path.exists(pdf_path):
+            QMessageBox.information(
+                self,
+                "Sin facturas",
+                "No hay facturas registradas para el día de hoy.",
+            )
+            return
+
+        try:
+            if os.name == "nt":
+                os.startfile(pdf_path)
+            else:
+                subprocess.run(["xdg-open", pdf_path])
+        except Exception as e:
+            QMessageBox.warning(self, "Error", f"No se pudo abrir el archivo: {str(e)}")
+```
+
+## tucajero/ui/historial_view.py
+
+```python
+from PySide6.QtWidgets import (
+    QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QTableWidget,
+    QTableWidgetItem,
+    QHeaderView,
+    QDateEdit,
+    QComboBox,
+    QMessageBox,
+)
+from PySide6.QtCore import Qt, QDate
+from datetime import datetime, timedelta
+import os
+
+
+class HistorialView(QWidget):
+    """Vista de historial de cierres y ranking de productos"""
+
+    def __init__(self, session, parent=None):
+        super().__init__(parent)
+        self.session = session
+        self.init_ui()
+        self.cargar_historial()
+
+    def init_ui(self):
+        """Inicializa la interfaz"""
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+
+        titulo = QLabel("Historial de Cierres")
+        titulo.setStyleSheet("font-size: 24px; font-weight: bold;")
+        layout.addWidget(titulo)
+
+        filtros_layout = QHBoxLayout()
+
+        filtros_layout.addWidget(QLabel("Desde:"))
+        self.desde_edit = QDateEdit()
+        self.desde_edit.setCalendarPopup(True)
+        self.desde_edit.setDate(QDate.currentDate().addDays(-30))
+        filtros_layout.addWidget(self.desde_edit)
+
+        filtros_layout.addWidget(QLabel("Hasta:"))
+        self.hasta_edit = QDateEdit()
+        self.hasta_edit.setCalendarPopup(True)
+        self.hasta_edit.setDate(QDate.currentDate())
+        filtros_layout.addWidget(self.hasta_edit)
+
+        self.filtro_rapido = QComboBox()
+        self.filtro_rapido.addItems(
+            [
+                "Filtro rápido...",
+                "Este mes",
+                "Mes anterior",
+                "Últimos 3 meses",
+                "Este año",
+            ]
+        )
+        self.filtro_rapido.currentTextChanged.connect(self.on_filtro_rapido_changed)
+        filtros_layout.addWidget(self.filtro_rapido)
+
+        btn_filtrar = QPushButton("Filtrar")
+        btn_filtrar.setStyleSheet(
+            "background-color: #3498db; color: white; padding: 8px 16px;"
+        )
+        btn_filtrar.clicked.connect(self.cargar_historial)
+        filtros_layout.addWidget(btn_filtrar)
+
+        btn_exportar = QPushButton("Exportar Excel")
+        btn_exportar.setStyleSheet(
+            "background-color: #27ae60; color: white; padding: 8px 16px;"
+        )
+        btn_exportar.clicked.connect(self.exportar_excel)
+        filtros_layout.addWidget(btn_exportar)
+
+        filtros_layout.addStretch()
+        layout.addLayout(filtros_layout)
+
+        self.resumen_widget = QWidget()
+        self.resumen_widget.setStyleSheet("""
+            QWidget {
+                background-color: #2c3e50;
+                border-radius: 8px;
+                padding: 15px;
+            }
+        """)
+        resumen_layout = QHBoxLayout()
+        self.resumen_widget.setLayout(resumen_layout)
+
+        self.lbl_ventas = QLabel("Ventas brutas: $0.00")
+        self.lbl_ventas.setStyleSheet(
+            "color: white; font-size: 16px; font-weight: bold;"
+        )
+        resumen_layout.addWidget(self.lbl_ventas)
+
+        self.lbl_gastos = QLabel("Gastos: $0.00")
+        self.lbl_gastos.setStyleSheet(
+            "color: #e74c3c; font-size: 16px; font-weight: bold;"
+        )
+        resumen_layout.addWidget(self.lbl_gastos)
+
+        self.lbl_ganancia = QLabel("Ganancia neta: $0.00")
+        self.lbl_ganancia.setStyleSheet(
+            "color: #2ecc71; font-size: 16px; font-weight: bold;"
+        )
+        resumen_layout.addWidget(self.lbl_ganancia)
+
+        resumen_layout.addStretch()
+
+        self.lbl_resumen_datos = QLabel("Cierres: 0 | Ventas: 0")
+        self.lbl_resumen_datos.setStyleSheet("color: #bdc3c7; font-size: 14px;")
+        resumen_layout.addWidget(self.lbl_resumen_datos)
+
+        layout.addWidget(self.resumen_widget)
+
+        cierres_label = QLabel("Cierres del período")
+        cierres_label.setStyleSheet(
+            "font-size: 18px; font-weight: bold; margin-top: 15px;"
+        )
+        layout.addWidget(cierres_label)
+
+        self.tabla_cierres = QTableWidget()
+        self.tabla_cierres.setColumnCount(5)
+        self.tabla_cierres.setHorizontalHeaderLabels(
+            ["ID", "Apertura", "Cierre", "Ventas brutas", "Ganancia neta"]
+        )
+        self.tabla_cierres.horizontalHeader().setSectionResizeMode(
+            1, QHeaderView.ResizeMode.Stretch
+        )
+        self.tabla_cierres.setStyleSheet("font-size: 14px;")
+        self.tabla_cierres.setMinimumHeight(200)
+        layout.addWidget(self.tabla_cierres)
+
+        ranking_label = QLabel("Ranking de productos")
+        ranking_label.setStyleSheet(
+            "font-size: 18px; font-weight: bold; margin-top: 15px;"
+        )
+        layout.addWidget(ranking_label)
+
+        self.tabla_ranking = QTableWidget()
+        self.tabla_ranking.setColumnCount(4)
+        self.tabla_ranking.setHorizontalHeaderLabels(
+            ["#", "Producto", "Unidades vendidas", "Ingresos"]
+        )
+        self.tabla_ranking.horizontalHeader().setSectionResizeMode(
+            1, QHeaderView.ResizeMode.Stretch
+        )
+        self.tabla_ranking.setStyleSheet("font-size: 14px;")
+        self.tabla_ranking.setMaximumHeight(250)
+        layout.addWidget(self.tabla_ranking)
+
+    def on_filtro_rapido_changed(self, text):
+        """Aplica filtro rápido"""
+        today = QDate.currentDate()
+        if text == "Este mes":
+            self.desde_edit.setDate(QDate(today.year(), today.month(), 1))
+            self.hasta_edit.setDate(today)
+        elif text == "Mes anterior":
+            first_this_month = QDate(today.year(), today.month(), 1)
+            last_prev_month = first_this_month.addDays(-1)
+            first_prev_month = QDate(last_prev_month.year(), last_prev_month.month(), 1)
+            self.desde_edit.setDate(first_prev_month)
+            self.hasta_edit.setDate(last_prev_month)
+        elif text == "Últimos 3 meses":
+            self.desde_edit.setDate(today.addDays(-90))
+            self.hasta_edit.setDate(today)
+        elif text == "Este año":
+            self.desde_edit.setDate(QDate(today.year(), 1, 1))
+            self.hasta_edit.setDate(today)
+
+    def cargar_historial(self):
+        """Carga el historial de cierres"""
+        desde = self.desde_edit.date().toPython()
+        hasta = self.hasta_edit.date().toPython()
+        hasta = datetime.combine(hasta, datetime.max.time())
+
+        from models.producto import CorteCaja, VentaItem, Venta, Producto
+        from sqlalchemy import and_
+
+        cierres = (
+            self.session.query(CorteCaja)
+            .filter(
+                CorteCaja.fecha_cierre.isnot(None),
+                CorteCaja.fecha_apertura
+                >= datetime.combine(desde, datetime.min.time()),
+                CorteCaja.fecha_apertura <= hasta,
+            )
+            .order_by(CorteCaja.fecha_apertura.desc())
+            .all()
+        )
+
+        self.tabla_cierres.setRowCount(len(cierres))
+
+        total_ventas = 0
+        total_gastos = 0
+        total_cierres = len(cierres)
+        total_num_ventas = 0
+
+        for i, corte in enumerate(cierres):
+            self.tabla_cierres.setItem(i, 0, QTableWidgetItem(str(corte.id)))
+            self.tabla_cierres.setItem(
+                i, 1, QTableWidgetItem(corte.fecha_apertura.strftime("%d/%m/%Y %H:%M"))
+            )
+            self.tabla_cierres.setItem(
+                i,
+                2,
+                QTableWidgetItem(corte.fecha_cierre.strftime("%d/%m/%Y %H:%M"))
+                if corte.fecha_cierre
+                else QTableWidgetItem("—"),
+            )
+            self.tabla_cierres.setItem(
+                i, 3, QTableWidgetItem(f"${corte.total_ventas:.2f}")
+            )
+            ganancia = getattr(corte, "ganancia_neta", corte.total_ventas)
+            self.tabla_cierres.setItem(i, 4, QTableWidgetItem(f"${ganancia:.2f}"))
+
+            total_ventas += corte.total_ventas
+            total_gastos += getattr(corte, "total_gastos", 0)
+            total_num_ventas += corte.numero_ventas
+
+        self.lbl_ventas.setText(f"Ventas brutas: ${total_ventas:.2f}")
+        self.lbl_gastos.setText(f"Gastos: ${total_gastos:.2f}")
+        self.lbl_ganancia.setText(f"Ganancia neta: ${total_ventas - total_gastos:.2f}")
+        self.lbl_resumen_datos.setText(
+            f"Cierres: {total_cierres} | Ventas: {total_num_ventas}"
+        )
+
+        self.cargar_ranking(desde, hasta)
+
+    def cargar_ranking(self, desde, hasta):
+        """Carga el ranking de productos"""
+        desde_dt = datetime.combine(desde, datetime.min.time())
+        hasta_dt = datetime.combine(hasta, datetime.max.time())
+
+        from models.producto import VentaItem, Venta, Producto
+        from sqlalchemy import func
+
+        ranking = (
+            self.session.query(
+                Producto.nombre,
+                func.sum(VentaItem.cantidad).label("unidades"),
+                func.sum(VentaItem.cantidad * VentaItem.precio).label("ingresos"),
+            )
+            .join(VentaItem, VentaItem.producto_id == Producto.id)
+            .join(Venta, Venta.id == VentaItem.venta_id)
+            .filter(
+                Venta.fecha >= desde_dt,
+                Venta.fecha <= hasta_dt,
+                Venta.anulada == False,
+            )
+            .group_by(Producto.id, Producto.nombre)
+            .order_by(func.sum(VentaItem.cantidad * VentaItem.precio).desc())
+            .limit(50)
+            .all()
+        )
+
+        self.tabla_ranking.setRowCount(len(ranking))
+
+        for i, item in enumerate(ranking):
+            self.tabla_ranking.setItem(i, 0, QTableWidgetItem(str(i + 1)))
+            self.tabla_ranking.setItem(i, 1, QTableWidgetItem(item.nombre))
+            self.tabla_ranking.setItem(i, 2, QTableWidgetItem(str(int(item.unidades))))
+            self.tabla_ranking.setItem(i, 3, QTableWidgetItem(f"${item.ingresos:.2f}"))
+
+    def exportar_excel(self):
+        """Exporta el historial a Excel"""
+        try:
+            from openpyxl import Workbook
+            from openpyxl.styles import Font, Alignment, PatternFill
+
+            wb = Workbook()
+
+            desde = self.desde_edit.date().toPython()
+            hasta = self.hasta_edit.date().toPython()
+            fecha_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+            downloads = os.path.join(os.path.expanduser("~"), "Downloads")
+            filename = os.path.join(downloads, f"TuCajero_Historial_{fecha_str}.xlsx")
+
+            ws_cierres = wb.active
+            ws_cierres.title = "Cierres"
+
+            headers = [
+                "ID",
+                "Apertura",
+                "Cierre",
+                "Ventas brutas",
+                "Gastos",
+                "Ganancia neta",
+                "N° Ventas",
+            ]
+            ws_cierres.append(headers)
+
+            for cell in ws_cierres[1]:
+                cell.font = Font(bold=True)
+                cell.fill = PatternFill(
+                    start_color="3498db", end_color="3498db", fill_type="solid"
+                )
+                cell.alignment = Alignment(horizontal="center")
+
+            for row in range(self.tabla_cierres.rowCount()):
+                row_data = []
+                for col in range(self.tabla_cierres.columnCount()):
+                    item = self.tabla_cierres.item(row, col)
+                    row_data.append(item.text() if item else "")
+                total = (
+                    self.tabla_cierres.item(row, 3).text()
+                    if self.tabla_cierres.item(row, 3)
+                    else "$0.00"
+                )
+                row_data.extend(["$0.00", "$0.00", "0"])
+                ws_cierres.append(row_data)
+
+            ws_ranking = wb.create_sheet("Ranking")
+            ranking_headers = ["#", "Producto", "Unidades vendidas", "Ingresos"]
+            ws_ranking.append(ranking_headers)
+
+            for cell in ws_ranking[1]:
+                cell.font = Font(bold=True)
+                cell.fill = PatternFill(
+                    start_color="27ae60", end_color="27ae60", fill_type="solid"
+                )
+
+            for row in range(self.tabla_ranking.rowCount()):
+                row_data = []
+                for col in range(self.tabla_ranking.columnCount()):
+                    item = self.tabla_ranking.item(row, col)
+                    row_data.append(item.text() if item else "")
+                ws_ranking.append(row_data)
+
+            for ws in [ws_cierres, ws_ranking]:
+                for column in ws.columns:
+                    max_length = 0
+                    column_letter = column[0].column_letter
+                    for cell in column:
+                        try:
+                            if len(str(cell.value)) > max_length:
+                                max_length = len(str(cell.value))
+                        except:
+                            pass
+                    ws.column_dimensions[column_letter].width = min(max_length + 2, 50)
+
+            wb.save(filename)
+            QMessageBox.information(
+                self,
+                "Exportación exitosa",
+                f"Archivo exportado a:\n{filename}",
+            )
+
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Error al exportar",
+                f"No se pudo exportar el archivo:\n{str(e)}",
+            )
+```
+
+## tucajero/ui/inventario_view.py
+
+```python
+from PySide6.QtWidgets import (
+    QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QLabel,
+    QTableWidget,
+    QTableWidgetItem,
+    QPushButton,
+    QMessageBox,
+    QDialog,
+    QFormLayout,
+    QSpinBox,
+    QHeaderView,
+)
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QColor
+
+
+class InventarioView(QWidget):
+    """Vista de inventario"""
+
+    def __init__(self, session, parent=None):
+        super().__init__(parent)
+        self.session = session
+        self.init_ui()
+        self.cargar_inventario()
+
+    def init_ui(self):
+        """Inicializa la interfaz"""
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+
+        titulo = QLabel("Inventario")
+        titulo.setStyleSheet("font-size: 24px; font-weight: bold;")
+        layout.addWidget(titulo)
+
+        info_label = QLabel("Seleccione un producto y elija Entrada o Salida")
+        info_label.setStyleSheet("color: #7f8c8d; padding-bottom: 10px;")
+        layout.addWidget(info_label)
+
+        self.tabla = QTableWidget()
+        self.tabla.setColumnCount(4)
+        self.tabla.setHorizontalHeaderLabels(["Código", "Producto", "Stock", "Precio"])
+        self.tabla.horizontalHeader().setSectionResizeMode(
+            1, QHeaderView.ResizeMode.Stretch
+        )
+        self.tabla.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.tabla.setStyleSheet("font-size: 14px;")
+        self.tabla.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        layout.addWidget(self.tabla)
+
+        btn_layout = QHBoxLayout()
+
+        btn_entrada = QPushButton("+ Entrada")
+        btn_entrada.setStyleSheet(
+            "background-color: #27ae60; color: white; padding: 12px; font-weight: bold;"
+        )
+        btn_entrada.clicked.connect(lambda: self.movimiento_inventario("entrada"))
+        btn_layout.addWidget(btn_entrada)
+
+        btn_salida = QPushButton("- Salida")
+        btn_salida.setStyleSheet(
+            "background-color: #e74c3c; color: white; padding: 12px; font-weight: bold;"
+        )
+        btn_salida.clicked.connect(lambda: self.movimiento_inventario("salida"))
+        btn_layout.addWidget(btn_salida)
+
+        btn_layout.addStretch()
+
+        btn_actualizar = QPushButton("Actualizar")
+        btn_actualizar.setStyleSheet(
+            "background-color: #3498db; color: white; padding: 10px;"
+        )
+        btn_actualizar.clicked.connect(self.cargar_inventario)
+        btn_layout.addWidget(btn_actualizar)
+
+        layout.addLayout(btn_layout)
+
+    def cargar_inventario(self):
+        """Carga el inventario desde la base de datos"""
+        from services.producto_service import InventarioService
+
+        service = InventarioService(self.session)
+        productos = service.get_all_productos()
+
+        self.tabla.setRowCount(len(productos))
+
+        for i, p in enumerate(productos):
+            self.tabla.setItem(i, 0, QTableWidgetItem(p.codigo))
+            self.tabla.setItem(i, 1, QTableWidgetItem(p.nombre))
+
+            stock_item = QTableWidgetItem(str(p.stock))
+            if p.stock <= 0:
+                stock_item.setBackground(QColor("#ffcccc"))
+            elif p.stock < 5:
+                stock_item.setBackground(QColor("#fff3cd"))
+            self.tabla.setItem(i, 2, stock_item)
+
+            self.tabla.setItem(i, 3, QTableWidgetItem(f"${p.precio:.2f}"))
+
+    def recargar_inventario(self):
+        """Recarga el inventario (para auto-actualizacion despues de venta)"""
+        self.cargar_inventario()
+
+    def obtener_producto_seleccionado(self):
+        """Retorna el ID del producto seleccionado"""
+        row = self.tabla.currentRow()
+        if row >= 0:
+            item = self.tabla.item(row, 0)
+            if item is not None:
+                codigo = item.text()
+                from services.producto_service import ProductoService
+
+                service = ProductoService(self.session)
+                producto = service.get_producto_by_codigo(codigo)
+                return producto
+        return None
+
+    def movimiento_inventario(self, tipo):
+        """Abre el diálogo para registrar movimiento"""
+        producto = self.obtener_producto_seleccionado()
+        if not producto:
+            QMessageBox.warning(self, "Error", "Seleccione un producto")
+            return
+
+        dialog = MovimientoDialog(self.session, producto, tipo, self)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            self.cargar_inventario()
+
+
+class MovimientoDialog(QDialog):
+    """Diálogo para registrar movimientos de inventario"""
+
+    def __init__(self, session, producto, tipo, parent=None):
+        super().__init__(parent)
+        self.session = session
+        self.producto = producto
+        self.tipo = tipo
+        color = "#27ae60" if tipo == "entrada" else "#e74c3c"
+        self.setWindowTitle(
+            f"{'Entrada' if tipo == 'entrada' else 'Salida'} de Inventario"
+        )
+        self.setMinimumWidth(350)
+        self.init_ui(color)
+
+    def init_ui(self, color):
+        """Inicializa la interfaz"""
+        layout = QFormLayout()
+        self.setLayout(layout)
+
+        info_box = QWidget()
+        info_box.setStyleSheet(
+            f"background-color: #f8f9fa; padding: 10px; border-radius: 5px;"
+        )
+        info_layout = QVBoxLayout()
+        info_box.setLayout(info_layout)
+
+        info_layout.addWidget(QLabel(f"<b>Producto:</b> {self.producto.nombre}"))
+        info_layout.addWidget(QLabel(f"<b>Código:</b> {self.producto.codigo}"))
+        info_layout.addWidget(QLabel(f"<b>Stock actual:</b> {self.producto.stock}"))
+
+        layout.addRow("", info_box)
+
+        self.cantidad_input = QSpinBox()
+        self.cantidad_input.setRange(1, 999999)
+        self.cantidad_input.setStyleSheet("padding: 8px; font-size: 16px;")
+        self.cantidad_input.setFocus()
+        layout.addRow("Cantidad:", self.cantidad_input)
+
+        btn_layout = QHBoxLayout()
+
+        btn_aceptar = QPushButton("Aceptar")
+        btn_aceptar.setStyleSheet(
+            f"background-color: {color}; color: white; padding: 12px; font-weight: bold;"
+        )
+        btn_aceptar.clicked.connect(self.aceptar)
+        btn_layout.addWidget(btn_aceptar)
+
+        btn_cancelar = QPushButton("Cancelar")
+        btn_cancelar.setStyleSheet(
+            "background-color: #95a5a6; color: white; padding: 12px;"
+        )
+        btn_cancelar.clicked.connect(self.reject)
+        btn_layout.addWidget(btn_cancelar)
+
+        layout.addRow("", btn_layout)
+
+    def aceptar(self):
+        """Registra el movimiento"""
+        from services.producto_service import InventarioService
+
+        cantidad = self.cantidad_input.value()
+
+        if cantidad <= 0:
+            QMessageBox.warning(self, "Error", "Cantidad inválida")
+            return
+
+        try:
+            service = InventarioService(self.session)
+            if self.tipo == "entrada":
+                service.entrada_inventario(self.producto.id, cantidad)
+            else:
+                service.salida_inventario(self.producto.id, cantidad)
+
+            self.accept()
+        except ValueError as e:
+            QMessageBox.warning(self, "Error", str(e))
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Error: {str(e)}")
+```
+
+## tucajero/ui/main_window.py
 
 ```python
 from PySide6.QtWidgets import (
@@ -1746,12 +3506,456 @@ class MainWindow(QMainWindow):
 
             logging.error(f"closeEvent error: {e}")
         event.accept()
-
 ```
 
----
+## tucajero/ui/productos_view.py
 
-## 14. ui/setup_view.py — Configuración Inicial
+```python
+from PySide6.QtWidgets import (
+    QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QTableWidget,
+    QTableWidgetItem,
+    QMessageBox,
+    QDialog,
+    QFormLayout,
+    QDoubleSpinBox,
+    QSpinBox,
+    QHeaderView,
+    QCheckBox,
+    QComboBox,
+    QInputDialog,
+)
+from PySide6.QtCore import Qt
+
+
+class ProductosView(QWidget):
+    """Vista de gestión de productos"""
+
+    def __init__(self, session, parent=None):
+        super().__init__(parent)
+        self.session = session
+        self.init_ui()
+        self.cargar_productos()
+
+    def init_ui(self):
+        """Inicializa la interfaz"""
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+
+        titulo = QLabel("Productos")
+        titulo.setStyleSheet("font-size: 24px; font-weight: bold;")
+        layout.addWidget(titulo)
+
+        btn_layout = QHBoxLayout()
+        btn_layout.addStretch()
+
+        btn_agregar = QPushButton("+ Agregar Producto")
+        btn_agregar.setStyleSheet(
+            "background-color: #27ae60; color: white; padding: 10px;"
+        )
+        btn_agregar.clicked.connect(self.abrir_dialogo_agregar)
+        btn_layout.addWidget(btn_agregar)
+
+        btn_editar = QPushButton("Editar")
+        btn_editar.setStyleSheet(
+            "background-color: #3498db; color: white; padding: 10px;"
+        )
+        btn_editar.clicked.connect(self.editar_producto)
+        btn_layout.addWidget(btn_editar)
+
+        btn_eliminar = QPushButton("Eliminar")
+        btn_eliminar.setStyleSheet(
+            "background-color: #e74c3c; color: white; padding: 10px;"
+        )
+        btn_eliminar.clicked.connect(self.eliminar_producto)
+        btn_layout.addWidget(btn_eliminar)
+
+        btn_categorias = QPushButton("Categorías")
+        btn_categorias.setStyleSheet(
+            "background-color: #9b59b6; color: white; padding: 10px;"
+        )
+        btn_categorias.clicked.connect(self.abrir_gestor_categorias)
+        btn_layout.addWidget(btn_categorias)
+
+        layout.addLayout(btn_layout)
+
+        self.tabla = QTableWidget()
+        self.tabla.setColumnCount(6)
+        self.tabla.setHorizontalHeaderLabels(
+            ["ID", "Código", "Nombre", "Precio", "Stock", "Categoría"]
+        )
+        self.tabla.horizontalHeader().setSectionResizeMode(
+            2, QHeaderView.ResizeMode.Stretch
+        )
+        self.tabla.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.tabla.setStyleSheet("font-size: 14px;")
+        layout.addWidget(self.tabla)
+
+    def cargar_productos(self):
+        """Carga los productos desde la base de datos"""
+        from services.producto_service import ProductoService
+
+        service = ProductoService(self.session)
+        productos = service.get_all_productos()
+
+        self.tabla.setRowCount(len(productos))
+
+        for i, p in enumerate(productos):
+            self.tabla.setItem(i, 0, QTableWidgetItem(str(p.id)))
+            self.tabla.setItem(i, 1, QTableWidgetItem(p.codigo))
+            self.tabla.setItem(i, 2, QTableWidgetItem(p.nombre))
+            self.tabla.setItem(i, 3, QTableWidgetItem(f"${p.precio:.2f}"))
+            self.tabla.setItem(i, 4, QTableWidgetItem(str(p.stock)))
+            cat_nombre = p.categoria.nombre if p.categoria else "—"
+            self.tabla.setItem(i, 5, QTableWidgetItem(cat_nombre))
+
+    def recargar_productos(self):
+        """Recarga los productos (para auto-actualizacion despues de venta)"""
+        self.cargar_productos()
+
+    def obtener_producto_seleccionado(self):
+        """Retorna el ID del producto seleccionado"""
+        row = self.tabla.currentRow()
+        if row >= 0:
+            item = self.tabla.item(row, 0)
+            if item is not None:
+                try:
+                    return int(item.text())
+                except (ValueError, TypeError):
+                    return None
+        return None
+
+    def abrir_dialogo_agregar(self):
+        """Abre el diálogo para agregar un producto"""
+        dialog = ProductoDialog(self.session, self)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            self.cargar_productos()
+
+    def editar_producto(self):
+        """Abre el diálogo para editar un producto"""
+        producto_id = self.obtener_producto_seleccionado()
+        if not producto_id:
+            QMessageBox.warning(self, "Error", "Seleccione un producto")
+            return
+
+        dialog = ProductoDialog(self.session, self, producto_id)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            self.cargar_productos()
+
+    def eliminar_producto(self):
+        """Elimina el producto seleccionado"""
+        producto_id = self.obtener_producto_seleccionado()
+        if not producto_id:
+            QMessageBox.warning(self, "Error", "Seleccione un producto")
+            return
+
+        respuesta = QMessageBox.question(
+            self,
+            "Confirmar",
+            "¿Está seguro de eliminar este producto?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        )
+
+        if respuesta == QMessageBox.StandardButton.Yes:
+            from services.producto_service import ProductoService
+
+            service = ProductoService(self.session)
+            service.delete_producto(producto_id)
+            self.cargar_productos()
+
+    def abrir_gestor_categorias(self):
+        """Abre el diálogo de gestión de categorías"""
+        dialog = CategoriaDialog(self.session, self)
+        dialog.exec()
+        self.cargar_productos()
+
+
+class ProductoDialog(QDialog):
+    """Diálogo para agregar/editar productos"""
+
+    def __init__(self, session, parent=None, producto_id=None):
+        super().__init__(parent)
+        self.session = session
+        self.producto_id = producto_id
+        self.setWindowTitle(
+            "Agregar Producto" if not producto_id else "Editar Producto"
+        )
+        self.setMinimumWidth(450)
+        self.init_ui()
+
+        if producto_id:
+            self.cargar_producto()
+
+    def init_ui(self):
+        """Inicializa la interfaz"""
+        layout = QFormLayout()
+        self.setLayout(layout)
+
+        self.codigo_input = QLineEdit()
+        layout.addRow("Código:", self.codigo_input)
+
+        self.nombre_input = QLineEdit()
+        layout.addRow("Nombre:", self.nombre_input)
+
+        self.precio_input = QDoubleSpinBox()
+        self.precio_input.setRange(0, 999999)
+        self.precio_input.setDecimals(2)
+        layout.addRow("Precio:", self.precio_input)
+
+        self.costo_input = QDoubleSpinBox()
+        self.costo_input.setRange(0, 999999)
+        self.costo_input.setDecimals(2)
+        layout.addRow("Costo:", self.costo_input)
+
+        self.stock_input = QSpinBox()
+        self.stock_input.setRange(0, 999999)
+        layout.addRow("Stock:", self.stock_input)
+
+        cat_layout = QHBoxLayout()
+        self.cat_combo = QComboBox()
+        self.cat_combo.addItem("Sin categoría", None)
+        self._cargar_categorias()
+        cat_layout.addWidget(self.cat_combo)
+
+        btn_nueva_cat = QPushButton("+")
+        btn_nueva_cat.setFixedWidth(40)
+        btn_nueva_cat.setToolTip("Crear nueva categoría")
+        btn_nueva_cat.clicked.connect(self._crear_categoria_rapida)
+        cat_layout.addWidget(btn_nueva_cat)
+
+        layout.addRow("Categoría:", cat_layout)
+
+        self.aplica_iva = QCheckBox("Aplica IVA (19%)")
+        self.aplica_iva.setChecked(True)
+        layout.addRow("", self.aplica_iva)
+
+        btn_layout = QHBoxLayout()
+
+        btn_guardar = QPushButton("Guardar")
+        btn_guardar.setStyleSheet(
+            "background-color: #27ae60; color: white; padding: 10px;"
+        )
+        btn_guardar.clicked.connect(self.guardar)
+        btn_layout.addWidget(btn_guardar)
+
+        btn_cancelar = QPushButton("Cancelar")
+        btn_cancelar.setStyleSheet(
+            "background-color: #95a5a6; color: white; padding: 10px;"
+        )
+        btn_cancelar.clicked.connect(self.reject)
+        btn_layout.addWidget(btn_cancelar)
+
+        layout.addRow("", btn_layout)
+
+    def _cargar_categorias(self):
+        """Carga las categorías en el combo"""
+        self.cat_combo.clear()
+        self.cat_combo.addItem("Sin categoría", None)
+        from services.producto_service import CategoriaService
+
+        service = CategoriaService(self.session)
+        cats = service.get_all()
+        for cat in cats:
+            self.cat_combo.addItem(cat.nombre, cat.id)
+
+    def _crear_categoria_rapida(self):
+        """Crea una categoría rápida"""
+        nombre, ok = QInputDialog.getText(
+            self, "Nueva Categoría", "Nombre de la categoría:"
+        )
+        if ok and nombre.strip():
+            try:
+                from services.producto_service import CategoriaService
+
+                service = CategoriaService(self.session)
+                service.create(nombre.strip())
+                self._cargar_categorias()
+                for i in range(self.cat_combo.count()):
+                    if self.cat_combo.itemText(i) == nombre.strip():
+                        self.cat_combo.setCurrentIndex(i)
+                        break
+                QMessageBox.information(self, "Éxito", f"Categoría '{nombre}' creada")
+            except ValueError as e:
+                QMessageBox.warning(self, "Error", str(e))
+
+    def cargar_producto(self):
+        """Carga los datos del producto a editar"""
+        from services.producto_service import ProductoService
+
+        service = ProductoService(self.session)
+        producto = service.get_producto_by_id(self.producto_id)
+
+        if producto:
+            self.codigo_input.setText(producto.codigo)
+            self.nombre_input.setText(producto.nombre)
+            self.precio_input.setValue(producto.precio)
+            self.costo_input.setValue(producto.costo)
+            self.stock_input.setValue(producto.stock)
+            self.aplica_iva.setChecked(producto.aplica_iva)
+
+            if producto.categoria_id:
+                for i in range(self.cat_combo.count()):
+                    if self.cat_combo.currentData() == producto.categoria_id:
+                        self.cat_combo.setCurrentIndex(i)
+                        break
+
+    def guardar(self):
+        """Guarda el producto"""
+        from services.producto_service import ProductoService
+
+        codigo = self.codigo_input.text().strip()
+        nombre = self.nombre_input.text().strip()
+        precio = self.precio_input.value()
+        costo = self.costo_input.value()
+        stock = self.stock_input.value()
+        aplica_iva = self.aplica_iva.isChecked()
+        categoria_id = self.cat_combo.currentData()
+
+        if not codigo or not nombre:
+            QMessageBox.warning(self, "Error", "Código y nombre son requeridos")
+            return
+
+        service = ProductoService(self.session)
+
+        try:
+            if self.producto_id:
+                service.update_producto(
+                    self.producto_id,
+                    codigo=codigo,
+                    nombre=nombre,
+                    precio=precio,
+                    costo=costo,
+                    stock=stock,
+                    aplica_iva=aplica_iva,
+                    categoria_id=categoria_id,
+                )
+            else:
+                service.create_producto(
+                    codigo, nombre, precio, costo, stock, aplica_iva, categoria_id
+                )
+
+            self.accept()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Error al guardar: {str(e)}")
+
+
+class CategoriaDialog(QDialog):
+    """Diálogo para gestionar categorías"""
+
+    def __init__(self, session, parent=None):
+        super().__init__(parent)
+        self.session = session
+        self.setWindowTitle("Gestión de Categorías")
+        self.setMinimumWidth(500)
+        self.init_ui()
+        self.cargar_categorias()
+
+    def init_ui(self):
+        """Inicializa la interfaz"""
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+
+        self.tabla = QTableWidget()
+        self.tabla.setColumnCount(3)
+        self.tabla.setHorizontalHeaderLabels(["ID", "Nombre", "Descripción"])
+        self.tabla.horizontalHeader().setSectionResizeMode(
+            1, QHeaderView.ResizeMode.Stretch
+        )
+        self.tabla.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.tabla.setStyleSheet("font-size: 14px;")
+        layout.addWidget(self.tabla)
+
+        btn_layout = QHBoxLayout()
+
+        btn_agregar = QPushButton("+ Agregar")
+        btn_agregar.setStyleSheet(
+            "background-color: #27ae60; color: white; padding: 8px;"
+        )
+        btn_agregar.clicked.connect(self.agregar_categoria)
+        btn_layout.addWidget(btn_agregar)
+
+        btn_eliminar = QPushButton("Eliminar")
+        btn_eliminar.setStyleSheet(
+            "background-color: #e74c3c; color: white; padding: 8px;"
+        )
+        btn_eliminar.clicked.connect(self.eliminar_categoria)
+        btn_layout.addWidget(btn_eliminar)
+
+        btn_layout.addStretch()
+
+        btn_cerrar = QPushButton("Cerrar")
+        btn_cerrar.clicked.connect(self.accept)
+        btn_layout.addWidget(btn_cerrar)
+
+        layout.addLayout(btn_layout)
+
+    def cargar_categorias(self):
+        """Carga las categorías"""
+        from services.producto_service import CategoriaService
+
+        service = CategoriaService(self.session)
+        cats = service.get_all()
+
+        self.tabla.setRowCount(len(cats))
+        for i, cat in enumerate(cats):
+            self.tabla.setItem(i, 0, QTableWidgetItem(str(cat.id)))
+            self.tabla.setItem(i, 1, QTableWidgetItem(cat.nombre))
+            self.tabla.setItem(i, 2, QTableWidgetItem(cat.descripcion or ""))
+
+    def agregar_categoria(self):
+        """Agrega una nueva categoría"""
+        nombre, ok1 = QInputDialog.getText(self, "Nueva Categoría", "Nombre:")
+        if not ok1 or not nombre.strip():
+            return
+
+        desc, ok2 = QInputDialog.getText(
+            self, "Nueva Categoría", "Descripción (opcional):"
+        )
+        desc = desc.strip() if ok2 else ""
+
+        try:
+            from services.producto_service import CategoriaService
+
+            service = CategoriaService(self.session)
+            service.create(nombre.strip(), desc)
+            self.cargar_categorias()
+            QMessageBox.information(self, "Éxito", "Categoría creada")
+        except ValueError as e:
+            QMessageBox.warning(self, "Error", str(e))
+
+    def eliminar_categoria(self):
+        """Elimina la categoría seleccionada"""
+        row = self.tabla.currentRow()
+        if row < 0:
+            QMessageBox.warning(self, "Error", "Seleccione una categoría")
+            return
+
+        cat_id = int(self.tabla.item(row, 0).text())
+        cat_nombre = self.tabla.item(row, 1).text()
+
+        resp = QMessageBox.question(
+            self, "Confirmar", f"¿Eliminar la categoría '{cat_nombre}'?"
+        )
+        if resp != QMessageBox.StandardButton.Yes:
+            return
+
+        try:
+            from services.producto_service import CategoriaService
+
+            service = CategoriaService(self.session)
+            service.delete(cat_id)
+            self.cargar_categorias()
+            QMessageBox.information(self, "Éxito", "Categoría eliminada")
+        except ValueError as e:
+            QMessageBox.warning(self, "Error", str(e))
+```
+
+## tucajero/ui/setup_view.py
 
 ```python
 from PySide6.QtWidgets import (
@@ -1764,8 +3968,7 @@ from PySide6.QtWidgets import (
     QWidget,
     QFileDialog,
     QMessageBox,
-    QGroupBox,
-    QFormLayout,
+    QScrollArea,
 )
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QPixmap
@@ -1782,18 +3985,18 @@ from utils.store_config import (
 
 
 class SetupDialog(QDialog):
-    """Pantalla de configuración inicial — aparece solo la primera vez"""
+    """Pantalla de configuración inicial — aparece solo la primera vez."""
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.logo_path = ""
         self.setWindowTitle("Bienvenido")
-        self.setFixedSize(600, 550)
+        self.setMinimumSize(680, 600)
         self.setModal(True)
         self.init_ui()
 
     def init_ui(self):
-        """Inicializa la interfaz"""
+        """Inicializa la interfaz."""
         main_layout = QVBoxLayout()
         self.setLayout(main_layout)
 
@@ -1801,111 +4004,135 @@ class SetupDialog(QDialog):
         header.setStyleSheet("background-color: #2c3e50;")
         header_layout = QVBoxLayout()
         header.setLayout(header_layout)
-        header_layout.setContentsMargins(20, 20, 20, 20)
+        header_layout.setContentsMargins(15, 15, 15, 15)
 
         title = QLabel("Bienvenido a TuCajero")
-        title.setStyleSheet("color: white; font-size: 28px; font-weight: bold;")
+        title.setStyleSheet("color: white; font-size: 26px; font-weight: bold;")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         header_layout.addWidget(title)
 
         subtitle = QLabel("Configura tu negocio para comenzar")
-        subtitle.setStyleSheet("color: #bdc3c7; font-size: 16px;")
+        subtitle.setStyleSheet("color: #bdc3c7; font-size: 14px;")
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
         header_layout.addWidget(subtitle)
 
         main_layout.addWidget(header)
 
-        form_widget = QWidget()
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setStyleSheet("QScrollArea { border: none; }")
+        main_layout.addWidget(scroll, 1)
+
+        scroll_content = QWidget()
         form_layout = QVBoxLayout()
-        form_widget.setLayout(form_layout)
-        form_layout.setContentsMargins(40, 30, 40, 20)
-        form_layout.setSpacing(15)
+        scroll_content.setLayout(form_layout)
+        form_layout.setContentsMargins(30, 20, 30, 20)
+        form_layout.setSpacing(10)
+
+        def field_label(text):
+            lbl = QLabel(text)
+            lbl.setStyleSheet("font-size: 12px; color: #555; margin-bottom: 2px;")
+            return lbl
+
+        def input_style():
+            return (
+                "padding: 8px; font-size: 13px; "
+                "border: 1px solid #bdc3c7; border-radius: 4px;"
+            )
 
         self.nombre_input = QLineEdit()
         self.nombre_input.setPlaceholderText("Ej: Droguería CruzMedic")
-        self.nombre_input.setStyleSheet(
-            "padding: 12px; font-size: 14px; border: 1px solid #bdc3c7; border-radius: 4px;"
-        )
-        form_layout.addWidget(QLabel("Nombre del negocio *"))
+        self.nombre_input.setStyleSheet(input_style())
+        form_layout.addWidget(field_label("Nombre del negocio *"))
         form_layout.addWidget(self.nombre_input)
 
-        nit_layout = QHBoxLayout()
-        nit_layout.setSpacing(15)
+        nit_tel_layout = QHBoxLayout()
+        nit_tel_layout.setSpacing(15)
+
+        nit_widget = QWidget()
+        nit_vl = QVBoxLayout()
+        nit_vl.setSpacing(2)
+        nit_vl.setContentsMargins(0, 0, 0, 0)
+        nit_widget.setLayout(nit_vl)
         self.nit_input = QLineEdit()
         self.nit_input.setPlaceholderText("123456789-0")
-        self.nit_input.setStyleSheet(
-            "padding: 12px; font-size: 14px; border: 1px solid #bdc3c7; border-radius: 4px;"
-        )
-        nit_layout.addWidget(QLabel("NIT"))
-        nit_layout.addWidget(self.nit_input)
+        self.nit_input.setStyleSheet(input_style())
+        nit_vl.addWidget(field_label("NIT"))
+        nit_vl.addWidget(self.nit_input)
 
+        tel_widget = QWidget()
+        tel_vl = QVBoxLayout()
+        tel_vl.setSpacing(2)
+        tel_vl.setContentsMargins(0, 0, 0, 0)
+        tel_widget.setLayout(tel_vl)
         self.telefono_input = QLineEdit()
         self.telefono_input.setPlaceholderText("300 123 4567")
-        self.telefono_input.setStyleSheet(
-            "padding: 12px; font-size: 14px; border: 1px solid #bdc3c7; border-radius: 4px;"
-        )
-        nit_layout.addWidget(QLabel("Teléfono"))
-        nit_layout.addWidget(self.telefono_input)
+        self.telefono_input.setStyleSheet(input_style())
+        tel_vl.addWidget(field_label("Teléfono"))
+        tel_vl.addWidget(self.telefono_input)
 
-        form_layout.addLayout(nit_layout)
+        nit_tel_layout.addWidget(nit_widget, 1)
+        nit_tel_layout.addWidget(tel_widget, 1)
+        form_layout.addLayout(nit_tel_layout)
 
         self.email_input = QLineEdit()
         self.email_input.setPlaceholderText("info@ejemplo.com")
-        self.email_input.setStyleSheet(
-            "padding: 12px; font-size: 14px; border: 1px solid #bdc3c7; border-radius: 4px;"
-        )
-        form_layout.addWidget(QLabel("Correo electrónico"))
+        self.email_input.setStyleSheet(input_style())
+        form_layout.addWidget(field_label("Correo electrónico"))
         form_layout.addWidget(self.email_input)
 
         self.direccion_input = QLineEdit()
         self.direccion_input.setPlaceholderText("Calle 123 #45-67, Ciudad")
-        self.direccion_input.setStyleSheet(
-            "padding: 12px; font-size: 14px; border: 1px solid #bdc3c7; border-radius: 4px;"
-        )
-        form_layout.addWidget(QLabel("Dirección"))
+        self.direccion_input.setStyleSheet(input_style())
+        form_layout.addWidget(field_label("Dirección"))
         form_layout.addWidget(self.direccion_input)
 
-        logo_layout = QHBoxLayout()
-        logo_layout.setSpacing(15)
+        logo_row = QHBoxLayout()
+        logo_row.setSpacing(15)
 
-        self.btn_logo = QPushButton("Seleccionar imagen...")
-        self.btn_logo.setStyleSheet("padding: 12px; font-size: 14px;")
+        self.btn_logo = QPushButton("📁  Seleccionar logo...")
+        self.btn_logo.setFixedHeight(36)
+        self.btn_logo.setStyleSheet(
+            "padding: 0 16px; font-size: 13px; "
+            "border: 1px solid #bdc3c7; border-radius: 4px; "
+            "text-align: left; background-color: white;"
+        )
         self.btn_logo.clicked.connect(self.seleccionar_logo)
 
         self.logo_preview = QLabel()
-        self.logo_preview.setFixedSize(80, 80)
+        self.logo_preview.setFixedSize(70, 70)
         self.logo_preview.setStyleSheet(
             "border: 1px solid #bdc3c7; border-radius: 4px; background-color: #f8f9fa;"
         )
         self.logo_preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        logo_layout.addWidget(QLabel("Logo:"))
-        logo_layout.addWidget(self.btn_logo)
-        logo_layout.addWidget(self.logo_preview)
-        logo_layout.addStretch()
+        logo_row.addWidget(self.btn_logo, 1)
+        logo_row.addWidget(self.logo_preview)
 
-        form_layout.addLayout(logo_layout)
+        form_layout.addWidget(field_label("Logo de tu negocio"))
+        form_layout.addLayout(logo_row)
 
-        main_layout.addWidget(form_widget)
+        form_layout.addStretch()
+        scroll.setWidget(scroll_content)
 
         footer = QWidget()
         footer_layout = QVBoxLayout()
         footer.setLayout(footer_layout)
-        footer_layout.setContentsMargins(40, 0, 40, 20)
-        footer_layout.setSpacing(10)
+        footer_layout.setContentsMargins(30, 10, 30, 20)
+        footer_layout.setSpacing(8)
 
         nota = QLabel("* Campo requerido")
-        nota.setStyleSheet("color: #95a5a6; font-size: 12px;")
+        nota.setStyleSheet("color: #95a5a6; font-size: 11px;")
         footer_layout.addWidget(nota)
 
         self.btn_comenzar = QPushButton("COMENZAR")
+        self.btn_comenzar.setFixedHeight(48)
         self.btn_comenzar.setStyleSheet("""
             QPushButton {
                 background-color: #27ae60;
                 color: white;
-                font-size: 18px;
+                font-size: 16px;
                 font-weight: bold;
-                padding: 15px;
                 border-radius: 6px;
             }
             QPushButton:hover {
@@ -1920,7 +4147,7 @@ class SetupDialog(QDialog):
         self.nombre_input.setFocus()
 
     def seleccionar_logo(self):
-        """Abre dialogo para seleccionar logo"""
+        """Abre diálogo para seleccionar logo."""
         file_path, _ = QFileDialog.getOpenFileName(
             self,
             "Seleccionar Logo",
@@ -1932,20 +4159,25 @@ class SetupDialog(QDialog):
             pixmap = QPixmap(file_path)
             if not pixmap.isNull():
                 scaled = pixmap.scaled(
-                    80,
-                    80,
+                    70,
+                    70,
                     Qt.AspectRatioMode.KeepAspectRatio,
                     Qt.TransformationMode.SmoothTransformation,
                 )
                 self.logo_preview.setPixmap(scaled)
-            self.btn_logo.setText("Cambiar imagen...")
+            import os
+
+            self.btn_logo.setText(f"📁  {os.path.basename(file_path)}")
+            self.btn_logo.setStyleSheet(
+                "padding: 0 16px; font-size: 13px; "
+                "border: 1px solid #27ae60; border-radius: 4px; "
+                "text-align: left; background-color: white;"
+            )
 
     def guardar(self):
-        """Guarda la configuracion"""
+        """Guarda la configuración."""
         nombre = self.nombre_input.text().strip()
         if not nombre:
-            from PySide6.QtWidgets import QMessageBox
-
             QMessageBox.warning(
                 self, "Campo requerido", "El nombre del negocio es requerido"
             )
@@ -1969,103 +4201,110 @@ class SetupDialog(QDialog):
 
 
 class SetupView(QWidget):
-    """Panel de configuración — accesible desde el menú lateral"""
+    """Panel de configuración — accesible desde el menú lateral."""
 
     config_saved = Signal()
 
     def __init__(self, session=None, parent=None):
         super().__init__(parent)
         self.session = session
-        self.logo_path = get_logo_path()
+        self.logo_path = ""
         self.init_ui()
         self.cargar_config()
 
     def init_ui(self):
-        """Inicializa la interfaz del panel de configuración"""
         layout = QVBoxLayout()
         self.setLayout(layout)
+        layout.setContentsMargins(30, 20, 30, 20)
+        layout.setSpacing(10)
 
         titulo = QLabel("Configuración del Negocio")
         titulo.setStyleSheet(
-            "font-size: 24px; font-weight: bold; padding-bottom: 10px;"
+            "font-size: 22px; font-weight: bold; padding-bottom: 10px;"
         )
         layout.addWidget(titulo)
 
-        info_group = QGroupBox("Información del Negocio")
-        info_layout = QFormLayout()
-        info_group.setLayout(info_layout)
-        info_layout.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapAllRows)
+        fields_layout = QVBoxLayout()
+        fields_layout.setSpacing(8)
+
+        def field_label(text):
+            lbl = QLabel(text)
+            lbl.setStyleSheet("font-size: 12px; color: #555;")
+            return lbl
+
+        def input_style():
+            return "padding: 8px; font-size: 13px; border: 1px solid #bdc3c7; border-radius: 4px;"
 
         self.nombre_input = QLineEdit()
         self.nombre_input.setPlaceholderText("Nombre del negocio")
-        self.nombre_input.setStyleSheet("padding: 10px; font-size: 14px;")
-        info_layout.addRow("Nombre:", self.nombre_input)
+        self.nombre_input.setStyleSheet(input_style())
+        fields_layout.addWidget(field_label("Nombre *"))
+        fields_layout.addWidget(self.nombre_input)
+
+        nit_tel_layout = QHBoxLayout()
+        nit_tel_layout.setSpacing(15)
 
         self.nit_input = QLineEdit()
         self.nit_input.setPlaceholderText("NIT")
-        self.nit_input.setStyleSheet("padding: 10px; font-size: 14px;")
-        info_layout.addRow("NIT:", self.nit_input)
+        self.nit_input.setStyleSheet(input_style())
+        nit_tel_layout.addWidget(field_label("NIT"))
+        nit_tel_layout.addWidget(self.nit_input)
 
         self.telefono_input = QLineEdit()
         self.telefono_input.setPlaceholderText("Teléfono")
-        self.telefono_input.setStyleSheet("padding: 10px; font-size: 14px;")
-        info_layout.addRow("Teléfono:", self.telefono_input)
+        self.telefono_input.setStyleSheet(input_style())
+        nit_tel_layout.addWidget(field_label("Teléfono"))
+        nit_tel_layout.addWidget(self.telefono_input)
+
+        fields_layout.addLayout(nit_tel_layout)
 
         self.email_input = QLineEdit()
         self.email_input.setPlaceholderText("Correo electrónico")
-        self.email_input.setStyleSheet("padding: 10px; font-size: 14px;")
-        info_layout.addRow("Email:", self.email_input)
+        self.email_input.setStyleSheet(input_style())
+        fields_layout.addWidget(field_label("Correo electrónico"))
+        fields_layout.addWidget(self.email_input)
 
         self.direccion_input = QLineEdit()
         self.direccion_input.setPlaceholderText("Dirección")
-        self.direccion_input.setStyleSheet("padding: 10px; font-size: 14px;")
-        info_layout.addRow("Dirección:", self.direccion_input)
+        self.direccion_input.setStyleSheet(input_style())
+        fields_layout.addWidget(field_label("Dirección"))
+        fields_layout.addWidget(self.direccion_input)
 
-        layout.addWidget(info_group)
+        logo_row = QHBoxLayout()
+        logo_row.setSpacing(15)
 
-        logo_group = QGroupBox("Logo")
-        logo_layout = QHBoxLayout()
-        logo_group.setLayout(logo_layout)
-
-        self.btn_logo = QPushButton("Seleccionar imagen...")
-        self.btn_logo.setStyleSheet("padding: 10px; font-size: 14px;")
+        self.btn_logo = QPushButton("📁  Seleccionar logo...")
+        self.btn_logo.setFixedHeight(36)
+        self.btn_logo.setStyleSheet(
+            "padding: 0 16px; font-size: 13px; border: 1px solid #bdc3c7; border-radius: 4px; "
+            "text-align: left; background-color: white;"
+        )
         self.btn_logo.clicked.connect(self.seleccionar_logo)
 
         self.logo_preview = QLabel()
-        self.logo_preview.setFixedSize(80, 80)
+        self.logo_preview.setFixedSize(70, 70)
         self.logo_preview.setStyleSheet(
             "border: 1px solid #bdc3c7; border-radius: 4px; background-color: #f8f9fa;"
         )
         self.logo_preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        if self.logo_path and __import__("os").path.exists(self.logo_path):
-            pixmap = QPixmap(self.logo_path)
-            if not pixmap.isNull():
-                scaled = pixmap.scaled(
-                    80,
-                    80,
-                    Qt.AspectRatioMode.KeepAspectRatio,
-                    Qt.TransformationMode.SmoothTransformation,
-                )
-                self.logo_preview.setPixmap(scaled)
-                self.btn_logo.setText("Cambiar imagen...")
 
-        logo_layout.addWidget(QLabel("Logo:"))
-        logo_layout.addWidget(self.btn_logo)
-        logo_layout.addWidget(self.logo_preview)
-        logo_layout.addStretch()
+        logo_row.addWidget(self.btn_logo, 1)
+        logo_row.addWidget(self.logo_preview)
+        fields_layout.addWidget(field_label("Logo"))
+        fields_layout.addLayout(logo_row)
 
-        layout.addWidget(logo_group)
-
+        layout.addLayout(fields_layout)
         layout.addStretch()
 
         self.btn_guardar = QPushButton("GUARDAR CONFIGURACIÓN")
+        self.btn_guardar.setFixedHeight(48)
         self.btn_guardar.setStyleSheet("""
             QPushButton {
                 background-color: #27ae60;
                 color: white;
                 font-size: 16px;
                 font-weight: bold;
-                padding: 15px;
+                border-radius: 6px;
             }
             QPushButton:hover {
                 background-color: #2ecc71;
@@ -2075,36 +4314,51 @@ class SetupView(QWidget):
         layout.addWidget(self.btn_guardar)
 
     def cargar_config(self):
-        """Carga la configuración actual"""
         self.nombre_input.setText(get_store_name())
         self.nit_input.setText(get_nit())
         self.telefono_input.setText(get_phone())
         self.email_input.setText(get_email())
         self.direccion_input.setText(get_address())
+        logo = get_logo_path()
+        if logo:
+            import os
+
+            if os.path.exists(logo):
+                self.logo_path = logo
+                pixmap = QPixmap(logo)
+                if not pixmap.isNull():
+                    scaled = pixmap.scaled(
+                        70,
+                        70,
+                        Qt.AspectRatioMode.KeepAspectRatio,
+                        Qt.TransformationMode.SmoothTransformation,
+                    )
+                    self.logo_preview.setPixmap(scaled)
+                    self.btn_logo.setText(f"📁  {os.path.basename(logo)}")
 
     def seleccionar_logo(self):
-        """Abre diálogo para seleccionar logo"""
         file_path, _ = QFileDialog.getOpenFileName(
             self,
             "Seleccionar Logo",
             "",
-            "Imágenes (*.png *.jpg *.jpeg *.ico *.bmp);;Todos los archivos (*)",
+            "Imágenes (*.png *.jpg *.jpeg *.ico *.bmp);;Todos (*)",
         )
         if file_path:
             self.logo_path = file_path
             pixmap = QPixmap(file_path)
             if not pixmap.isNull():
                 scaled = pixmap.scaled(
-                    80,
-                    80,
+                    70,
+                    70,
                     Qt.AspectRatioMode.KeepAspectRatio,
                     Qt.TransformationMode.SmoothTransformation,
                 )
                 self.logo_preview.setPixmap(scaled)
-            self.btn_logo.setText("Cambiar imagen...")
+            import os
+
+            self.btn_logo.setText(f"📁  {os.path.basename(file_path)}")
 
     def guardar(self):
-        """Guarda la configuración"""
         nombre = self.nombre_input.text().strip()
         if not nombre:
             QMessageBox.warning(
@@ -2124,19 +4378,15 @@ class SetupView(QWidget):
         }
 
         if save_store_config(config_data):
-            load_store_config()
+            self.config_saved.emit()
             QMessageBox.information(
                 self, "Éxito", "Configuración guardada correctamente"
             )
-            self.config_saved.emit()
         else:
             QMessageBox.critical(self, "Error", "No se pudo guardar la configuración")
-
 ```
 
----
-
-## 15. ui/ventas_view.py — Ventas
+## tucajero/ui/ventas_view.py
 
 ```python
 from PySide6.QtWidgets import (
@@ -2684,2367 +4934,639 @@ class VentasView(QWidget):
             QMessageBox.warning(self, "Error", str(e))
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error al registrar venta: {str(e)}")
-
 ```
 
----
-
-## 16. ui/productos_view.py — Productos
+## tucajero/utils/backup.py
 
 ```python
-from PySide6.QtWidgets import (
-    QWidget,
-    QVBoxLayout,
-    QHBoxLayout,
-    QLabel,
-    QLineEdit,
-    QPushButton,
-    QTableWidget,
-    QTableWidgetItem,
-    QMessageBox,
-    QDialog,
-    QFormLayout,
-    QDoubleSpinBox,
-    QSpinBox,
-    QHeaderView,
-    QCheckBox,
-    QComboBox,
-    QInputDialog,
-)
-from PySide6.QtCore import Qt
+import shutil
+import datetime
+import os
+import sys
 
 
-class ProductosView(QWidget):
-    """Vista de gestión de productos"""
+def get_backups_dir():
+    """Retorna el directorio de backups"""
+    from config.database import get_data_dir
 
-    def __init__(self, session, parent=None):
-        super().__init__(parent)
-        self.session = session
-        self.init_ui()
-        self.cargar_productos()
+    data_dir = get_data_dir()
+    backups_dir = os.path.join(data_dir, "backups")
+    os.makedirs(backups_dir, exist_ok=True)
+    return backups_dir
 
-    def init_ui(self):
-        """Inicializa la interfaz"""
-        layout = QVBoxLayout()
-        self.setLayout(layout)
 
-        titulo = QLabel("Productos")
-        titulo.setStyleSheet("font-size: 24px; font-weight: bold;")
-        layout.addWidget(titulo)
+def backup_database():
+    """Crea un backup de la base de datos"""
+    from config.database import get_db_path
 
-        btn_layout = QHBoxLayout()
-        btn_layout.addStretch()
+    db_path = get_db_path()
 
-        btn_agregar = QPushButton("+ Agregar Producto")
-        btn_agregar.setStyleSheet(
-            "background-color: #27ae60; color: white; padding: 10px;"
-        )
-        btn_agregar.clicked.connect(self.abrir_dialogo_agregar)
-        btn_layout.addWidget(btn_agregar)
-
-        btn_editar = QPushButton("Editar")
-        btn_editar.setStyleSheet(
-            "background-color: #3498db; color: white; padding: 10px;"
-        )
-        btn_editar.clicked.connect(self.editar_producto)
-        btn_layout.addWidget(btn_editar)
-
-        btn_eliminar = QPushButton("Eliminar")
-        btn_eliminar.setStyleSheet(
-            "background-color: #e74c3c; color: white; padding: 10px;"
-        )
-        btn_eliminar.clicked.connect(self.eliminar_producto)
-        btn_layout.addWidget(btn_eliminar)
-
-        btn_categorias = QPushButton("Categorías")
-        btn_categorias.setStyleSheet(
-            "background-color: #9b59b6; color: white; padding: 10px;"
-        )
-        btn_categorias.clicked.connect(self.abrir_gestor_categorias)
-        btn_layout.addWidget(btn_categorias)
-
-        layout.addLayout(btn_layout)
-
-        self.tabla = QTableWidget()
-        self.tabla.setColumnCount(6)
-        self.tabla.setHorizontalHeaderLabels(
-            ["ID", "Código", "Nombre", "Precio", "Stock", "Categoría"]
-        )
-        self.tabla.horizontalHeader().setSectionResizeMode(
-            2, QHeaderView.ResizeMode.Stretch
-        )
-        self.tabla.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-        self.tabla.setStyleSheet("font-size: 14px;")
-        layout.addWidget(self.tabla)
-
-    def cargar_productos(self):
-        """Carga los productos desde la base de datos"""
-        from services.producto_service import ProductoService
-
-        service = ProductoService(self.session)
-        productos = service.get_all_productos()
-
-        self.tabla.setRowCount(len(productos))
-
-        for i, p in enumerate(productos):
-            self.tabla.setItem(i, 0, QTableWidgetItem(str(p.id)))
-            self.tabla.setItem(i, 1, QTableWidgetItem(p.codigo))
-            self.tabla.setItem(i, 2, QTableWidgetItem(p.nombre))
-            self.tabla.setItem(i, 3, QTableWidgetItem(f"${p.precio:.2f}"))
-            self.tabla.setItem(i, 4, QTableWidgetItem(str(p.stock)))
-            cat_nombre = p.categoria.nombre if p.categoria else "—"
-            self.tabla.setItem(i, 5, QTableWidgetItem(cat_nombre))
-
-    def recargar_productos(self):
-        """Recarga los productos (para auto-actualizacion despues de venta)"""
-        self.cargar_productos()
-
-    def obtener_producto_seleccionado(self):
-        """Retorna el ID del producto seleccionado"""
-        row = self.tabla.currentRow()
-        if row >= 0:
-            item = self.tabla.item(row, 0)
-            if item is not None:
-                try:
-                    return int(item.text())
-                except (ValueError, TypeError):
-                    return None
+    if not os.path.exists(db_path):
         return None
 
-    def abrir_dialogo_agregar(self):
-        """Abre el diálogo para agregar un producto"""
-        dialog = ProductoDialog(self.session, self)
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            self.cargar_productos()
+    now = datetime.datetime.now()
+    filename = f"pos_backup_{now.strftime('%Y%m%d_%H%M%S')}.db"
+    backup_path = os.path.join(get_backups_dir(), filename)
 
-    def editar_producto(self):
-        """Abre el diálogo para editar un producto"""
-        producto_id = self.obtener_producto_seleccionado()
-        if not producto_id:
-            QMessageBox.warning(self, "Error", "Seleccione un producto")
-            return
-
-        dialog = ProductoDialog(self.session, self, producto_id)
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            self.cargar_productos()
-
-    def eliminar_producto(self):
-        """Elimina el producto seleccionado"""
-        producto_id = self.obtener_producto_seleccionado()
-        if not producto_id:
-            QMessageBox.warning(self, "Error", "Seleccione un producto")
-            return
-
-        respuesta = QMessageBox.question(
-            self,
-            "Confirmar",
-            "¿Está seguro de eliminar este producto?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-        )
-
-        if respuesta == QMessageBox.StandardButton.Yes:
-            from services.producto_service import ProductoService
-
-            service = ProductoService(self.session)
-            service.delete_producto(producto_id)
-            self.cargar_productos()
-
-    def abrir_gestor_categorias(self):
-        """Abre el diálogo de gestión de categorías"""
-        dialog = CategoriaDialog(self.session, self)
-        dialog.exec()
-        self.cargar_productos()
+    try:
+        shutil.copy2(db_path, backup_path)
+        return backup_path
+    except Exception as e:
+        print(f"Error al crear backup: {e}")
+        return None
 
 
-class ProductoDialog(QDialog):
-    """Diálogo para agregar/editar productos"""
+def cleanup_old_backups(keep_days=7):
+    """Elimina backups mayores a keep_days"""
+    backups_dir = get_backups_dir()
+    now = datetime.datetime.now()
 
-    def __init__(self, session, parent=None, producto_id=None):
-        super().__init__(parent)
-        self.session = session
-        self.producto_id = producto_id
-        self.setWindowTitle(
-            "Agregar Producto" if not producto_id else "Editar Producto"
-        )
-        self.setMinimumWidth(450)
-        self.init_ui()
-
-        if producto_id:
-            self.cargar_producto()
-
-    def init_ui(self):
-        """Inicializa la interfaz"""
-        layout = QFormLayout()
-        self.setLayout(layout)
-
-        self.codigo_input = QLineEdit()
-        layout.addRow("Código:", self.codigo_input)
-
-        self.nombre_input = QLineEdit()
-        layout.addRow("Nombre:", self.nombre_input)
-
-        self.precio_input = QDoubleSpinBox()
-        self.precio_input.setRange(0, 999999)
-        self.precio_input.setDecimals(2)
-        layout.addRow("Precio:", self.precio_input)
-
-        self.costo_input = QDoubleSpinBox()
-        self.costo_input.setRange(0, 999999)
-        self.costo_input.setDecimals(2)
-        layout.addRow("Costo:", self.costo_input)
-
-        self.stock_input = QSpinBox()
-        self.stock_input.setRange(0, 999999)
-        layout.addRow("Stock:", self.stock_input)
-
-        cat_layout = QHBoxLayout()
-        self.cat_combo = QComboBox()
-        self.cat_combo.addItem("Sin categoría", None)
-        self._cargar_categorias()
-        cat_layout.addWidget(self.cat_combo)
-
-        btn_nueva_cat = QPushButton("+")
-        btn_nueva_cat.setFixedWidth(40)
-        btn_nueva_cat.setToolTip("Crear nueva categoría")
-        btn_nueva_cat.clicked.connect(self._crear_categoria_rapida)
-        cat_layout.addWidget(btn_nueva_cat)
-
-        layout.addRow("Categoría:", cat_layout)
-
-        self.aplica_iva = QCheckBox("Aplica IVA (19%)")
-        self.aplica_iva.setChecked(True)
-        layout.addRow("", self.aplica_iva)
-
-        btn_layout = QHBoxLayout()
-
-        btn_guardar = QPushButton("Guardar")
-        btn_guardar.setStyleSheet(
-            "background-color: #27ae60; color: white; padding: 10px;"
-        )
-        btn_guardar.clicked.connect(self.guardar)
-        btn_layout.addWidget(btn_guardar)
-
-        btn_cancelar = QPushButton("Cancelar")
-        btn_cancelar.setStyleSheet(
-            "background-color: #95a5a6; color: white; padding: 10px;"
-        )
-        btn_cancelar.clicked.connect(self.reject)
-        btn_layout.addWidget(btn_cancelar)
-
-        layout.addRow("", btn_layout)
-
-    def _cargar_categorias(self):
-        """Carga las categorías en el combo"""
-        self.cat_combo.clear()
-        self.cat_combo.addItem("Sin categoría", None)
-        from services.producto_service import CategoriaService
-
-        service = CategoriaService(self.session)
-        cats = service.get_all()
-        for cat in cats:
-            self.cat_combo.addItem(cat.nombre, cat.id)
-
-    def _crear_categoria_rapida(self):
-        """Crea una categoría rápida"""
-        nombre, ok = QInputDialog.getText(
-            self, "Nueva Categoría", "Nombre de la categoría:"
-        )
-        if ok and nombre.strip():
-            try:
-                from services.producto_service import CategoriaService
-
-                service = CategoriaService(self.session)
-                service.create(nombre.strip())
-                self._cargar_categorias()
-                for i in range(self.cat_combo.count()):
-                    if self.cat_combo.itemText(i) == nombre.strip():
-                        self.cat_combo.setCurrentIndex(i)
-                        break
-                QMessageBox.information(self, "Éxito", f"Categoría '{nombre}' creada")
-            except ValueError as e:
-                QMessageBox.warning(self, "Error", str(e))
-
-    def cargar_producto(self):
-        """Carga los datos del producto a editar"""
-        from services.producto_service import ProductoService
-
-        service = ProductoService(self.session)
-        producto = service.get_producto_by_id(self.producto_id)
-
-        if producto:
-            self.codigo_input.setText(producto.codigo)
-            self.nombre_input.setText(producto.nombre)
-            self.precio_input.setValue(producto.precio)
-            self.costo_input.setValue(producto.costo)
-            self.stock_input.setValue(producto.stock)
-            self.aplica_iva.setChecked(producto.aplica_iva)
-
-            if producto.categoria_id:
-                for i in range(self.cat_combo.count()):
-                    if self.cat_combo.currentData() == producto.categoria_id:
-                        self.cat_combo.setCurrentIndex(i)
-                        break
-
-    def guardar(self):
-        """Guarda el producto"""
-        from services.producto_service import ProductoService
-
-        codigo = self.codigo_input.text().strip()
-        nombre = self.nombre_input.text().strip()
-        precio = self.precio_input.value()
-        costo = self.costo_input.value()
-        stock = self.stock_input.value()
-        aplica_iva = self.aplica_iva.isChecked()
-        categoria_id = self.cat_combo.currentData()
-
-        if not codigo or not nombre:
-            QMessageBox.warning(self, "Error", "Código y nombre son requeridos")
-            return
-
-        service = ProductoService(self.session)
-
-        try:
-            if self.producto_id:
-                service.update_producto(
-                    self.producto_id,
-                    codigo=codigo,
-                    nombre=nombre,
-                    precio=precio,
-                    costo=costo,
-                    stock=stock,
-                    aplica_iva=aplica_iva,
-                    categoria_id=categoria_id,
-                )
-            else:
-                service.create_producto(
-                    codigo, nombre, precio, costo, stock, aplica_iva, categoria_id
-                )
-
-            self.accept()
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Error al guardar: {str(e)}")
-
-
-class CategoriaDialog(QDialog):
-    """Diálogo para gestionar categorías"""
-
-    def __init__(self, session, parent=None):
-        super().__init__(parent)
-        self.session = session
-        self.setWindowTitle("Gestión de Categorías")
-        self.setMinimumWidth(500)
-        self.init_ui()
-        self.cargar_categorias()
-
-    def init_ui(self):
-        """Inicializa la interfaz"""
-        layout = QVBoxLayout()
-        self.setLayout(layout)
-
-        self.tabla = QTableWidget()
-        self.tabla.setColumnCount(3)
-        self.tabla.setHorizontalHeaderLabels(["ID", "Nombre", "Descripción"])
-        self.tabla.horizontalHeader().setSectionResizeMode(
-            1, QHeaderView.ResizeMode.Stretch
-        )
-        self.tabla.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-        self.tabla.setStyleSheet("font-size: 14px;")
-        layout.addWidget(self.tabla)
-
-        btn_layout = QHBoxLayout()
-
-        btn_agregar = QPushButton("+ Agregar")
-        btn_agregar.setStyleSheet(
-            "background-color: #27ae60; color: white; padding: 8px;"
-        )
-        btn_agregar.clicked.connect(self.agregar_categoria)
-        btn_layout.addWidget(btn_agregar)
-
-        btn_eliminar = QPushButton("Eliminar")
-        btn_eliminar.setStyleSheet(
-            "background-color: #e74c3c; color: white; padding: 8px;"
-        )
-        btn_eliminar.clicked.connect(self.eliminar_categoria)
-        btn_layout.addWidget(btn_eliminar)
-
-        btn_layout.addStretch()
-
-        btn_cerrar = QPushButton("Cerrar")
-        btn_cerrar.clicked.connect(self.accept)
-        btn_layout.addWidget(btn_cerrar)
-
-        layout.addLayout(btn_layout)
-
-    def cargar_categorias(self):
-        """Carga las categorías"""
-        from services.producto_service import CategoriaService
-
-        service = CategoriaService(self.session)
-        cats = service.get_all()
-
-        self.tabla.setRowCount(len(cats))
-        for i, cat in enumerate(cats):
-            self.tabla.setItem(i, 0, QTableWidgetItem(str(cat.id)))
-            self.tabla.setItem(i, 1, QTableWidgetItem(cat.nombre))
-            self.tabla.setItem(i, 2, QTableWidgetItem(cat.descripcion or ""))
-
-    def agregar_categoria(self):
-        """Agrega una nueva categoría"""
-        nombre, ok1 = QInputDialog.getText(self, "Nueva Categoría", "Nombre:")
-        if not ok1 or not nombre.strip():
-            return
-
-        desc, ok2 = QInputDialog.getText(
-            self, "Nueva Categoría", "Descripción (opcional):"
-        )
-        desc = desc.strip() if ok2 else ""
-
-        try:
-            from services.producto_service import CategoriaService
-
-            service = CategoriaService(self.session)
-            service.create(nombre.strip(), desc)
-            self.cargar_categorias()
-            QMessageBox.information(self, "Éxito", "Categoría creada")
-        except ValueError as e:
-            QMessageBox.warning(self, "Error", str(e))
-
-    def eliminar_categoria(self):
-        """Elimina la categoría seleccionada"""
-        row = self.tabla.currentRow()
-        if row < 0:
-            QMessageBox.warning(self, "Error", "Seleccione una categoría")
-            return
-
-        cat_id = int(self.tabla.item(row, 0).text())
-        cat_nombre = self.tabla.item(row, 1).text()
-
-        resp = QMessageBox.question(
-            self, "Confirmar", f"¿Eliminar la categoría '{cat_nombre}'?"
-        )
-        if resp != QMessageBox.StandardButton.Yes:
-            return
-
-        try:
-            from services.producto_service import CategoriaService
-
-            service = CategoriaService(self.session)
-            service.delete(cat_id)
-            self.cargar_categorias()
-            QMessageBox.information(self, "Éxito", "Categoría eliminada")
-        except ValueError as e:
-            QMessageBox.warning(self, "Error", str(e))
-
+    for filename in os.listdir(backups_dir):
+        if filename.startswith("pos_backup_") and filename.endswith(".db"):
+            filepath = os.path.join(backups_dir, filename)
+            file_time = datetime.datetime.fromtimestamp(os.path.getmtime(filepath))
+            if (now - file_time).days > keep_days:
+                try:
+                    os.remove(filepath)
+                except:
+                    pass
 ```
 
----
-
-## 17. ui/corte_view.py — Corte de Caja
+## tucajero/utils/excel_exporter.py
 
 ```python
-from PySide6.QtWidgets import (
-    QWidget,
-    QVBoxLayout,
-    QHBoxLayout,
-    QLabel,
-    QPushButton,
-    QTableWidget,
-    QTableWidgetItem,
-    QMessageBox,
-    QHeaderView,
-    QDialog,
-    QFormLayout,
-    QLineEdit,
-    QDoubleSpinBox,
-    QDialogButtonBox,
-)
-from PySide6.QtCore import Qt
+import os
 from datetime import datetime
 
 
-class CorteView(QWidget):
-    """Vista de corte de caja"""
-
-    def __init__(self, session, parent=None):
-        super().__init__(parent)
-        self.session = session
-        self.init_ui()
-        self.cargar_estadisticas()
-
-    def init_ui(self):
-        """Inicializa la interfaz"""
-        layout = QVBoxLayout()
-        self.setLayout(layout)
-
-        titulo = QLabel("Corte de Caja")
-        titulo.setStyleSheet("font-size: 24px; font-weight: bold;")
-        layout.addWidget(titulo)
-
-        self.info_widget = QWidget()
-        self.info_widget.setStyleSheet("""
-            QWidget {
-                background-color: #ecf0f1;
-                border-radius: 10px;
-                padding: 20px;
-            }
-        """)
-        info_layout = QVBoxLayout()
-        self.info_widget.setLayout(info_layout)
-
-        self.lbl_fecha = QLabel(f"Fecha: {datetime.now().strftime('%d/%m/%Y')}")
-        self.lbl_fecha.setStyleSheet("font-size: 18px;")
-        info_layout.addWidget(self.lbl_fecha)
-
-        self.lbl_estado = QLabel("Caja: ABIERTA")
-        self.lbl_estado.setStyleSheet(
-            "font-size: 18px; font-weight: bold; color: #27ae60;"
-        )
-        info_layout.addWidget(self.lbl_estado)
-
-        self.lbl_total = QLabel("Total vendido: $0.00")
-        self.lbl_total.setStyleSheet(
-            "font-size: 28px; font-weight: bold; color: #27ae60;"
-        )
-        info_layout.addWidget(self.lbl_total)
-
-        self.lbl_num_ventas = QLabel("Número de ventas: 0")
-        self.lbl_num_ventas.setStyleSheet("font-size: 18px;")
-        info_layout.addWidget(self.lbl_num_ventas)
-
-        layout.addWidget(self.info_widget)
-
-        botones_layout = QHBoxLayout()
-
-        self.btn_abrir = QPushButton("ABRIR CAJA")
-        self.btn_abrir.setStyleSheet("""
-            QPushButton {
-                background-color: #27ae60;
-                color: white;
-                font-size: 16px;
-                font-weight: bold;
-                padding: 15px;
-            }
-            QPushButton:hover {
-                background-color: #2ecc71;
-            }
-        """)
-        self.btn_abrir.clicked.connect(self.abrir_caja)
-        botones_layout.addWidget(self.btn_abrir)
-
-        self.btn_cerrar = QPushButton("CERRAR CAJA")
-        self.btn_cerrar.setStyleSheet("""
-            QPushButton {
-                background-color: #e74c3c;
-                color: white;
-                font-size: 16px;
-                font-weight: bold;
-                padding: 15px;
-            }
-            QPushButton:hover {
-                background-color: #c0392b;
-            }
-        """)
-        self.btn_cerrar.clicked.connect(self.cerrar_caja)
-        botones_layout.addWidget(self.btn_cerrar)
-
-        layout.addLayout(botones_layout)
-
-        self.btn_gasto = QPushButton("Registrar Gasto de Caja")
-        self.btn_gasto.setStyleSheet("""
-            QPushButton {
-                background-color: #e67e22;
-                color: white;
-                font-size: 14px;
-                font-weight: bold;
-                padding: 12px;
-            }
-            QPushButton:hover {
-                background-color: #d35400;
-            }
-            QPushButton:disabled {
-                background-color: #bdc3c7;
-            }
-        """)
-        self.btn_gasto.clicked.connect(self.registrar_gasto)
-        layout.addWidget(self.btn_gasto)
-
-        self.btn_anular = QPushButton("Anular Venta")
-        self.btn_anular.setStyleSheet("""
-            QPushButton {
-                background-color: #c0392b;
-                color: white;
-                font-size: 14px;
-                font-weight: bold;
-                padding: 12px;
-            }
-            QPushButton:hover {
-                background-color: #e74c3c;
-            }
-            QPushButton:disabled {
-                background-color: #bdc3c7;
-            }
-        """)
-        self.btn_anular.clicked.connect(self.anular_venta)
-        layout.addWidget(self.btn_anular)
-
-        self.btn_facturas = QPushButton("Ver Facturas del Día")
-        self.btn_facturas.setStyleSheet("""
-            QPushButton {
-                background-color: #2980b9;
-                color: white;
-                font-size: 14px;
-                font-weight: bold;
-                padding: 12px;
-            }
-            QPushButton:hover {
-                background-color: #3498db;
-            }
-        """)
-        self.btn_facturas.clicked.connect(self.ver_facturas_dia)
-        layout.addWidget(self.btn_facturas)
-
-        self.lbl_ganancia = QLabel("Ganancia neta: $0.00")
-        self.lbl_ganancia.setStyleSheet(
-            "font-size: 20px; font-weight: bold; color: #8e44ad; padding: 8px;"
-        )
-        layout.addWidget(self.lbl_ganancia)
-
-        historial_label = QLabel("Ventas del día")
-        historial_label.setStyleSheet(
-            "font-size: 18px; font-weight: bold; margin-top: 20px;"
-        )
-        layout.addWidget(historial_label)
-
-        self.tabla_ventas = QTableWidget()
-        self.tabla_ventas.setColumnCount(3)
-        self.tabla_ventas.setHorizontalHeaderLabels(["ID", "Hora", "Total"])
-        self.tabla_ventas.horizontalHeader().setSectionResizeMode(
-            1, QHeaderView.ResizeMode.Stretch
-        )
-        self.tabla_ventas.setStyleSheet("font-size: 14px;")
-        layout.addWidget(self.tabla_ventas)
-
-        gastos_label = QLabel("Gastos del día")
-        gastos_label.setStyleSheet(
-            "font-size: 16px; font-weight: bold; margin-top: 15px;"
-        )
-        layout.addWidget(gastos_label)
-
-        self.tabla_gastos = QTableWidget()
-        self.tabla_gastos.setColumnCount(3)
-        self.tabla_gastos.setHorizontalHeaderLabels(["Hora", "Concepto", "Monto"])
-        self.tabla_gastos.horizontalHeader().setSectionResizeMode(
-            1, QHeaderView.ResizeMode.Stretch
-        )
-        self.tabla_gastos.setStyleSheet("font-size: 13px;")
-        layout.addWidget(self.tabla_gastos)
-
-    def cargar_estadisticas(self):
-        """Carga las estadísticas del día"""
-        from services.corte_service import CorteCajaService
-
-        service = CorteCajaService(self.session)
-        stats = service.get_estadisticas_hoy()
-        caja_abierta = service.esta_caja_abierta()
-
-        if caja_abierta:
-            self.lbl_estado.setText("Caja: ABIERTA")
-            self.lbl_estado.setStyleSheet(
-                "font-size: 18px; font-weight: bold; color: #27ae60;"
-            )
-            self.btn_abrir.setEnabled(False)
-            self.btn_cerrar.setEnabled(True)
-            self.btn_gasto.setEnabled(True)
-            self.btn_anular.setEnabled(True)
-        else:
-            self.lbl_estado.setText("Caja: CERRADA")
-            self.lbl_estado.setStyleSheet(
-                "font-size: 18px; font-weight: bold; color: #e74c3c;"
-            )
-            self.btn_abrir.setEnabled(True)
-            self.btn_cerrar.setEnabled(False)
-            self.btn_gasto.setEnabled(False)
-            self.btn_anular.setEnabled(False)
-
-        self.lbl_total.setText(f"Total vendido: ${stats['total']:.2f}")
-        self.lbl_num_ventas.setText(f"Número de ventas: {stats['num_ventas']}")
-        self.lbl_ganancia.setText(
-            f"Ganancia neta: ${stats['ganancia_neta']:.2f} "
-            f"(Gastos: ${stats['total_gastos']:.2f})"
-        )
-
-        ventas = stats["ventas"]
-        self.tabla_ventas.setRowCount(len(ventas))
-
-        for i, venta in enumerate(ventas):
-            self.tabla_ventas.setItem(i, 0, QTableWidgetItem(str(venta.id)))
-            self.tabla_ventas.setItem(
-                i, 1, QTableWidgetItem(venta.fecha.strftime("%H:%M:%S"))
-            )
-            self.tabla_ventas.setItem(i, 2, QTableWidgetItem(f"${venta.total:.2f}"))
-
-        gastos = stats["gastos"]
-        self.tabla_gastos.setRowCount(len(gastos))
-
-        for i, gasto in enumerate(gastos):
-            self.tabla_gastos.setItem(
-                i, 0, QTableWidgetItem(gasto.fecha.strftime("%H:%M"))
-            )
-            self.tabla_gastos.setItem(i, 1, QTableWidgetItem(gasto.concepto))
-            self.tabla_gastos.setItem(i, 2, QTableWidgetItem(f"${gasto.monto:.2f}"))
-
-    def abrir_caja(self):
-        """Abre la caja"""
-        from services.corte_service import CorteCajaService
-
-        service = CorteCajaService(self.session)
-        service.abrir_caja()
-
-        QMessageBox.information(
-            self,
-            "Caja Abierta",
-            "La caja ha sido abierta correctamente.\n\nYa puedes comenzar a registrar ventas.",
-        )
-
-        self.cargar_estadisticas()
-
-    def registrar_gasto(self):
-        """Abre diálogo para registrar gasto"""
-        dialog = QDialog(self)
-        dialog.setWindowTitle("Registrar Gasto de Caja")
-        dialog.setMinimumWidth(380)
-        layout = QFormLayout()
-        dialog.setLayout(layout)
-
-        info = QLabel("El monto será descontado de la ganancia del día.")
-        info.setStyleSheet("color: #7f8c8d; font-size: 12px;")
-        layout.addRow("", info)
-
-        concepto_input = QLineEdit()
-        concepto_input.setPlaceholderText("Ej: Compra de bolsas, Pasaje, Luz...")
-        concepto_input.setStyleSheet("padding: 8px; font-size: 14px;")
-        layout.addRow("Concepto:", concepto_input)
-
-        monto_input = QDoubleSpinBox()
-        monto_input.setRange(0.01, 999999)
-        monto_input.setDecimals(2)
-        monto_input.setStyleSheet("padding: 8px; font-size: 16px;")
-        layout.addRow("Monto:", monto_input)
-
-        buttons = QDialogButtonBox(
-            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
-        )
-        buttons.button(QDialogButtonBox.StandardButton.Ok).setText("REGISTRAR")
-        buttons.button(QDialogButtonBox.StandardButton.Ok).setStyleSheet(
-            "background-color: #e67e22; color: white; padding: 8px 16px;"
-        )
-        buttons.accepted.connect(dialog.accept)
-        buttons.rejected.connect(dialog.reject)
-        layout.addRow("", buttons)
-
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            concepto = concepto_input.text().strip()
-            monto = monto_input.value()
-            if not concepto:
-                QMessageBox.warning(self, "Error", "El concepto es obligatorio")
-                return
-            if monto <= 0:
-                QMessageBox.warning(self, "Error", "El monto debe ser mayor a cero")
-                return
-            try:
-                from services.corte_service import CorteCajaService
-
-                service = CorteCajaService(self.session)
-                service.registrar_gasto(concepto, monto)
-                self.cargar_estadisticas()
-                QMessageBox.information(
-                    self,
-                    "Gasto Registrado",
-                    f"Gasto registrado:\n{concepto}: ${monto:.2f}",
-                )
-            except Exception as e:
-                QMessageBox.critical(self, "Error", str(e))
-
-    def cerrar_caja(self):
-        """Cierra la caja"""
-        respuesta = QMessageBox.question(
-            self,
-            "Confirmar",
-            "¿Está seguro de cerrar la caja?\nSe registrará el corte del día.",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-        )
-
-        if respuesta == QMessageBox.StandardButton.Yes:
-            from services.corte_service import CorteCajaService
-
-            service = CorteCajaService(self.session)
-            stats = service.get_estadisticas_hoy()
-
-            corte = service.cerrar_caja()
-
-            if corte:
-                QMessageBox.information(
-                    self,
-                    "Corte de Caja",
-                    f"Corte de caja cerrado!\n\n"
-                    f"Total vendido: ${corte.total_ventas:.2f}\n"
-                    f"Gastos: ${stats['total_gastos']:.2f}\n"
-                    f"Ganancia neta: ${stats['ganancia_neta']:.2f}\n\n"
-                    f"Ventas: {stats['num_ventas']}",
-                )
-            else:
-                QMessageBox.warning(self, "Error", "No hay caja abierta")
-
-            self.cargar_estadisticas()
-
-    def anular_venta(self):
-        """Anula una venta del día"""
-        from services.corte_service import CorteCajaService
-        from services.producto_service import VentaService
-        from ui.ventas_view import VentasView
-
-        service = CorteCajaService(self.session)
-        stats = service.get_estadisticas_hoy()
-        ventas = stats["ventas"]
-
-        if not ventas:
-            QMessageBox.warning(self, "Sin ventas", "No hay ventas registradas hoy")
-            return
-
-        from PySide6.QtWidgets import QInputDialog
-
-        venta_ids = [str(v.id) for v in ventas]
-        venta_id_str, ok = QInputDialog.getItem(
-            self,
-            "Anular Venta",
-            "Seleccione la venta a anular:",
-            venta_ids,
-            0,
-            False,
-        )
-
-        if not ok or not venta_id_str:
-            return
-
-        venta_id = int(venta_id_str)
-
-        respuesta = QMessageBox.question(
-            self,
-            "Confirmar Anulación",
-            f"¿Está seguro de anular la venta #{venta_id}?\n"
-            "El stock de los productos será restaurado.",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-        )
-
-        if respuesta != QMessageBox.StandardButton.Yes:
-            return
-
-        try:
-            venta_service = VentaService(self.session)
-            venta_service.anular_venta(venta_id)
-            QMessageBox.information(
-                self,
-                "Venta Anulada",
-                f"Venta #{venta_id} ha sido anulada.\nEl stock ha sido restaurado.",
-            )
-            self.cargar_estadisticas()
-        except ValueError as e:
-            QMessageBox.warning(self, "Error", str(e))
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Error al anular venta: {str(e)}")
-
-    def ver_facturas_dia(self):
-        """Abre o genera el PDF de facturas del día"""
-        from utils.factura_diaria import get_factura_diaria_path
-        import subprocess
-        import os
-
-        pdf_path = get_factura_diaria_path()
-        if not os.path.exists(pdf_path):
-            QMessageBox.information(
-                self,
-                "Sin facturas",
-                "No hay facturas registradas para el día de hoy.",
-            )
-            return
-
-        try:
-            if os.name == "nt":
-                os.startfile(pdf_path)
-            else:
-                subprocess.run(["xdg-open", pdf_path])
-        except Exception as e:
-            QMessageBox.warning(self, "Error", f"No se pudo abrir el archivo: {str(e)}")
-
-```
-
----
-
-## 18. ui/historial_view.py — Historial
-
-```python
-from PySide6.QtWidgets import (
-    QWidget,
-    QVBoxLayout,
-    QHBoxLayout,
-    QLabel,
-    QPushButton,
-    QTableWidget,
-    QTableWidgetItem,
-    QHeaderView,
-    QDateEdit,
-    QComboBox,
-    QMessageBox,
-)
-from PySide6.QtCore import Qt, QDate
-from datetime import datetime, timedelta
-import os
-
-
-class HistorialView(QWidget):
-    """Vista de historial de cierres y ranking de productos"""
-
-    def __init__(self, session, parent=None):
-        super().__init__(parent)
-        self.session = session
-        self.init_ui()
-        self.cargar_historial()
-
-    def init_ui(self):
-        """Inicializa la interfaz"""
-        layout = QVBoxLayout()
-        self.setLayout(layout)
-
-        titulo = QLabel("Historial de Cierres")
-        titulo.setStyleSheet("font-size: 24px; font-weight: bold;")
-        layout.addWidget(titulo)
-
-        filtros_layout = QHBoxLayout()
-
-        filtros_layout.addWidget(QLabel("Desde:"))
-        self.desde_edit = QDateEdit()
-        self.desde_edit.setCalendarPopup(True)
-        self.desde_edit.setDate(QDate.currentDate().addDays(-30))
-        filtros_layout.addWidget(self.desde_edit)
-
-        filtros_layout.addWidget(QLabel("Hasta:"))
-        self.hasta_edit = QDateEdit()
-        self.hasta_edit.setCalendarPopup(True)
-        self.hasta_edit.setDate(QDate.currentDate())
-        filtros_layout.addWidget(self.hasta_edit)
-
-        self.filtro_rapido = QComboBox()
-        self.filtro_rapido.addItems(
+def exportar_historial_excel(
+    cierres, ventas_por_cierre, ranking, resumen, ruta_destino=None
+):
+    """Exporta historial a Excel con 3 hojas"""
+    try:
+        import openpyxl
+        from openpyxl.styles import Font, PatternFill, Alignment
+    except ImportError:
+        raise ImportError("openpyxl no está instalado. Ejecuta: pip install openpyxl")
+
+    wb = openpyxl.Workbook()
+
+    ws1 = wb.active
+    ws1.title = "Cierres"
+    headers1 = [
+        "ID",
+        "Fecha apertura",
+        "Fecha cierre",
+        "Ventas brutas",
+        "IVA recaudado",
+        "Efectivo",
+        "Transferencias",
+        "Gastos",
+        "Ganancia neta",
+        "Núm. ventas",
+    ]
+    ws1.append(headers1)
+    for cell in ws1[1]:
+        cell.font = Font(bold=True)
+        cell.fill = PatternFill("solid", fgColor="2C3E50")
+        cell.font = Font(bold=True, color="FFFFFF")
+    for c in cierres:
+        ws1.append(
             [
-                "Filtro rápido...",
-                "Este mes",
-                "Mes anterior",
-                "Últimos 3 meses",
-                "Este año",
+                c.id,
+                c.fecha_apertura.strftime("%d/%m/%Y %H:%M") if c.fecha_apertura else "",
+                c.fecha_cierre.strftime("%d/%m/%Y %H:%M") if c.fecha_cierre else "",
+                round(c.total_ventas or 0, 2),
+                round(c.total_iva or 0, 2),
+                round(c.total_efectivo or 0, 2),
+                round(c.total_transferencias or 0, 2),
+                round(c.total_gastos or 0, 2),
+                round(c.ganancia_neta or 0, 2),
+                c.numero_ventas or 0,
             ]
         )
-        self.filtro_rapido.currentTextChanged.connect(self.on_filtro_rapido_changed)
-        filtros_layout.addWidget(self.filtro_rapido)
+    ws1.append(
+        [
+            "TOTALES",
+            "",
+            "",
+            round(resumen["total_ventas"], 2),
+            round(sum(c.total_iva or 0 for c in cierres), 2),
+            round(sum(c.total_efectivo or 0 for c in cierres), 2),
+            round(sum(c.total_transferencias or 0 for c in cierres), 2),
+            round(resumen["total_gastos"], 2),
+            round(resumen["ganancia_neta"], 2),
+            resumen["num_ventas"],
+        ]
+    )
+    for cell in ws1[ws1.max_row]:
+        cell.font = Font(bold=True)
 
-        btn_filtrar = QPushButton("Filtrar")
-        btn_filtrar.setStyleSheet(
-            "background-color: #3498db; color: white; padding: 8px 16px;"
-        )
-        btn_filtrar.clicked.connect(self.cargar_historial)
-        filtros_layout.addWidget(btn_filtrar)
-
-        btn_exportar = QPushButton("Exportar Excel")
-        btn_exportar.setStyleSheet(
-            "background-color: #27ae60; color: white; padding: 8px 16px;"
-        )
-        btn_exportar.clicked.connect(self.exportar_excel)
-        filtros_layout.addWidget(btn_exportar)
-
-        filtros_layout.addStretch()
-        layout.addLayout(filtros_layout)
-
-        self.resumen_widget = QWidget()
-        self.resumen_widget.setStyleSheet("""
-            QWidget {
-                background-color: #2c3e50;
-                border-radius: 8px;
-                padding: 15px;
-            }
-        """)
-        resumen_layout = QHBoxLayout()
-        self.resumen_widget.setLayout(resumen_layout)
-
-        self.lbl_ventas = QLabel("Ventas brutas: $0.00")
-        self.lbl_ventas.setStyleSheet(
-            "color: white; font-size: 16px; font-weight: bold;"
-        )
-        resumen_layout.addWidget(self.lbl_ventas)
-
-        self.lbl_gastos = QLabel("Gastos: $0.00")
-        self.lbl_gastos.setStyleSheet(
-            "color: #e74c3c; font-size: 16px; font-weight: bold;"
-        )
-        resumen_layout.addWidget(self.lbl_gastos)
-
-        self.lbl_ganancia = QLabel("Ganancia neta: $0.00")
-        self.lbl_ganancia.setStyleSheet(
-            "color: #2ecc71; font-size: 16px; font-weight: bold;"
-        )
-        resumen_layout.addWidget(self.lbl_ganancia)
-
-        resumen_layout.addStretch()
-
-        self.lbl_resumen_datos = QLabel("Cierres: 0 | Ventas: 0")
-        self.lbl_resumen_datos.setStyleSheet("color: #bdc3c7; font-size: 14px;")
-        resumen_layout.addWidget(self.lbl_resumen_datos)
-
-        layout.addWidget(self.resumen_widget)
-
-        cierres_label = QLabel("Cierres del período")
-        cierres_label.setStyleSheet(
-            "font-size: 18px; font-weight: bold; margin-top: 15px;"
-        )
-        layout.addWidget(cierres_label)
-
-        self.tabla_cierres = QTableWidget()
-        self.tabla_cierres.setColumnCount(5)
-        self.tabla_cierres.setHorizontalHeaderLabels(
-            ["ID", "Apertura", "Cierre", "Ventas brutas", "Ganancia neta"]
-        )
-        self.tabla_cierres.horizontalHeader().setSectionResizeMode(
-            1, QHeaderView.ResizeMode.Stretch
-        )
-        self.tabla_cierres.setStyleSheet("font-size: 14px;")
-        self.tabla_cierres.setMinimumHeight(200)
-        layout.addWidget(self.tabla_cierres)
-
-        ranking_label = QLabel("Ranking de productos")
-        ranking_label.setStyleSheet(
-            "font-size: 18px; font-weight: bold; margin-top: 15px;"
-        )
-        layout.addWidget(ranking_label)
-
-        self.tabla_ranking = QTableWidget()
-        self.tabla_ranking.setColumnCount(4)
-        self.tabla_ranking.setHorizontalHeaderLabels(
-            ["#", "Producto", "Unidades vendidas", "Ingresos"]
-        )
-        self.tabla_ranking.horizontalHeader().setSectionResizeMode(
-            1, QHeaderView.ResizeMode.Stretch
-        )
-        self.tabla_ranking.setStyleSheet("font-size: 14px;")
-        self.tabla_ranking.setMaximumHeight(250)
-        layout.addWidget(self.tabla_ranking)
-
-    def on_filtro_rapido_changed(self, text):
-        """Aplica filtro rápido"""
-        today = QDate.currentDate()
-        if text == "Este mes":
-            self.desde_edit.setDate(QDate(today.year(), today.month(), 1))
-            self.hasta_edit.setDate(today)
-        elif text == "Mes anterior":
-            first_this_month = QDate(today.year(), today.month(), 1)
-            last_prev_month = first_this_month.addDays(-1)
-            first_prev_month = QDate(last_prev_month.year(), last_prev_month.month(), 1)
-            self.desde_edit.setDate(first_prev_month)
-            self.hasta_edit.setDate(last_prev_month)
-        elif text == "Últimos 3 meses":
-            self.desde_edit.setDate(today.addDays(-90))
-            self.hasta_edit.setDate(today)
-        elif text == "Este año":
-            self.desde_edit.setDate(QDate(today.year(), 1, 1))
-            self.hasta_edit.setDate(today)
-
-    def cargar_historial(self):
-        """Carga el historial de cierres"""
-        desde = self.desde_edit.date().toPython()
-        hasta = self.hasta_edit.date().toPython()
-        hasta = datetime.combine(hasta, datetime.max.time())
-
-        from models.producto import CorteCaja, VentaItem, Venta, Producto
-        from sqlalchemy import and_
-
-        cierres = (
-            self.session.query(CorteCaja)
-            .filter(
-                CorteCaja.fecha_cierre.isnot(None),
-                CorteCaja.fecha_apertura
-                >= datetime.combine(desde, datetime.min.time()),
-                CorteCaja.fecha_apertura <= hasta,
+    ws2 = wb.create_sheet("Detalle ventas")
+    headers2 = [
+        "Cierre ID",
+        "Venta ID",
+        "Fecha",
+        "Subtotal base",
+        "IVA 19%",
+        "Total",
+        "Método de pago",
+        "Estado",
+        "Motivo anulación",
+    ]
+    ws2.append(headers2)
+    for cell in ws2[1]:
+        cell.font = Font(bold=True)
+        cell.fill = PatternFill("solid", fgColor="27AE60")
+        cell.font = Font(bold=True, color="FFFFFF")
+    IVA_RATE = 0.19
+    for corte_id, ventas in ventas_por_cierre.items():
+        for v in ventas:
+            subtotal = round(v.total / 1.19, 2)
+            iva = round(v.total - subtotal, 2)
+            ws2.append(
+                [
+                    corte_id,
+                    v.id,
+                    v.fecha.strftime("%d/%m/%Y %H:%M:%S"),
+                    subtotal,
+                    iva,
+                    round(v.total, 2),
+                    v.metodo_pago or "efectivo",
+                    "Anulada" if v.anulada else "Válida",
+                    v.motivo_anulacion or "",
+                ]
             )
-            .order_by(CorteCaja.fecha_apertura.desc())
-            .all()
-        )
 
-        self.tabla_cierres.setRowCount(len(cierres))
-
-        total_ventas = 0
-        total_gastos = 0
-        total_cierres = len(cierres)
-        total_num_ventas = 0
-
-        for i, corte in enumerate(cierres):
-            self.tabla_cierres.setItem(i, 0, QTableWidgetItem(str(corte.id)))
-            self.tabla_cierres.setItem(
-                i, 1, QTableWidgetItem(corte.fecha_apertura.strftime("%d/%m/%Y %H:%M"))
-            )
-            self.tabla_cierres.setItem(
+    ws3 = wb.create_sheet("Ranking productos")
+    headers3 = [
+        "Posición",
+        "Código",
+        "Producto",
+        "Unidades vendidas",
+        "Ingresos totales",
+    ]
+    ws3.append(headers3)
+    for cell in ws3[1]:
+        cell.font = Font(bold=True)
+        cell.fill = PatternFill("solid", fgColor="8E44AD")
+        cell.font = Font(bold=True, color="FFFFFF")
+    for i, r in enumerate(ranking, 1):
+        ws3.append(
+            [
                 i,
-                2,
-                QTableWidgetItem(corte.fecha_cierre.strftime("%d/%m/%Y %H:%M"))
-                if corte.fecha_cierre
-                else QTableWidgetItem("—"),
-            )
-            self.tabla_cierres.setItem(
-                i, 3, QTableWidgetItem(f"${corte.total_ventas:.2f}")
-            )
-            ganancia = getattr(corte, "ganancia_neta", corte.total_ventas)
-            self.tabla_cierres.setItem(i, 4, QTableWidgetItem(f"${ganancia:.2f}"))
-
-            total_ventas += corte.total_ventas
-            total_gastos += getattr(corte, "total_gastos", 0)
-            total_num_ventas += corte.numero_ventas
-
-        self.lbl_ventas.setText(f"Ventas brutas: ${total_ventas:.2f}")
-        self.lbl_gastos.setText(f"Gastos: ${total_gastos:.2f}")
-        self.lbl_ganancia.setText(f"Ganancia neta: ${total_ventas - total_gastos:.2f}")
-        self.lbl_resumen_datos.setText(
-            f"Cierres: {total_cierres} | Ventas: {total_num_ventas}"
-        )
-
-        self.cargar_ranking(desde, hasta)
-
-    def cargar_ranking(self, desde, hasta):
-        """Carga el ranking de productos"""
-        desde_dt = datetime.combine(desde, datetime.min.time())
-        hasta_dt = datetime.combine(hasta, datetime.max.time())
-
-        from models.producto import VentaItem, Venta, Producto
-        from sqlalchemy import func
-
-        ranking = (
-            self.session.query(
-                Producto.nombre,
-                func.sum(VentaItem.cantidad).label("unidades"),
-                func.sum(VentaItem.cantidad * VentaItem.precio).label("ingresos"),
-            )
-            .join(VentaItem, VentaItem.producto_id == Producto.id)
-            .join(Venta, Venta.id == VentaItem.venta_id)
-            .filter(
-                Venta.fecha >= desde_dt,
-                Venta.fecha <= hasta_dt,
-                Venta.anulada == False,
-            )
-            .group_by(Producto.id, Producto.nombre)
-            .order_by(func.sum(VentaItem.cantidad * VentaItem.precio).desc())
-            .limit(50)
-            .all()
-        )
-
-        self.tabla_ranking.setRowCount(len(ranking))
-
-        for i, item in enumerate(ranking):
-            self.tabla_ranking.setItem(i, 0, QTableWidgetItem(str(i + 1)))
-            self.tabla_ranking.setItem(i, 1, QTableWidgetItem(item.nombre))
-            self.tabla_ranking.setItem(i, 2, QTableWidgetItem(str(int(item.unidades))))
-            self.tabla_ranking.setItem(i, 3, QTableWidgetItem(f"${item.ingresos:.2f}"))
-
-    def exportar_excel(self):
-        """Exporta el historial a Excel"""
-        try:
-            from openpyxl import Workbook
-            from openpyxl.styles import Font, Alignment, PatternFill
-
-            wb = Workbook()
-
-            desde = self.desde_edit.date().toPython()
-            hasta = self.hasta_edit.date().toPython()
-            fecha_str = datetime.now().strftime("%Y%m%d_%H%M%S")
-
-            downloads = os.path.join(os.path.expanduser("~"), "Downloads")
-            filename = os.path.join(downloads, f"TuCajero_Historial_{fecha_str}.xlsx")
-
-            ws_cierres = wb.active
-            ws_cierres.title = "Cierres"
-
-            headers = [
-                "ID",
-                "Apertura",
-                "Cierre",
-                "Ventas brutas",
-                "Gastos",
-                "Ganancia neta",
-                "N° Ventas",
+                r.codigo,
+                r.nombre,
+                int(r.total_vendido or 0),
+                round(float(r.total_ingresos or 0), 2),
             ]
-            ws_cierres.append(headers)
+        )
 
-            for cell in ws_cierres[1]:
-                cell.font = Font(bold=True)
-                cell.fill = PatternFill(
-                    start_color="3498db", end_color="3498db", fill_type="solid"
-                )
-                cell.alignment = Alignment(horizontal="center")
-
-            for row in range(self.tabla_cierres.rowCount()):
-                row_data = []
-                for col in range(self.tabla_cierres.columnCount()):
-                    item = self.tabla_cierres.item(row, col)
-                    row_data.append(item.text() if item else "")
-                total = (
-                    self.tabla_cierres.item(row, 3).text()
-                    if self.tabla_cierres.item(row, 3)
-                    else "$0.00"
-                )
-                row_data.extend(["$0.00", "$0.00", "0"])
-                ws_cierres.append(row_data)
-
-            ws_ranking = wb.create_sheet("Ranking")
-            ranking_headers = ["#", "Producto", "Unidades vendidas", "Ingresos"]
-            ws_ranking.append(ranking_headers)
-
-            for cell in ws_ranking[1]:
-                cell.font = Font(bold=True)
-                cell.fill = PatternFill(
-                    start_color="27ae60", end_color="27ae60", fill_type="solid"
-                )
-
-            for row in range(self.tabla_ranking.rowCount()):
-                row_data = []
-                for col in range(self.tabla_ranking.columnCount()):
-                    item = self.tabla_ranking.item(row, col)
-                    row_data.append(item.text() if item else "")
-                ws_ranking.append(row_data)
-
-            for ws in [ws_cierres, ws_ranking]:
-                for column in ws.columns:
-                    max_length = 0
-                    column_letter = column[0].column_letter
-                    for cell in column:
-                        try:
-                            if len(str(cell.value)) > max_length:
-                                max_length = len(str(cell.value))
-                        except:
-                            pass
-                    ws.column_dimensions[column_letter].width = min(max_length + 2, 50)
-
-            wb.save(filename)
-            QMessageBox.information(
-                self,
-                "Exportación exitosa",
-                f"Archivo exportado a:\n{filename}",
+    for ws in [ws1, ws2, ws3]:
+        for col in ws.columns:
+            max_len = max(
+                (len(str(cell.value)) for cell in col if cell.value), default=10
             )
+            ws.column_dimensions[col[0].column_letter].width = min(max_len + 4, 40)
 
-        except Exception as e:
-            QMessageBox.critical(
-                self,
-                "Error al exportar",
-                f"No se pudo exportar el archivo:\n{str(e)}",
-            )
+    if not ruta_destino:
+        from config.database import get_data_dir
 
+        exports_dir = os.path.join(get_data_dir(), "exports")
+        os.makedirs(exports_dir, exist_ok=True)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        ruta_destino = os.path.join(exports_dir, f"historial_{timestamp}.xlsx")
+
+    wb.save(ruta_destino)
+    return ruta_destino
 ```
 
----
-
-## 19. ui/inventario_view.py — Inventario
-
-```python
-from PySide6.QtWidgets import (
-    QWidget,
-    QVBoxLayout,
-    QHBoxLayout,
-    QLabel,
-    QTableWidget,
-    QTableWidgetItem,
-    QPushButton,
-    QMessageBox,
-    QDialog,
-    QFormLayout,
-    QSpinBox,
-    QHeaderView,
-)
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QColor
-
-
-class InventarioView(QWidget):
-    """Vista de inventario"""
-
-    def __init__(self, session, parent=None):
-        super().__init__(parent)
-        self.session = session
-        self.init_ui()
-        self.cargar_inventario()
-
-    def init_ui(self):
-        """Inicializa la interfaz"""
-        layout = QVBoxLayout()
-        self.setLayout(layout)
-
-        titulo = QLabel("Inventario")
-        titulo.setStyleSheet("font-size: 24px; font-weight: bold;")
-        layout.addWidget(titulo)
-
-        info_label = QLabel("Seleccione un producto y elija Entrada o Salida")
-        info_label.setStyleSheet("color: #7f8c8d; padding-bottom: 10px;")
-        layout.addWidget(info_label)
-
-        self.tabla = QTableWidget()
-        self.tabla.setColumnCount(4)
-        self.tabla.setHorizontalHeaderLabels(["Código", "Producto", "Stock", "Precio"])
-        self.tabla.horizontalHeader().setSectionResizeMode(
-            1, QHeaderView.ResizeMode.Stretch
-        )
-        self.tabla.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-        self.tabla.setStyleSheet("font-size: 14px;")
-        self.tabla.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        layout.addWidget(self.tabla)
-
-        btn_layout = QHBoxLayout()
-
-        btn_entrada = QPushButton("+ Entrada")
-        btn_entrada.setStyleSheet(
-            "background-color: #27ae60; color: white; padding: 12px; font-weight: bold;"
-        )
-        btn_entrada.clicked.connect(lambda: self.movimiento_inventario("entrada"))
-        btn_layout.addWidget(btn_entrada)
-
-        btn_salida = QPushButton("- Salida")
-        btn_salida.setStyleSheet(
-            "background-color: #e74c3c; color: white; padding: 12px; font-weight: bold;"
-        )
-        btn_salida.clicked.connect(lambda: self.movimiento_inventario("salida"))
-        btn_layout.addWidget(btn_salida)
-
-        btn_layout.addStretch()
-
-        btn_actualizar = QPushButton("Actualizar")
-        btn_actualizar.setStyleSheet(
-            "background-color: #3498db; color: white; padding: 10px;"
-        )
-        btn_actualizar.clicked.connect(self.cargar_inventario)
-        btn_layout.addWidget(btn_actualizar)
-
-        layout.addLayout(btn_layout)
-
-    def cargar_inventario(self):
-        """Carga el inventario desde la base de datos"""
-        from services.producto_service import InventarioService
-
-        service = InventarioService(self.session)
-        productos = service.get_all_productos()
-
-        self.tabla.setRowCount(len(productos))
-
-        for i, p in enumerate(productos):
-            self.tabla.setItem(i, 0, QTableWidgetItem(p.codigo))
-            self.tabla.setItem(i, 1, QTableWidgetItem(p.nombre))
-
-            stock_item = QTableWidgetItem(str(p.stock))
-            if p.stock <= 0:
-                stock_item.setBackground(QColor("#ffcccc"))
-            elif p.stock < 5:
-                stock_item.setBackground(QColor("#fff3cd"))
-            self.tabla.setItem(i, 2, stock_item)
-
-            self.tabla.setItem(i, 3, QTableWidgetItem(f"${p.precio:.2f}"))
-
-    def recargar_inventario(self):
-        """Recarga el inventario (para auto-actualizacion despues de venta)"""
-        self.cargar_inventario()
-
-    def obtener_producto_seleccionado(self):
-        """Retorna el ID del producto seleccionado"""
-        row = self.tabla.currentRow()
-        if row >= 0:
-            item = self.tabla.item(row, 0)
-            if item is not None:
-                codigo = item.text()
-                from services.producto_service import ProductoService
-
-                service = ProductoService(self.session)
-                producto = service.get_producto_by_codigo(codigo)
-                return producto
-        return None
-
-    def movimiento_inventario(self, tipo):
-        """Abre el diálogo para registrar movimiento"""
-        producto = self.obtener_producto_seleccionado()
-        if not producto:
-            QMessageBox.warning(self, "Error", "Seleccione un producto")
-            return
-
-        dialog = MovimientoDialog(self.session, producto, tipo, self)
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            self.cargar_inventario()
-
-
-class MovimientoDialog(QDialog):
-    """Diálogo para registrar movimientos de inventario"""
-
-    def __init__(self, session, producto, tipo, parent=None):
-        super().__init__(parent)
-        self.session = session
-        self.producto = producto
-        self.tipo = tipo
-        color = "#27ae60" if tipo == "entrada" else "#e74c3c"
-        self.setWindowTitle(
-            f"{'Entrada' if tipo == 'entrada' else 'Salida'} de Inventario"
-        )
-        self.setMinimumWidth(350)
-        self.init_ui(color)
-
-    def init_ui(self, color):
-        """Inicializa la interfaz"""
-        layout = QFormLayout()
-        self.setLayout(layout)
-
-        info_box = QWidget()
-        info_box.setStyleSheet(
-            f"background-color: #f8f9fa; padding: 10px; border-radius: 5px;"
-        )
-        info_layout = QVBoxLayout()
-        info_box.setLayout(info_layout)
-
-        info_layout.addWidget(QLabel(f"<b>Producto:</b> {self.producto.nombre}"))
-        info_layout.addWidget(QLabel(f"<b>Código:</b> {self.producto.codigo}"))
-        info_layout.addWidget(QLabel(f"<b>Stock actual:</b> {self.producto.stock}"))
-
-        layout.addRow("", info_box)
-
-        self.cantidad_input = QSpinBox()
-        self.cantidad_input.setRange(1, 999999)
-        self.cantidad_input.setStyleSheet("padding: 8px; font-size: 16px;")
-        self.cantidad_input.setFocus()
-        layout.addRow("Cantidad:", self.cantidad_input)
-
-        btn_layout = QHBoxLayout()
-
-        btn_aceptar = QPushButton("Aceptar")
-        btn_aceptar.setStyleSheet(
-            f"background-color: {color}; color: white; padding: 12px; font-weight: bold;"
-        )
-        btn_aceptar.clicked.connect(self.aceptar)
-        btn_layout.addWidget(btn_aceptar)
-
-        btn_cancelar = QPushButton("Cancelar")
-        btn_cancelar.setStyleSheet(
-            "background-color: #95a5a6; color: white; padding: 12px;"
-        )
-        btn_cancelar.clicked.connect(self.reject)
-        btn_layout.addWidget(btn_cancelar)
-
-        layout.addRow("", btn_layout)
-
-    def aceptar(self):
-        """Registra el movimiento"""
-        from services.producto_service import InventarioService
-
-        cantidad = self.cantidad_input.value()
-
-        if cantidad <= 0:
-            QMessageBox.warning(self, "Error", "Cantidad inválida")
-            return
-
-        try:
-            service = InventarioService(self.session)
-            if self.tipo == "entrada":
-                service.entrada_inventario(self.producto.id, cantidad)
-            else:
-                service.salida_inventario(self.producto.id, cantidad)
-
-            self.accept()
-        except ValueError as e:
-            QMessageBox.warning(self, "Error", str(e))
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Error: {str(e)}")
-
-```
-
----
-
-## 20. ui/buscador_productos.py
-
-```python
-from PySide6.QtWidgets import (
-    QDialog,
-    QVBoxLayout,
-    QHBoxLayout,
-    QLabel,
-    QLineEdit,
-    QTableWidget,
-    QTableWidgetItem,
-    QPushButton,
-    QHeaderView,
-    QTabWidget,
-    QWidget,
-    QScrollArea,
-    QFrame,
-    QSizePolicy,
-)
-from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QColor
-
-COLORES_CATEGORIA = [
-    "#3498db",
-    "#27ae60",
-    "#e67e22",
-    "#8e44ad",
-    "#e74c3c",
-    "#16a085",
-    "#d35400",
-    "#2980b9",
-    "#1abc9c",
-    "#f39c12",
-]
-
-
-class BuscadorProductosDialog(QDialog):
-    """Diálogo de búsqueda con 3 modos: código, nombre y categoría"""
-
-    def __init__(self, productos, session=None, parent=None):
-        super().__init__(parent)
-        self.productos = productos
-        self.session = session
-        self.producto_seleccionado = None
-        self.setWindowTitle("Buscar Producto")
-        self.setMinimumSize(620, 500)
-        self.init_ui()
-        self._timer = QTimer()
-        self._timer.setSingleShot(True)
-        self._timer.timeout.connect(self._filtrar_debounced)
-
-    def init_ui(self):
-        layout = QVBoxLayout()
-        self.setLayout(layout)
-
-        titulo = QLabel("Buscar Producto")
-        titulo.setStyleSheet("font-size: 18px; font-weight: bold; padding-bottom: 4px;")
-        layout.addWidget(titulo)
-
-        search_layout = QHBoxLayout()
-        self.buscador_input = QLineEdit()
-        self.buscador_input.setPlaceholderText(
-            "Buscar por código o nombre del producto..."
-        )
-        self.buscador_input.setStyleSheet("padding: 10px; font-size: 14px;")
-        self.buscador_input.textChanged.connect(self._on_text_changed)
-        self.buscador_input.returnPressed.connect(self._seleccionar_primero)
-        search_layout.addWidget(self.buscador_input)
-        layout.addLayout(search_layout)
-
-        self.tabs = QTabWidget()
-        self.tabs.setStyleSheet("font-size: 13px;")
-        layout.addWidget(self.tabs)
-
-        tab_resultados = QWidget()
-        tab_resultados_layout = QVBoxLayout()
-        tab_resultados.setLayout(tab_resultados_layout)
-
-        self.lbl_resultados = QLabel("Mostrando todos los productos")
-        self.lbl_resultados.setStyleSheet(
-            "color: #7f8c8d; font-size: 12px; padding: 2px;"
-        )
-        tab_resultados_layout.addWidget(self.lbl_resultados)
-
-        self.tabla = QTableWidget()
-        self.tabla.setColumnCount(4)
-        self.tabla.setHorizontalHeaderLabels(["Código", "Nombre", "Stock", "Precio"])
-        self.tabla.horizontalHeader().setSectionResizeMode(
-            1, QHeaderView.ResizeMode.Stretch
-        )
-        self.tabla.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-        self.tabla.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.tabla.doubleClicked.connect(self.seleccionar_producto)
-        self.tabla.setStyleSheet("font-size: 13px;")
-        tab_resultados_layout.addWidget(self.tabla)
-        self.tabs.addTab(tab_resultados, "🔍  Búsqueda")
-
-        tab_categorias = QWidget()
-        tab_cat_layout = QVBoxLayout()
-        tab_categorias.setLayout(tab_cat_layout)
-
-        lbl_cat = QLabel("Selecciona una categoría para filtrar productos:")
-        lbl_cat.setStyleSheet("color: #7f8c8d; font-size: 12px; padding: 2px;")
-        tab_cat_layout.addWidget(lbl_cat)
-
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        scroll.setFixedHeight(120)
-        scroll.setStyleSheet("border: none;")
-        self.cat_buttons_widget = QWidget()
-        self.cat_buttons_layout = QHBoxLayout()
-        self.cat_buttons_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        self.cat_buttons_widget.setLayout(self.cat_buttons_layout)
-        scroll.setWidget(self.cat_buttons_widget)
-        tab_cat_layout.addWidget(scroll)
-
-        self.tabla_cat = QTableWidget()
-        self.tabla_cat.setColumnCount(4)
-        self.tabla_cat.setHorizontalHeaderLabels(
-            ["Código", "Nombre", "Stock", "Precio"]
-        )
-        self.tabla_cat.horizontalHeader().setSectionResizeMode(
-            1, QHeaderView.ResizeMode.Stretch
-        )
-        self.tabla_cat.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-        self.tabla_cat.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.tabla_cat.doubleClicked.connect(self._seleccionar_de_cat)
-        self.tabla_cat.setStyleSheet("font-size: 13px;")
-        tab_cat_layout.addWidget(self.tabla_cat)
-        self.tabs.addTab(tab_categorias, "🏷️  Categorías")
-
-        btn_layout = QHBoxLayout()
-        btn_seleccionar = QPushButton("Seleccionar")
-        btn_seleccionar.setStyleSheet("""
-            QPushButton {
-                background-color: #27ae60;
-                color: white;
-                padding: 10px 20px;
-                font-weight: bold;
-                font-size: 14px;
-            }
-            QPushButton:hover { background-color: #2ecc71; }
-        """)
-        btn_seleccionar.clicked.connect(self.seleccionar_producto)
-        btn_layout.addWidget(btn_seleccionar)
-
-        btn_cancelar = QPushButton("Cancelar")
-        btn_cancelar.setStyleSheet("""
-            QPushButton {
-                background-color: #95a5a6;
-                color: white;
-                padding: 10px 20px;
-            }
-            QPushButton:hover { background-color: #7f8c8d; }
-        """)
-        btn_cancelar.clicked.connect(self.reject)
-        btn_layout.addWidget(btn_cancelar)
-        layout.addLayout(btn_layout)
-
-        self.llenar_tabla(self.productos, self.tabla)
-        self._cargar_categorias()
-        self.buscador_input.setFocus()
-
-    def _on_text_changed(self):
-        self._timer.start(200)
-
-    def _filtrar_debounced(self):
-        texto = self.buscador_input.text().strip().lower()
-        if not texto:
-            productos_filtrados = self.productos
-            self.lbl_resultados.setText(
-                f"Mostrando todos los productos ({len(self.productos)})"
-            )
-        else:
-            productos_filtrados = [
-                p
-                for p in self.productos
-                if texto in p.codigo.lower() or texto in p.nombre.lower()
-            ]
-            self.lbl_resultados.setText(
-                f'{len(productos_filtrados)} resultado(s) para "{texto}"'
-            )
-        self.llenar_tabla(productos_filtrados, self.tabla)
-        if productos_filtrados:
-            self.tabla.selectRow(0)
-
-    def _seleccionar_primero(self):
-        """Al presionar Enter selecciona el primer resultado"""
-        if self.tabla.rowCount() > 0:
-            self.tabla.selectRow(0)
-            self.seleccionar_producto()
-
-    def llenar_tabla(self, productos, tabla):
-        tabla.setRowCount(len(productos))
-        for i, p in enumerate(productos):
-            tabla.setItem(i, 0, QTableWidgetItem(p.codigo))
-            tabla.setItem(i, 1, QTableWidgetItem(p.nombre))
-            stock_item = QTableWidgetItem(str(p.stock))
-            if p.stock <= 0:
-                stock_item.setForeground(QColor("#e74c3c"))
-            elif p.stock < 5:
-                stock_item.setForeground(QColor("#e67e22"))
-            tabla.setItem(i, 2, stock_item)
-            tabla.setItem(i, 3, QTableWidgetItem(f"${p.precio:,.2f}"))
-
-    def _cargar_categorias(self):
-        """Carga los botones de categorías"""
-        if not self.session:
-            return
-        try:
-            from models.producto import Categoria
-
-            categorias = (
-                self.session.query(Categoria).order_by(Categoria.nombre.asc()).all()
-            )
-            while self.cat_buttons_layout.count():
-                item = self.cat_buttons_layout.takeAt(0)
-                if item.widget():
-                    item.widget().deleteLater()
-
-            btn_todos = QPushButton("Todos")
-            btn_todos.setStyleSheet("""
-                QPushButton {
-                    background-color: #2c3e50;
-                    color: white;
-                    padding: 8px 16px;
-                    border-radius: 16px;
-                    font-weight: bold;
-                    font-size: 12px;
-                }
-                QPushButton:hover { background-color: #34495e; }
-            """)
-            btn_todos.clicked.connect(
-                lambda: self.llenar_tabla(self.productos, self.tabla_cat)
-            )
-            self.cat_buttons_layout.addWidget(btn_todos)
-
-            for i, cat in enumerate(categorias):
-                color = cat.color or COLORES_CATEGORIA[i % len(COLORES_CATEGORIA)]
-                btn = QPushButton(f"🏷 {cat.nombre}")
-                btn.setStyleSheet(f"""
-                    QPushButton {{
-                        background-color: {color};
-                        color: white;
-                        padding: 8px 16px;
-                        border-radius: 16px;
-                        font-size: 12px;
-                    }}
-                    QPushButton:hover {{ opacity: 0.85; }}
-                """)
-                btn.clicked.connect(
-                    lambda checked, c=cat: self._filtrar_por_categoria(c)
-                )
-                self.cat_buttons_layout.addWidget(btn)
-        except Exception as e:
-            print(f"[WARN] No se pudieron cargar categorías: {e}")
-
-    def _filtrar_por_categoria(self, categoria):
-        """Filtra productos por categoría"""
-        if not self.session:
-            return
-        try:
-            from repositories.producto_repo import ProductoRepository
-
-            repo = ProductoRepository(self.session)
-            productos = repo.search_por_categoria(categoria.id)
-            self.llenar_tabla(productos, self.tabla_cat)
-        except Exception as e:
-            print(f"[WARN] Error filtrando por categoría: {e}")
-
-    def seleccionar_producto(self):
-        """Selecciona de la tab activa"""
-        tab_actual = self.tabs.currentIndex()
-        if tab_actual == 0:
-            self._seleccionar_de_tabla(self.tabla)
-        else:
-            self._seleccionar_de_cat()
-
-    def _seleccionar_de_cat(self):
-        self._seleccionar_de_tabla(self.tabla_cat)
-
-    def _seleccionar_de_tabla(self, tabla):
-        row = tabla.currentRow()
-        if row >= 0:
-            item = tabla.item(row, 0)
-            if item is not None:
-                codigo = item.text()
-                for p in self.productos:
-                    if p.codigo == codigo:
-                        self.producto_seleccionado = p
-                        self.accept()
-                        return
-                if self.session:
-                    from repositories.producto_repo import ProductoRepository
-
-                    repo = ProductoRepository(self.session)
-                    p = repo.get_by_codigo(codigo)
-                    if p:
-                        self.producto_seleccionado = p
-                        self.accept()
-
-```
-
----
-
-## 21. ui/activate_view.py
-
-```python
-from PySide6.QtWidgets import (
-    QWidget,
-    QVBoxLayout,
-    QHBoxLayout,
-    QLabel,
-    QLineEdit,
-    QPushButton,
-    QMessageBox,
-    QDialog,
-)
-from PySide6.QtCore import Qt
-from security.license_manager import (
-    get_machine_id,
-    generar_licencia,
-    guardar_licencia,
-    validar_licencia,
-)
-from utils.store_config import get_store_name
-
-
-class ActivateView(QWidget):
-    """Vista de activación del sistema"""
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.activation_success = False
-        self.init_ui()
-
-    def init_ui(self):
-        """Inicializa la interfaz"""
-        store_name = get_store_name()
-        layout = QVBoxLayout()
-        self.setLayout(layout)
-        self.setFixedSize(400, 300)
-        self.setWindowTitle(f"Activación - {store_name}")
-
-        titulo = QLabel(f"Activación de {store_name}")
-        titulo.setStyleSheet("font-size: 20px; font-weight: bold; color: #2c3e50;")
-        titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(titulo)
-
-        subtitulo = QLabel("Ingrese su licencia para activar el sistema")
-        subtitulo.setStyleSheet("color: #7f8c8d; padding-bottom: 20px;")
-        subtitulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(subtitulo)
-
-        machine_id = get_machine_id()
-        machine_label = QLabel(f"Machine ID:")
-        machine_label.setStyleSheet("font-weight: bold;")
-        layout.addWidget(machine_label)
-
-        self.machine_id_display = QLabel(machine_id)
-        self.machine_id_display.setStyleSheet(
-            "background-color: #ecf0f1; padding: 10px; font-family: monospace; font-size: 14px;"
-        )
-        self.machine_id_display.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(self.machine_id_display)
-
-        info_label = QLabel(
-            "Envía tu Machine ID al administrador\npara recibir tu licencia de activación."
-        )
-        info_label.setStyleSheet("color: #7f8c8d; font-size: 12px; padding: 8px;")
-        info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(info_label)
-
-        self.licencia_input = QLineEdit()
-        self.licencia_input.setPlaceholderText("Ingrese su licencia")
-        self.licencia_input.setStyleSheet("padding: 10px; font-size: 16px;")
-        self.licencia_input.setMaxLength(16)
-        layout.addWidget(self.licencia_input)
-
-        btn_layout = QHBoxLayout()
-
-        self.btn_activar = QPushButton("ACTIVAR")
-        self.btn_activar.setStyleSheet("""
-            QPushButton {
-                background-color: #27ae60;
-                color: white;
-                font-size: 16px;
-                font-weight: bold;
-                padding: 12px;
-            }
-            QPushButton:hover {
-                background-color: #2ecc71;
-            }
-        """)
-        self.btn_activar.clicked.connect(self.activar)
-        btn_layout.addWidget(self.btn_activar)
-
-        layout.addLayout(btn_layout)
-
-    def activar(self):
-        """Activa el sistema con la licencia"""
-        licencia = self.licencia_input.text().strip().upper()
-
-        if not licencia:
-            QMessageBox.warning(self, "Error", "Ingrese una licencia")
-            return
-
-        machine_id = get_machine_id()
-        licencia_correcta = generar_licencia(machine_id)
-
-        if licencia == licencia_correcta:
-            guardar_licencia(licencia)
-            QMessageBox.information(
-                self,
-                "Sistema Activado",
-                f"{get_store_name()} ha sido activado correctamente.\n\nEl sistema se cerrará. Vuelve a abrirlo.",
-            )
-            self.activation_success = True
-            self.close()
-        else:
-            QMessageBox.critical(
-                self,
-                "Licencia Inválida",
-                "La licencia ingresada no es válida para esta computadora.",
-            )
-            self.licencia_input.clear()
-
-
-class ActivationDialog(QDialog):
-    """Diálogo de activación"""
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        store_name = get_store_name()
-        self.setWindowTitle(f"Activación - {store_name}")
-        self.setModal(True)
-        self.activation_success = False
-
-        layout = QVBoxLayout()
-        self.setLayout(layout)
-        self.setFixedSize(450, 380)
-
-        titulo = QLabel(f"Activación de {store_name}")
-        titulo.setStyleSheet("font-size: 20px; font-weight: bold; color: #2c3e50;")
-        titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(titulo)
-
-        subtitulo = QLabel("Ingrese su licencia para activar el sistema")
-        subtitulo.setStyleSheet("color: #7f8c8d; padding-bottom: 10px;")
-        subtitulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(subtitulo)
-
-        machine_id = get_machine_id()
-
-        machine_label = QLabel("Machine ID de esta computadora:")
-        machine_label.setStyleSheet("font-weight: bold; margin-top: 10px;")
-        layout.addWidget(machine_label)
-
-        self.machine_id_display = QLabel(machine_id)
-        self.machine_id_display.setStyleSheet(
-            "background-color: #ecf0f1; padding: 10px; font-family: monospace; font-size: 12px;"
-        )
-        self.machine_id_display.setWordWrap(True)
-        layout.addWidget(self.machine_id_display)
-
-        info_label = QLabel(
-            "Envía tu Machine ID al administrador\npara recibir tu licencia de activación."
-        )
-        info_label.setStyleSheet("color: #7f8c8d; font-size: 12px; padding: 8px;")
-        info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(info_label)
-
-        self.licencia_input = QLineEdit()
-        self.licencia_input.setPlaceholderText("Ingrese su licencia de 16 caracteres")
-        self.licencia_input.setStyleSheet("padding: 10px; font-size: 14px;")
-        self.licencia_input.setMaxLength(16)
-        layout.addWidget(self.licencia_input)
-
-        btn_activar = QPushButton("ACTIVAR SISTEMA")
-        btn_activar.setStyleSheet("""
-            QPushButton {
-                background-color: #27ae60;
-                color: white;
-                font-size: 16px;
-                font-weight: bold;
-                padding: 15px;
-            }
-            QPushButton:hover {
-                background-color: #2ecc71;
-            }
-        """)
-        btn_activar.clicked.connect(self.activar)
-        layout.addWidget(btn_activar)
-
-    def activar(self):
-        """Activa el sistema"""
-        licencia = self.licencia_input.text().strip().upper()
-
-        if not licencia:
-            QMessageBox.warning(self, "Error", "Ingrese una licencia")
-            return
-
-        if len(licencia) != 16:
-            QMessageBox.warning(self, "Error", "La licencia debe tener 16 caracteres")
-            return
-
-        machine_id = get_machine_id()
-        licencia_correcta = generar_licencia(machine_id)
-
-        if licencia == licencia_correcta:
-            guardar_licencia(licencia)
-            QMessageBox.information(
-                self,
-                "Sistema Activado",
-                f"{get_store_name()} ha sido activado correctamente.\n\nEl sistema se cerrará. Vuélvelo a abrir.",
-            )
-            self.activation_success = True
-            self.accept()
-        else:
-            QMessageBox.critical(
-                self,
-                "Licencia Inválida",
-                "La licencia ingresada no es válida para esta computadora.",
-            )
-            self.licencia_input.clear()
-
-```
-
----
-
-## 22. ui/about_view.py
-
-```python
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QDialog
-from PySide6.QtCore import Qt
-from utils.store_config import get_store_name, get_address, get_phone, get_nit
-
-
-class AboutView(QDialog):
-    """Ventana Acerca de"""
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        store_name = get_store_name()
-        self.setWindowTitle(f"Acerca de {store_name}")
-        self.setFixedSize(400, 350)
-        self.setModal(True)
-        self.init_ui()
-
-    def init_ui(self):
-        """Inicializa la interfaz"""
-        layout = QVBoxLayout()
-        self.setLayout(layout)
-
-        titulo = QLabel(get_store_name())
-        titulo.setStyleSheet("font-size: 28px; font-weight: bold; color: #2c3e50;")
-        titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(titulo)
-
-        descripcion = QLabel("Sistema de ventas para pequeños negocios")
-        descripcion.setStyleSheet("font-size: 14px; color: #7f8c8d;")
-        descripcion.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(descripcion)
-
-        version = QLabel("Versión 1.0")
-        version.setStyleSheet(
-            "font-size: 16px; color: #27ae60; font-weight: bold; margin-top: 20px;"
-        )
-        version.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(version)
-
-        address = get_address()
-        if address:
-            addr_label = QLabel(address)
-            addr_label.setStyleSheet("font-size: 12px; color: #7f8c8d;")
-            addr_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            layout.addWidget(addr_label)
-
-        phone = get_phone()
-        if phone:
-            phone_label = QLabel(f"Tel: {phone}")
-            phone_label.setStyleSheet("font-size: 12px; color: #7f8c8d;")
-            phone_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            layout.addWidget(phone_label)
-
-        nit = get_nit()
-        if nit:
-            nit_label = QLabel(f"NIT: {nit}")
-            nit_label.setStyleSheet("font-size: 12px; color: #7f8c8d;")
-            nit_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            layout.addWidget(nit_label)
-
-        separator = QLabel("")
-        separator.setFixedHeight(20)
-        layout.addWidget(separator)
-
-        desarrollado = QLabel("Desarrollado por:")
-        desarrollado.setStyleSheet("font-size: 12px; color: #95a5a6;")
-        desarrollado.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(desarrollado)
-
-        autor = QLabel("Ingeniero Francisco Llinas P.")
-        autor.setStyleSheet("font-size: 16px; font-weight: bold; color: #2c3e50;")
-        autor.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(autor)
-
-        layout.addStretch()
-
-        btn_cerrar = QPushButton("Cerrar")
-        btn_cerrar.setStyleSheet("""
-            QPushButton {
-                background-color: #3498db;
-                color: white;
-                padding: 10px 30px;
-                font-size: 14px;
-                border: none;
-            }
-            QPushButton:hover {
-                background-color: #2980b9;
-            }
-        """)
-        btn_cerrar.clicked.connect(self.accept)
-        layout.addWidget(btn_cerrar)
-
-```
-
----
-
-## 23. ui/config_view.py
+## tucajero/utils/factura_diaria.py
 
 ```python
 import os
-from PySide6.QtWidgets import (
-    QDialog,
-    QVBoxLayout,
-    QHBoxLayout,
-    QLabel,
-    QLineEdit,
-    QPushButton,
-    QFileDialog,
-    QMessageBox,
-    QFormLayout,
-    QWidget,
+from datetime import datetime
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import cm
+from reportlab.lib import colors
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Paragraph,
+    Spacer,
+    Table,
+    TableStyle,
+    HRFlowable,
 )
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QPixmap
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 
 
-class ConfigNegocioDialog(QDialog):
-    def __init__(self, parent=None, primera_vez=False):
-        super().__init__(parent)
-        self.primera_vez = primera_vez
-        self.logo_path_seleccionado = ""
-        self.setWindowTitle("Configuración del Negocio")
-        self.setMinimumWidth(480)
-        self.setMinimumHeight(500)
-        if primera_vez:
-            self.setWindowFlags(
-                self.windowFlags() & ~Qt.WindowType.WindowCloseButtonHint
-            )
-        self.init_ui()
-        self.cargar_datos_existentes()
+def get_facturas_dir():
+    """Retorna el directorio de facturas diarias"""
+    from config.database import get_data_dir
 
-    def init_ui(self):
-        layout = QVBoxLayout()
-        self.setLayout(layout)
+    facturas_dir = os.path.join(get_data_dir(), "facturas")
+    os.makedirs(facturas_dir, exist_ok=True)
+    return facturas_dir
 
-        header = QWidget()
-        header.setStyleSheet(
-            "background-color: #1a252f; border-radius: 8px; padding: 16px;"
-        )
-        header_layout = QVBoxLayout()
-        header.setLayout(header_layout)
 
-        if self.primera_vez:
-            titulo = QLabel("¡Bienvenido a TuCajero!")
-            titulo.setStyleSheet("color: white; font-size: 20px; font-weight: bold;")
-            subtitulo = QLabel("Configura los datos de tu negocio antes de comenzar.")
-            subtitulo.setStyleSheet("color: #a0b0c0; font-size: 13px;")
-            header_layout.addWidget(titulo)
-            header_layout.addWidget(subtitulo)
-        else:
-            titulo = QLabel("Configuración del Negocio")
-            titulo.setStyleSheet("color: white; font-size: 18px; font-weight: bold;")
-            header_layout.addWidget(titulo)
+def get_factura_diaria_path(fecha=None):
+    """Retorna la ruta del PDF del día"""
+    if fecha is None:
+        fecha = datetime.now().date()
+    facturas_dir = get_facturas_dir()
+    nombre = f"facturas_{fecha.strftime('%Y-%m-%d')}.pdf"
+    return os.path.join(facturas_dir, nombre)
 
-        layout.addWidget(header)
 
-        form_widget = QWidget()
-        form = QFormLayout()
-        form.setSpacing(12)
-        form_widget.setLayout(form)
+def agregar_ticket_a_pdf_diario(venta, items):
+    """
+    Agrega el ticket de una venta al PDF diario acumulativo.
+    Si el PDF del día no existe lo crea.
+    Si ya existe agrega la nueva factura al final.
+    """
+    from utils.store_config import (
+        get_store_name,
+        get_address,
+        get_phone,
+        get_email,
+        get_nit,
+    )
 
-        self.nombre_input = QLineEdit()
-        self.nombre_input.setPlaceholderText("Ej: Droguería El Carmen")
-        self.nombre_input.setStyleSheet("padding: 8px; font-size: 14px;")
-        form.addRow("Nombre del negocio *:", self.nombre_input)
+    pdf_path = get_factura_diaria_path()
 
-        self.direccion_input = QLineEdit()
-        self.direccion_input.setPlaceholderText("Ej: Calle 10 # 5-20")
-        self.direccion_input.setStyleSheet("padding: 8px; font-size: 14px;")
-        form.addRow("Dirección:", self.direccion_input)
+    tickets_existentes = []
+    if os.path.exists(pdf_path):
+        try:
+            import json
 
-        self.telefono_input = QLineEdit()
-        self.telefono_input.setPlaceholderText("Ej: 3001234567")
-        self.telefono_input.setStyleSheet("padding: 8px; font-size: 14px;")
-        form.addRow("Teléfono:", self.telefono_input)
+            json_path = pdf_path.replace(".pdf", "_data.json")
+            if os.path.exists(json_path):
+                with open(json_path, "r", encoding="utf-8") as f:
+                    tickets_existentes = json.load(f)
+        except Exception:
+            tickets_existentes = []
 
-        self.email_input = QLineEdit()
-        self.email_input.setPlaceholderText("Ej: minegocio@gmail.com")
-        self.email_input.setStyleSheet("padding: 8px; font-size: 14px;")
-        form.addRow("Email:", self.email_input)
-
-        self.nit_input = QLineEdit()
-        self.nit_input.setPlaceholderText("Ej: 900123456-1")
-        self.nit_input.setStyleSheet("padding: 8px; font-size: 14px;")
-        form.addRow("NIT:", self.nit_input)
-
-        logo_widget = QWidget()
-        logo_layout = QHBoxLayout()
-        logo_layout.setContentsMargins(0, 0, 0, 0)
-        logo_widget.setLayout(logo_layout)
-
-        self.logo_preview = QLabel()
-        self.logo_preview.setFixedSize(80, 80)
-        self.logo_preview.setStyleSheet(
-            "border: 2px dashed #bdc3c7; border-radius: 8px;background: #f8f9fa;"
-        )
-        self.logo_preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.logo_preview.setText("Sin logo")
-        logo_layout.addWidget(self.logo_preview)
-
-        logo_btn_layout = QVBoxLayout()
-        btn_seleccionar_logo = QPushButton("Seleccionar logo...")
-        btn_seleccionar_logo.setStyleSheet(
-            "background-color: #3498db; color: white; padding: 8px 16px;"
-        )
-        btn_seleccionar_logo.clicked.connect(self.seleccionar_logo)
-        logo_btn_layout.addWidget(btn_seleccionar_logo)
-
-        self.lbl_logo_path = QLabel("Ningún archivo seleccionado")
-        self.lbl_logo_path.setStyleSheet("color: #7f8c8d; font-size: 11px;")
-        self.lbl_logo_path.setWordWrap(True)
-        logo_btn_layout.addWidget(self.lbl_logo_path)
-        logo_btn_layout.addStretch()
-        logo_layout.addLayout(logo_btn_layout)
-
-        form.addRow("Logo del negocio:", logo_widget)
-        layout.addWidget(form_widget)
-
-        nota = QLabel("* Campo obligatorio")
-        nota.setStyleSheet("color: #e74c3c; font-size: 11px;")
-        layout.addWidget(nota)
-
-        layout.addStretch()
-
-        btn_layout = QHBoxLayout()
-        btn_guardar = QPushButton(
-            "GUARDAR Y CONTINUAR" if self.primera_vez else "GUARDAR"
-        )
-        btn_guardar.setStyleSheet("""
-            QPushButton {
-                background-color: #27ae60;
-                color: white;
-                font-size: 15px;
-                font-weight: bold;
-                padding: 12px 24px;
+    ticket_data = {
+        "venta_id": venta.id,
+        "fecha": venta.fecha.strftime("%d/%m/%Y %H:%M:%S"),
+        "total": venta.total,
+        "metodo_pago": getattr(venta, "metodo_pago", "efectivo") or "efectivo",
+        "items": [
+            {
+                "nombre": item.producto.nombre,
+                "cantidad": item.cantidad,
+                "precio": item.precio,
+                "subtotal": item.cantidad * item.precio,
             }
-            QPushButton:hover { background-color: #2ecc71; }
-        """)
-        btn_guardar.clicked.connect(self.guardar)
-        btn_layout.addWidget(btn_guardar)
+            for item in items
+        ],
+    }
+    tickets_existentes.append(ticket_data)
 
-        if not self.primera_vez:
-            btn_cancelar = QPushButton("Cancelar")
-            btn_cancelar.setStyleSheet(
-                "background-color: #95a5a6; color: white; padding: 12px 24px;"
+    import json
+
+    json_path = pdf_path.replace(".pdf", "_data.json")
+    with open(json_path, "w", encoding="utf-8") as f:
+        json.dump(tickets_existentes, f, ensure_ascii=False, indent=2)
+
+    _generar_pdf_diario(
+        pdf_path,
+        tickets_existentes,
+        get_store_name(),
+        get_address(),
+        get_phone(),
+        get_email(),
+        get_nit(),
+    )
+
+    return pdf_path
+
+
+def _generar_pdf_diario(pdf_path, tickets, store_name, address, phone, email, nit):
+    """Genera el PDF con todos los tickets del día"""
+    doc = SimpleDocTemplate(
+        pdf_path,
+        pagesize=A4,
+        rightMargin=2 * cm,
+        leftMargin=2 * cm,
+        topMargin=2 * cm,
+        bottomMargin=2 * cm,
+    )
+
+    styles = getSampleStyleSheet()
+
+    style_titulo = ParagraphStyle(
+        "Titulo",
+        parent=styles["Normal"],
+        fontSize=16,
+        fontName="Helvetica-Bold",
+        alignment=TA_CENTER,
+        spaceAfter=4,
+    )
+    style_subtitulo = ParagraphStyle(
+        "Subtitulo",
+        parent=styles["Normal"],
+        fontSize=10,
+        fontName="Helvetica",
+        alignment=TA_CENTER,
+        textColor=colors.HexColor("#555555"),
+        spaceAfter=2,
+    )
+    style_ticket_header = ParagraphStyle(
+        "TicketHeader",
+        parent=styles["Normal"],
+        fontSize=11,
+        fontName="Helvetica-Bold",
+        spaceAfter=4,
+        spaceBefore=12,
+    )
+    style_normal = ParagraphStyle(
+        "Normal2",
+        parent=styles["Normal"],
+        fontSize=9,
+        fontName="Helvetica",
+        spaceAfter=2,
+    )
+
+    story = []
+
+    story.append(Paragraph(store_name.upper(), style_titulo))
+    if address:
+        story.append(Paragraph(address, style_subtitulo))
+    if phone:
+        story.append(Paragraph(f"Tel: {phone}", style_subtitulo))
+    if email:
+        story.append(Paragraph(email, style_subtitulo))
+    if nit:
+        story.append(Paragraph(f"NIT: {nit}", style_subtitulo))
+
+    fecha_hoy = datetime.now().strftime("%d/%m/%Y")
+    story.append(Spacer(1, 0.3 * cm))
+    story.append(
+        Paragraph(
+            f"FACTURAS DEL DÍA — {fecha_hoy}  |  Total ventas: {len(tickets)}",
+            ParagraphStyle(
+                "dia",
+                parent=styles["Normal"],
+                fontSize=10,
+                fontName="Helvetica-Bold",
+                alignment=TA_CENTER,
+                textColor=colors.HexColor("#2c3e50"),
+            ),
+        )
+    )
+    story.append(
+        HRFlowable(width="100%", thickness=2, color=colors.HexColor("#2c3e50"))
+    )
+    story.append(Spacer(1, 0.3 * cm))
+
+    metodos_label = {
+        "efectivo": "Efectivo",
+        "nequi": "Nequi",
+        "daviplata": "Daviplata",
+        "transferencia": "Transferencia",
+        "mixto": "Mixto",
+    }
+
+    for ticket in tickets:
+        story.append(
+            Paragraph(
+                f"Ticket #{ticket['venta_id']}  —  {ticket['fecha']}  —  "
+                f"Método: {metodos_label.get(ticket['metodo_pago'], ticket['metodo_pago'])}",
+                style_ticket_header,
             )
-            btn_cancelar.clicked.connect(self.reject)
-            btn_layout.addWidget(btn_cancelar)
-
-        layout.addLayout(btn_layout)
-
-    def cargar_datos_existentes(self):
-        from utils.store_config import (
-            load_store_config,
-            get_store_name,
-            get_address,
-            get_phone,
-            get_email,
-            get_nit,
-            get_logo_path,
         )
 
-        load_store_config()
-        self.nombre_input.setText(get_store_name())
-        self.direccion_input.setText(get_address())
-        self.telefono_input.setText(get_phone())
-        self.email_input.setText(get_email())
-        self.nit_input.setText(get_nit())
-        logo = get_logo_path()
-        if logo and os.path.exists(logo):
-            self.logo_path_seleccionado = logo
-            self._mostrar_preview_logo(logo)
-            self.lbl_logo_path.setText(os.path.basename(logo))
+        data = [["Producto", "Cant.", "Precio unit.", "Subtotal"]]
+        for item in ticket["items"]:
+            data.append(
+                [
+                    item["nombre"],
+                    str(item["cantidad"]),
+                    f"${item['precio']:,.2f}",
+                    f"${item['subtotal']:,.2f}",
+                ]
+            )
 
-    def seleccionar_logo(self):
-        archivo, _ = QFileDialog.getOpenFileName(
-            self,
-            "Seleccionar logo del negocio",
-            "",
-            "Imágenes (*.png *.jpg *.jpeg *.bmp *.ico)",
+        tabla = Table(data, colWidths=[9 * cm, 2 * cm, 3 * cm, 3 * cm])
+        tabla.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("FONTSIZE", (0, 0), (-1, 0), 9),
+                    ("FONTSIZE", (0, 1), (-1, -1), 9),
+                    ("ALIGN", (1, 0), (-1, -1), "CENTER"),
+                    ("ALIGN", (0, 0), (0, -1), "LEFT"),
+                    (
+                        "ROWBACKGROUNDS",
+                        (0, 1),
+                        (-1, -1),
+                        [colors.white, colors.HexColor("#f8f9fa")],
+                    ),
+                    ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#dee2e6")),
+                    ("TOPPADDING", (0, 0), (-1, -1), 4),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                ]
+            )
         )
-        if archivo:
-            self.logo_path_seleccionado = archivo
-            self._mostrar_preview_logo(archivo)
-            self.lbl_logo_path.setText(os.path.basename(archivo))
+        story.append(tabla)
 
-    def _mostrar_preview_logo(self, path):
-        pm = QPixmap(path)
-        if not pm.isNull():
-            scaled = pm.scaled(
-                76,
-                76,
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation,
+        total_data = [["", "", "TOTAL:", f"${ticket['total']:,.2f}"]]
+        total_tabla = Table(total_data, colWidths=[9 * cm, 2 * cm, 3 * cm, 3 * cm])
+        total_tabla.setStyle(
+            TableStyle(
+                [
+                    ("FONTNAME", (0, 0), (-1, -1), "Helvetica-Bold"),
+                    ("FONTSIZE", (0, 0), (-1, -1), 10),
+                    ("ALIGN", (2, 0), (-1, -1), "CENTER"),
+                    ("TOPPADDING", (0, 0), (-1, -1), 4),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                    ("LINEABOVE", (2, 0), (-1, -1), 1, colors.HexColor("#2c3e50")),
+                ]
             )
-            self.logo_preview.setPixmap(scaled)
-            self.logo_preview.setText("")
+        )
+        story.append(total_tabla)
+        story.append(
+            HRFlowable(width="100%", thickness=0.5, color=colors.HexColor("#dee2e6"))
+        )
 
-    def guardar(self):
-        nombre = self.nombre_input.text().strip()
-        if not nombre:
-            QMessageBox.warning(
-                self, "Campo requerido", "El nombre del negocio es obligatorio."
+    if tickets:
+        story.append(Spacer(1, 0.5 * cm))
+        total_dia = sum(t["total"] for t in tickets)
+        story.append(
+            HRFlowable(width="100%", thickness=2, color=colors.HexColor("#2c3e50"))
+        )
+        story.append(
+            Paragraph(
+                f"TOTAL DEL DÍA: ${total_dia:,.2f}  |  "
+                f"Ventas registradas: {len(tickets)}",
+                ParagraphStyle(
+                    "resumen",
+                    parent=styles["Normal"],
+                    fontSize=12,
+                    fontName="Helvetica-Bold",
+                    alignment=TA_CENTER,
+                    textColor=colors.HexColor("#27ae60"),
+                    spaceBefore=8,
+                ),
             )
-            self.nombre_input.setFocus()
-            return
+        )
 
-        logo_guardado = ""
-        if self.logo_path_seleccionado:
-            try:
-                import shutil
-                from utils.store_config import get_config_dir
+    doc.build(story)
 
-                assets_dir = os.path.join(os.path.dirname(get_config_dir()), "assets")
-                os.makedirs(assets_dir, exist_ok=True)
-                ext = os.path.splitext(self.logo_path_seleccionado)[1]
-                destino = os.path.join(assets_dir, f"logo{ext}")
-                shutil.copy2(self.logo_path_seleccionado, destino)
-                logo_guardado = destino
-            except Exception as e:
-                print(f"[WARN] No se pudo copiar el logo: {e}")
-                logo_guardado = self.logo_path_seleccionado
 
-        config = {
-            "store_name": nombre,
-            "logo_path": logo_guardado,
-            "address": self.direccion_input.text().strip(),
-            "phone": self.telefono_input.text().strip(),
-            "email": self.email_input.text().strip(),
-            "nit": self.nit_input.text().strip(),
-        }
+def limpiar_datos_dia_anterior():
+    """Elimina el JSON auxiliar de días anteriores (limpieza opcional)"""
+    import json
+    from datetime import date, timedelta
 
-        from utils.store_config import save_store_config
-
-        if save_store_config(config):
-            if not self.primera_vez:
-                QMessageBox.information(
-                    self,
-                    "Guardado",
-                    "Configuración guardada.\n"
-                    "Reinicia la aplicación para ver los cambios en el header.",
-                )
-            self.accept()
-        else:
-            QMessageBox.critical(self, "Error", "No se pudo guardar la configuración.")
-
+    ayer = (date.today() - timedelta(days=1)).strftime("%Y-%m-%d")
+    json_path = os.path.join(get_facturas_dir(), f"facturas_{ayer}_data.json")
+    if os.path.exists(json_path):
+        try:
+            os.remove(json_path)
+        except Exception:
+            pass
 ```
 
----
+## tucajero/utils/store_config.py
 
-## 24. utils/ticket.py
+```python
+import json
+import os
+import sys
+
+DEFAULT_CONFIG = {
+    "store_name": "",
+    "logo_path": "",
+    "address": "",
+    "phone": "",
+    "email": "",
+    "nit": "",
+    "setup_complete": False,
+}
+
+_store_config = None
+
+
+def get_config_dir():
+    """Retorna el directorio de configuración.
+
+    Compilado (frozen): usa %LOCALAPPDATA%\\TuCajero\\config (evita C:\\Program Files).
+    Desarrollo: usa ruta relativa tucajero/config/ dentro del proyecto.
+    """
+    if getattr(sys, "frozen", False):
+        if sys.platform == "win32":
+            base = os.environ.get("LOCALAPPDATA", os.environ.get("APPDATA", ""))
+            return os.path.join(base, "TuCajero", "config")
+        return os.path.join(os.path.expanduser("~"), ".tucajero", "config")
+    else:
+        base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        return os.path.join(base, "config")
+
+
+def _get_config_path():
+    config_dir = get_config_dir()
+    os.makedirs(config_dir, exist_ok=True)
+    return os.path.join(config_dir, "store_config.json")
+
+
+def config_exists():
+    """Retorna True si ya existe configuración guardada"""
+    path = _get_config_path()
+    if not os.path.exists(path):
+        return False
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return bool(data.get("store_name", "").strip())
+    except Exception:
+        return False
+
+
+def load_store_config():
+    global _store_config
+    config_path = _get_config_path()
+    try:
+        if os.path.exists(config_path):
+            with open(config_path, "r", encoding="utf-8") as f:
+                _store_config = json.load(f)
+        else:
+            _store_config = DEFAULT_CONFIG.copy()
+    except (json.JSONDecodeError, IOError):
+        _store_config = DEFAULT_CONFIG.copy()
+    return _store_config
+
+
+def save_store_config(config_data):
+    config_path = _get_config_path()
+    try:
+        with open(config_path, "w", encoding="utf-8") as f:
+            json.dump(config_data, f, indent=2, ensure_ascii=False)
+        global _store_config
+        _store_config = config_data
+        return True
+    except IOError:
+        return False
+
+
+def get_store_name():
+    if _store_config is None:
+        load_store_config()
+    return _store_config.get("store_name", "")
+
+
+def _get_default_logo():
+    base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    logo = os.path.join(base, "assets", "icons", "logo.png")
+    if os.path.exists(logo):
+        return logo
+    return ""
+
+
+def get_logo_path():
+    if _store_config is None:
+        load_store_config()
+    logo = _store_config.get("logo_path", "")
+    if logo and os.path.exists(logo):
+        return logo
+    return _get_default_logo()
+
+
+def get_address():
+    if _store_config is None:
+        load_store_config()
+    return _store_config.get("address", "")
+
+
+def get_phone():
+    if _store_config is None:
+        load_store_config()
+    return _store_config.get("phone", "")
+
+
+def get_email():
+    if _store_config is None:
+        load_store_config()
+    return _store_config.get("email", "")
+
+
+def get_nit():
+    if _store_config is None:
+        load_store_config()
+    return _store_config.get("nit", "")
+
+
+def is_setup_complete():
+    if _store_config is None:
+        load_store_config()
+    return _store_config.get("setup_complete", False)
+```
+
+## tucajero/utils/ticket.py
 
 ```python
 import os
@@ -5344,593 +5866,9 @@ def generar_facturas_dia(fecha=None):
         get_nit(),
     )
     return pdf_path
-
 ```
 
----
-
-## 25. utils/factura_diaria.py
-
-```python
-import os
-from datetime import datetime
-from reportlab.lib.pagesizes import A4
-from reportlab.lib.units import cm
-from reportlab.lib import colors
-from reportlab.platypus import (
-    SimpleDocTemplate,
-    Paragraph,
-    Spacer,
-    Table,
-    TableStyle,
-    HRFlowable,
-)
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
-
-
-def get_facturas_dir():
-    """Retorna el directorio de facturas diarias"""
-    from config.database import get_data_dir
-
-    facturas_dir = os.path.join(get_data_dir(), "facturas")
-    os.makedirs(facturas_dir, exist_ok=True)
-    return facturas_dir
-
-
-def get_factura_diaria_path(fecha=None):
-    """Retorna la ruta del PDF del día"""
-    if fecha is None:
-        fecha = datetime.now().date()
-    facturas_dir = get_facturas_dir()
-    nombre = f"facturas_{fecha.strftime('%Y-%m-%d')}.pdf"
-    return os.path.join(facturas_dir, nombre)
-
-
-def agregar_ticket_a_pdf_diario(venta, items):
-    """
-    Agrega el ticket de una venta al PDF diario acumulativo.
-    Si el PDF del día no existe lo crea.
-    Si ya existe agrega la nueva factura al final.
-    """
-    from utils.store_config import (
-        get_store_name,
-        get_address,
-        get_phone,
-        get_email,
-        get_nit,
-    )
-
-    pdf_path = get_factura_diaria_path()
-
-    tickets_existentes = []
-    if os.path.exists(pdf_path):
-        try:
-            import json
-
-            json_path = pdf_path.replace(".pdf", "_data.json")
-            if os.path.exists(json_path):
-                with open(json_path, "r", encoding="utf-8") as f:
-                    tickets_existentes = json.load(f)
-        except Exception:
-            tickets_existentes = []
-
-    ticket_data = {
-        "venta_id": venta.id,
-        "fecha": venta.fecha.strftime("%d/%m/%Y %H:%M:%S"),
-        "total": venta.total,
-        "metodo_pago": getattr(venta, "metodo_pago", "efectivo") or "efectivo",
-        "items": [
-            {
-                "nombre": item.producto.nombre,
-                "cantidad": item.cantidad,
-                "precio": item.precio,
-                "subtotal": item.cantidad * item.precio,
-            }
-            for item in items
-        ],
-    }
-    tickets_existentes.append(ticket_data)
-
-    import json
-
-    json_path = pdf_path.replace(".pdf", "_data.json")
-    with open(json_path, "w", encoding="utf-8") as f:
-        json.dump(tickets_existentes, f, ensure_ascii=False, indent=2)
-
-    _generar_pdf_diario(
-        pdf_path,
-        tickets_existentes,
-        get_store_name(),
-        get_address(),
-        get_phone(),
-        get_email(),
-        get_nit(),
-    )
-
-    return pdf_path
-
-
-def _generar_pdf_diario(pdf_path, tickets, store_name, address, phone, email, nit):
-    """Genera el PDF con todos los tickets del día"""
-    doc = SimpleDocTemplate(
-        pdf_path,
-        pagesize=A4,
-        rightMargin=2 * cm,
-        leftMargin=2 * cm,
-        topMargin=2 * cm,
-        bottomMargin=2 * cm,
-    )
-
-    styles = getSampleStyleSheet()
-
-    style_titulo = ParagraphStyle(
-        "Titulo",
-        parent=styles["Normal"],
-        fontSize=16,
-        fontName="Helvetica-Bold",
-        alignment=TA_CENTER,
-        spaceAfter=4,
-    )
-    style_subtitulo = ParagraphStyle(
-        "Subtitulo",
-        parent=styles["Normal"],
-        fontSize=10,
-        fontName="Helvetica",
-        alignment=TA_CENTER,
-        textColor=colors.HexColor("#555555"),
-        spaceAfter=2,
-    )
-    style_ticket_header = ParagraphStyle(
-        "TicketHeader",
-        parent=styles["Normal"],
-        fontSize=11,
-        fontName="Helvetica-Bold",
-        spaceAfter=4,
-        spaceBefore=12,
-    )
-    style_normal = ParagraphStyle(
-        "Normal2",
-        parent=styles["Normal"],
-        fontSize=9,
-        fontName="Helvetica",
-        spaceAfter=2,
-    )
-
-    story = []
-
-    story.append(Paragraph(store_name.upper(), style_titulo))
-    if address:
-        story.append(Paragraph(address, style_subtitulo))
-    if phone:
-        story.append(Paragraph(f"Tel: {phone}", style_subtitulo))
-    if email:
-        story.append(Paragraph(email, style_subtitulo))
-    if nit:
-        story.append(Paragraph(f"NIT: {nit}", style_subtitulo))
-
-    fecha_hoy = datetime.now().strftime("%d/%m/%Y")
-    story.append(Spacer(1, 0.3 * cm))
-    story.append(
-        Paragraph(
-            f"FACTURAS DEL DÍA — {fecha_hoy}  |  Total ventas: {len(tickets)}",
-            ParagraphStyle(
-                "dia",
-                parent=styles["Normal"],
-                fontSize=10,
-                fontName="Helvetica-Bold",
-                alignment=TA_CENTER,
-                textColor=colors.HexColor("#2c3e50"),
-            ),
-        )
-    )
-    story.append(
-        HRFlowable(width="100%", thickness=2, color=colors.HexColor("#2c3e50"))
-    )
-    story.append(Spacer(1, 0.3 * cm))
-
-    metodos_label = {
-        "efectivo": "Efectivo",
-        "nequi": "Nequi",
-        "daviplata": "Daviplata",
-        "transferencia": "Transferencia",
-        "mixto": "Mixto",
-    }
-
-    for ticket in tickets:
-        story.append(
-            Paragraph(
-                f"Ticket #{ticket['venta_id']}  —  {ticket['fecha']}  —  "
-                f"Método: {metodos_label.get(ticket['metodo_pago'], ticket['metodo_pago'])}",
-                style_ticket_header,
-            )
-        )
-
-        data = [["Producto", "Cant.", "Precio unit.", "Subtotal"]]
-        for item in ticket["items"]:
-            data.append(
-                [
-                    item["nombre"],
-                    str(item["cantidad"]),
-                    f"${item['precio']:,.2f}",
-                    f"${item['subtotal']:,.2f}",
-                ]
-            )
-
-        tabla = Table(data, colWidths=[9 * cm, 2 * cm, 3 * cm, 3 * cm])
-        tabla.setStyle(
-            TableStyle(
-                [
-                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
-                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                    ("FONTSIZE", (0, 0), (-1, 0), 9),
-                    ("FONTSIZE", (0, 1), (-1, -1), 9),
-                    ("ALIGN", (1, 0), (-1, -1), "CENTER"),
-                    ("ALIGN", (0, 0), (0, -1), "LEFT"),
-                    (
-                        "ROWBACKGROUNDS",
-                        (0, 1),
-                        (-1, -1),
-                        [colors.white, colors.HexColor("#f8f9fa")],
-                    ),
-                    ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#dee2e6")),
-                    ("TOPPADDING", (0, 0), (-1, -1), 4),
-                    ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-                ]
-            )
-        )
-        story.append(tabla)
-
-        total_data = [["", "", "TOTAL:", f"${ticket['total']:,.2f}"]]
-        total_tabla = Table(total_data, colWidths=[9 * cm, 2 * cm, 3 * cm, 3 * cm])
-        total_tabla.setStyle(
-            TableStyle(
-                [
-                    ("FONTNAME", (0, 0), (-1, -1), "Helvetica-Bold"),
-                    ("FONTSIZE", (0, 0), (-1, -1), 10),
-                    ("ALIGN", (2, 0), (-1, -1), "CENTER"),
-                    ("TOPPADDING", (0, 0), (-1, -1), 4),
-                    ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-                    ("LINEABOVE", (2, 0), (-1, -1), 1, colors.HexColor("#2c3e50")),
-                ]
-            )
-        )
-        story.append(total_tabla)
-        story.append(
-            HRFlowable(width="100%", thickness=0.5, color=colors.HexColor("#dee2e6"))
-        )
-
-    if tickets:
-        story.append(Spacer(1, 0.5 * cm))
-        total_dia = sum(t["total"] for t in tickets)
-        story.append(
-            HRFlowable(width="100%", thickness=2, color=colors.HexColor("#2c3e50"))
-        )
-        story.append(
-            Paragraph(
-                f"TOTAL DEL DÍA: ${total_dia:,.2f}  |  "
-                f"Ventas registradas: {len(tickets)}",
-                ParagraphStyle(
-                    "resumen",
-                    parent=styles["Normal"],
-                    fontSize=12,
-                    fontName="Helvetica-Bold",
-                    alignment=TA_CENTER,
-                    textColor=colors.HexColor("#27ae60"),
-                    spaceBefore=8,
-                ),
-            )
-        )
-
-    doc.build(story)
-
-
-def limpiar_datos_dia_anterior():
-    """Elimina el JSON auxiliar de días anteriores (limpieza opcional)"""
-    import json
-    from datetime import date, timedelta
-
-    ayer = (date.today() - timedelta(days=1)).strftime("%Y-%m-%d")
-    json_path = os.path.join(get_facturas_dir(), f"facturas_{ayer}_data.json")
-    if os.path.exists(json_path):
-        try:
-            os.remove(json_path)
-        except Exception:
-            pass
-
-```
-
----
-
-## 26. utils/backup.py
-
-```python
-import shutil
-import datetime
-import os
-import sys
-
-
-def get_backups_dir():
-    """Retorna el directorio de backups"""
-    from config.database import get_data_dir
-
-    data_dir = get_data_dir()
-    backups_dir = os.path.join(data_dir, "backups")
-    os.makedirs(backups_dir, exist_ok=True)
-    return backups_dir
-
-
-def backup_database():
-    """Crea un backup de la base de datos"""
-    from config.database import get_db_path
-
-    db_path = get_db_path()
-
-    if not os.path.exists(db_path):
-        return None
-
-    now = datetime.datetime.now()
-    filename = f"pos_backup_{now.strftime('%Y%m%d_%H%M%S')}.db"
-    backup_path = os.path.join(get_backups_dir(), filename)
-
-    try:
-        shutil.copy2(db_path, backup_path)
-        return backup_path
-    except Exception as e:
-        print(f"Error al crear backup: {e}")
-        return None
-
-
-def cleanup_old_backups(keep_days=7):
-    """Elimina backups mayores a keep_days"""
-    backups_dir = get_backups_dir()
-    now = datetime.datetime.now()
-
-    for filename in os.listdir(backups_dir):
-        if filename.startswith("pos_backup_") and filename.endswith(".db"):
-            filepath = os.path.join(backups_dir, filename)
-            file_time = datetime.datetime.fromtimestamp(os.path.getmtime(filepath))
-            if (now - file_time).days > keep_days:
-                try:
-                    os.remove(filepath)
-                except:
-                    pass
-
-```
-
----
-
-## 27. utils/excel_exporter.py
-
-```python
-import os
-from datetime import datetime
-
-
-def exportar_historial_excel(
-    cierres, ventas_por_cierre, ranking, resumen, ruta_destino=None
-):
-    """Exporta historial a Excel con 3 hojas"""
-    try:
-        import openpyxl
-        from openpyxl.styles import Font, PatternFill, Alignment
-    except ImportError:
-        raise ImportError("openpyxl no está instalado. Ejecuta: pip install openpyxl")
-
-    wb = openpyxl.Workbook()
-
-    ws1 = wb.active
-    ws1.title = "Cierres"
-    headers1 = [
-        "ID",
-        "Fecha apertura",
-        "Fecha cierre",
-        "Ventas brutas",
-        "IVA recaudado",
-        "Efectivo",
-        "Transferencias",
-        "Gastos",
-        "Ganancia neta",
-        "Núm. ventas",
-    ]
-    ws1.append(headers1)
-    for cell in ws1[1]:
-        cell.font = Font(bold=True)
-        cell.fill = PatternFill("solid", fgColor="2C3E50")
-        cell.font = Font(bold=True, color="FFFFFF")
-    for c in cierres:
-        ws1.append(
-            [
-                c.id,
-                c.fecha_apertura.strftime("%d/%m/%Y %H:%M") if c.fecha_apertura else "",
-                c.fecha_cierre.strftime("%d/%m/%Y %H:%M") if c.fecha_cierre else "",
-                round(c.total_ventas or 0, 2),
-                round(c.total_iva or 0, 2),
-                round(c.total_efectivo or 0, 2),
-                round(c.total_transferencias or 0, 2),
-                round(c.total_gastos or 0, 2),
-                round(c.ganancia_neta or 0, 2),
-                c.numero_ventas or 0,
-            ]
-        )
-    ws1.append(
-        [
-            "TOTALES",
-            "",
-            "",
-            round(resumen["total_ventas"], 2),
-            round(sum(c.total_iva or 0 for c in cierres), 2),
-            round(sum(c.total_efectivo or 0 for c in cierres), 2),
-            round(sum(c.total_transferencias or 0 for c in cierres), 2),
-            round(resumen["total_gastos"], 2),
-            round(resumen["ganancia_neta"], 2),
-            resumen["num_ventas"],
-        ]
-    )
-    for cell in ws1[ws1.max_row]:
-        cell.font = Font(bold=True)
-
-    ws2 = wb.create_sheet("Detalle ventas")
-    headers2 = [
-        "Cierre ID",
-        "Venta ID",
-        "Fecha",
-        "Subtotal base",
-        "IVA 19%",
-        "Total",
-        "Método de pago",
-        "Estado",
-        "Motivo anulación",
-    ]
-    ws2.append(headers2)
-    for cell in ws2[1]:
-        cell.font = Font(bold=True)
-        cell.fill = PatternFill("solid", fgColor="27AE60")
-        cell.font = Font(bold=True, color="FFFFFF")
-    IVA_RATE = 0.19
-    for corte_id, ventas in ventas_por_cierre.items():
-        for v in ventas:
-            subtotal = round(v.total / 1.19, 2)
-            iva = round(v.total - subtotal, 2)
-            ws2.append(
-                [
-                    corte_id,
-                    v.id,
-                    v.fecha.strftime("%d/%m/%Y %H:%M:%S"),
-                    subtotal,
-                    iva,
-                    round(v.total, 2),
-                    v.metodo_pago or "efectivo",
-                    "Anulada" if v.anulada else "Válida",
-                    v.motivo_anulacion or "",
-                ]
-            )
-
-    ws3 = wb.create_sheet("Ranking productos")
-    headers3 = [
-        "Posición",
-        "Código",
-        "Producto",
-        "Unidades vendidas",
-        "Ingresos totales",
-    ]
-    ws3.append(headers3)
-    for cell in ws3[1]:
-        cell.font = Font(bold=True)
-        cell.fill = PatternFill("solid", fgColor="8E44AD")
-        cell.font = Font(bold=True, color="FFFFFF")
-    for i, r in enumerate(ranking, 1):
-        ws3.append(
-            [
-                i,
-                r.codigo,
-                r.nombre,
-                int(r.total_vendido or 0),
-                round(float(r.total_ingresos or 0), 2),
-            ]
-        )
-
-    for ws in [ws1, ws2, ws3]:
-        for col in ws.columns:
-            max_len = max(
-                (len(str(cell.value)) for cell in col if cell.value), default=10
-            )
-            ws.column_dimensions[col[0].column_letter].width = min(max_len + 4, 40)
-
-    if not ruta_destino:
-        from config.database import get_data_dir
-
-        exports_dir = os.path.join(get_data_dir(), "exports")
-        os.makedirs(exports_dir, exist_ok=True)
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        ruta_destino = os.path.join(exports_dir, f"historial_{timestamp}.xlsx")
-
-    wb.save(ruta_destino)
-    return ruta_destino
-
-```
-
----
-
-## 28. tools/license_generator.py
-
-```python
-"""
-TuCajero - Generador de Licencias
-Herramienta para generar licencias para clientes.
-"""
-
-import sys
-import os
-
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from security.license_manager import get_machine_id, generar_licencia
-from utils.store_config import get_store_name
-
-
-def main():
-    """Función principal"""
-    store_name = get_store_name()
-    print()
-    print("=" * 30)
-    print(f"{store_name.upper()}")
-    print("GENERADOR DE LICENCIAS")
-    print("=" * 30)
-    print()
-
-    print("Opciones:")
-    print("1. Generar licencia para esta computadora")
-    print("2. Generar licencia con Machine ID personalizado")
-    print()
-
-    opcion = input("Seleccione una opcion (1/2): ").strip()
-
-    print()
-
-    if opcion == "1":
-        machine_id = get_machine_id()
-        print(f"Machine ID de esta computadora:")
-        print(f"  {machine_id}")
-    elif opcion == "2":
-        machine_id = input("Ingresar Machine ID: ").strip()
-        if not machine_id:
-            print("Error: Debe ingresar un Machine ID")
-            return
-    else:
-        print("Opcion invalida")
-        return
-
-    licencia = generar_licencia(machine_id)
-
-    print()
-    print("-" * 30)
-    print("RESULTADO:")
-    print("-" * 30)
-    print()
-    print(f"Machine ID: {machine_id}")
-    print(f"Licencia:   {licencia}")
-    print()
-    print("=" * 30)
-    print()
-    print("Instrucciones:")
-    print("1. Copie la licencia generada")
-    print("2. En el sistema del cliente, vaya a Activacion")
-    print("3. Ingrese la licencia")
-    print("4. El sistema se activara automaticamente")
-    print()
-
-
-if __name__ == "__main__":
-    main()
-
-```
-
----
-
-## 29. verificar_iva.py
+## tucajero/verificar_iva.py
 
 ```python
 import sys
@@ -5986,12 +5924,9 @@ assert total_iva_hoy >= 3800.0
 
 ps.delete_producto(p.id)
 print("\nVERIFICACIÓN IVA OK - TODO CORRECTO")
-
 ```
 
----
-
-## 30. migrar_iva.py
+## tucajero/migrar_iva.py
 
 ```python
 import sys
@@ -6014,8 +5949,156 @@ with engine.connect() as conn:
             print(f"Ya existe o error: {e}")
     conn.commit()
 print("Migración OK")
-
 ```
 
----
+## build_exe.bat
+
+```python
+@echo off
+echo ========================================
+echo TuCajero - Build EXE
+echo ========================================
+echo.
+
+echo [1/3] Limpiando builds anteriores...
+if exist "build" rmdir /s /q "build"
+if exist "dist" rmdir /s /q "dist"
+echo [2/3] Compilando con PyInstaller...
+call venv\Scripts\activate
+pyinstaller --noconfirm TuCajero.spec
+deactivate
+
+echo [3/3] Moviendo EXE...
+if exist "dist\TuCajero.exe" (
+    echo   EXE: dist\TuCajero.exe
+)
+
+echo.
+echo ========================================
+echo Build completado!
+echo ========================================
+dir dist\ /b
+echo.
+pause
+```
+
+## TuCajero.spec
+
+```python
+# -*- mode: python ; coding: utf-8 -*-
+
+a = Analysis(
+    ['tucajero\\main.py'],
+    pathex=[],
+    binaries=[],
+    datas=[
+        ('tucajero\\assets', 'assets'),
+    ],
+    hiddenimports=[
+        'sqlalchemy.dialects.sqlite',
+        'sqlalchemy.orm',
+        'sqlalchemy.sql.default_comparator',
+        'reportlab.graphics',
+        'reportlab.platypus',
+        'reportlab.lib.pagesizes',
+        'reportlab.lib.units',
+        'reportlab.lib.colors',
+        'reportlab.lib.styles',
+        'reportlab.lib.enums',
+        'openpyxl',
+        'openpyxl.styles',
+        'openpyxl.utils',
+        'openpyxl.writer.excel',
+        'PySide6.QtCore',
+        'PySide6.QtGui',
+        'PySide6.QtWidgets',
+        'PySide6.QtPrintSupport',
+        'services.categoria_service',
+        'services.historial_service',
+        'utils.factura_diaria',
+        'utils.excel_exporter',
+        'utils.backup',
+    ],
+    hookspath=[],
+    hooksconfig={},
+    runtime_hooks=[],
+    excludes=['tkinter', 'matplotlib', 'numpy', 'pandas', 'scipy'],
+    noarchive=False,
+    optimize=0,
+)
+pyz = PYZ(a.pure)
+exe = EXE(
+    pyz,
+    a.scripts,
+    a.binaries,
+    a.datas,
+    [],
+    name='TuCajero',
+    debug=False,
+    bootloader_ignore_signals=False,
+    strip=False,
+    upx=True,
+    upx_exclude=[],
+    runtime_tmpdir=None,
+    console=False,
+    disable_windowed_traceback=False,
+    argv_emulation=False,
+    target_arch=None,
+    codesign_identity=None,
+    entitlements_file=None,
+    icon=['tucajero\\assets\\icons\\logo.png'],
+)
+```
+
+## TuCajero_Setup.iss
+
+```python
+[Setup]
+AppName=TuCajero POS
+AppVersion=1.0
+AppVerName=TuCajero POS v1.0
+AppPublisher=Droguería CruzMedic
+AppPublisherURL=mailto:cruzmedicdrogueria@gmail.com
+AppSupportURL=mailto:cruzmedicdrogueria@gmail.com
+AppContact=cruzmedicdrogueria@gmail.com
+DefaultDirName={autopf}\TuCajero
+DefaultGroupName=TuCajero POS
+AllowNoIcons=yes
+OutputDir=installer
+OutputBaseFilename=TuCajero_Setup_v1.0
+Compression=lzma2/ultra64
+SolidCompression=yes
+PrivilegesRequired=admin
+DisableProgramGroupPage=yes
+UninstallDisplayIcon={app}\TuCajero.exe
+UninstallDisplayName=TuCajero POS v1.0
+VersionInfoVersion=1.0.0.0
+VersionInfoCompany=Droguería CruzMedic
+VersionInfoDescription=Sistema POS TuCajero
+VersionInfoProductName=TuCajero POS
+VersionInfoProductVersion=1.0
+ArchitecturesInstallIn64BitMode=x64compatible
+
+[Languages]
+Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
+
+[Tasks]
+Name: "desktopicon"; Description: "Crear acceso directo en el escritorio"; GroupDescription: "Opciones adicionales:"
+Name: "startmenuicon"; Description: "Crear acceso directo en el menú inicio"; GroupDescription: "Opciones adicionales:"
+
+[Files]
+Source: "dist\TuCajero.exe"; DestDir: "{app}"; Flags: ignoreversion
+
+[Icons]
+Name: "{group}\TuCajero POS"; Filename: "{app}\TuCajero.exe"; IconFilename: "{app}\TuCajero.exe"
+Name: "{group}\Desinstalar TuCajero"; Filename: "{uninstallexe}"
+Name: "{commondesktop}\TuCajero POS"; Filename: "{app}\TuCajero.exe"; Tasks: desktopicon
+Name: "{commonstartmenu}\TuCajero POS"; Filename: "{app}\TuCajero.exe"; Tasks: startmenuicon
+
+[Run]
+Filename: "{app}\TuCajero.exe"; Description: "Iniciar TuCajero POS ahora"; Flags: nowait postinstall skipifsilent
+
+[UninstallDelete]
+Type: filesandordirs; Name: "{app}"
+```
 
