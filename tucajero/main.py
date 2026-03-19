@@ -17,6 +17,10 @@ from ui.productos_view import ProductosView
 from ui.inventario_view import InventarioView
 from ui.corte_view import CorteView
 from ui.historial_view import HistorialView
+from ui.clientes_view import ClientesView
+from ui.cotizaciones_view import CotizacionesView
+from ui.proveedores_view import ProveedoresView
+from models.cliente import Cliente
 from ui.activate_view import ActivationDialog
 from security.license_manager import validar_licencia, crear_license_default
 from utils.store_config import load_store_config, is_setup_complete
@@ -53,7 +57,7 @@ def main():
     load_store_config()
 
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    ICON_PATH = os.path.join(BASE_DIR, "assets", "icons", "logo.png")
+    ICON_PATH = os.path.join(BASE_DIR, "assets", "icons", "tucajero.ico")
 
     print(f"[INFO] Icono cargado desde: {ICON_PATH}")
     print(f"[INFO] Archivo existe: {os.path.exists(ICON_PATH)}")
@@ -101,6 +105,19 @@ def main():
 
     session = get_session()
 
+    from services.cajero_service import CajeroService
+    from models.cajero import Cajero
+
+    cajero_service = CajeroService(session)
+    cajero_service.crear_admin_default()
+
+    from ui.login_cajero import LoginCajeroDialog
+
+    login = LoginCajeroDialog(session)
+    if login.exec() != QDialog.DialogCode.Accepted:
+        sys.exit(0)
+    cajero_activo = login.cajero_seleccionado
+
     try:
         service = CorteCajaService(session)
         service.abrir_caja()
@@ -111,21 +128,64 @@ def main():
     window.setWindowIcon(QIcon(ICON_PATH))
 
     try:
-        ventas_view = VentasView(session)
+        ventas_view = VentasView(session, cajero_activo=cajero_activo)
         productos_view = ProductosView(session)
         inventario_view = InventarioView(session)
-        corte_view = CorteView(session)
+        corte_view = CorteView(session, cajero_activo=cajero_activo)
         historial_view = HistorialView(session)
 
         ventas_view.sale_completed.connect(productos_view.recargar_productos)
         ventas_view.sale_completed.connect(inventario_view.recargar_inventario)
         ventas_view.sale_completed.connect(corte_view.cargar_estadisticas)
 
+        try:
+            from services.producto_service import ProductoService
+
+            ps = ProductoService(session)
+            alertas = len(ps.get_productos_stock_bajo()) + len(
+                ps.get_productos_stock_critico()
+            )
+            if alertas > 0:
+                window.actualizar_badge_inventario(alertas)
+        except Exception as e:
+            logging.error(f"Error verificando stock bajo: {e}")
+
+        ventas_view.sale_completed.connect(
+            lambda: window.actualizar_badge_inventario(
+                len(ProductoService(session).get_productos_stock_bajo())
+                + len(ProductoService(session).get_productos_stock_critico())
+            )
+        )
+
         window.add_view(ventas_view, "ventas")
         window.add_view(productos_view, "productos")
         window.add_view(inventario_view, "inventario")
         window.add_view(corte_view, "corte")
         window.add_view(historial_view, "historial")
+
+        clientes_view = ClientesView(session)
+        window.add_view(clientes_view, "clientes")
+
+        cotizaciones_view = CotizacionesView(session)
+        window.add_view(cotizaciones_view, "cotizaciones")
+
+        ventas_view.cotizacion_creada.connect(cotizaciones_view.cargar_cotizaciones)
+        cotizaciones_view.cargar_en_ventas.connect(
+            ventas_view.cargar_carrito_desde_cotizacion
+        )
+
+        if cajero_activo.rol == "admin":
+            from ui.cajeros_view import CajerosView
+
+            cajeros_view = CajerosView(session)
+            window.add_view(cajeros_view, "cajeros")
+
+        proveedores_view = ProveedoresView(session)
+        window.add_view(proveedores_view, "proveedores")
+
+        window.set_cajero_activo(cajero_activo)
+
+        ventas_view.sale_completed.connect(clientes_view.cargar_clientes)
 
         try:
             from ui.setup_view import SetupView

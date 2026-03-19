@@ -40,11 +40,12 @@ class ProductoService:
         stock=0,
         aplica_iva=True,
         categoria_id=None,
+        stock_minimo=0,
     ):
         """Crea un nuevo producto"""
         self.validar_codigo(codigo)
         return self.repo.create(
-            codigo, nombre, precio, costo, stock, aplica_iva, categoria_id
+            codigo, nombre, precio, costo, stock, aplica_iva, categoria_id, stock_minimo
         )
 
     def update_producto(self, producto_id, **kwargs):
@@ -60,6 +61,18 @@ class ProductoService:
     def search_productos(self, query):
         """Busca productos"""
         return self.repo.search(query)
+
+    def get_productos_stock_bajo(self):
+        """Retorna productos cuyo stock está en o debajo del mínimo"""
+        return [
+            p
+            for p in self.repo.get_all()
+            if p.stock_minimo and p.stock_minimo > 0 and p.stock <= p.stock_minimo
+        ]
+
+    def get_productos_stock_critico(self):
+        """Stock = 0 o negativo"""
+        return [p for p in self.repo.get_all() if p.stock <= 0]
 
 
 class CategoriaService:
@@ -126,7 +139,16 @@ class VentaService:
 
         self.corte_service = CorteCajaService(session)
 
-    def registrar_venta(self, items, metodo_pago=None):
+    def registrar_venta(
+        self,
+        items,
+        metodo_pago=None,
+        cliente_id=None,
+        es_credito=False,
+        descuento_tipo=None,
+        descuento_valor=0,
+        descuento_total=0,
+    ):
         """Registra una venta y descuenta inventario"""
         if not self.corte_service.esta_caja_abierta():
             raise Exception(
@@ -138,7 +160,27 @@ class VentaService:
             if producto.stock < item["cantidad"]:
                 raise ValueError(f"Stock insuficiente para {producto.nombre}")
 
-        venta = self.venta_repo.create_venta(items, metodo_pago=metodo_pago)
+        subtotal = sum(item["cantidad"] * item["precio"] for item in items)
+        iva = 0
+        for item in items:
+            if item.get("aplica_iva", True):
+                iva += round(item["cantidad"] * item["precio"] * 0.19, 2)
+        total = max(0, (subtotal + iva) - descuento_total)
+
+        venta = self.venta_repo.create_venta(
+            items,
+            metodo_pago=metodo_pago,
+            cliente_id=cliente_id,
+            es_credito=es_credito,
+            descuento_tipo=descuento_tipo,
+            descuento_valor=descuento_valor,
+            descuento_total=descuento_total,
+        )
+
+        if es_credito and cliente_id:
+            from repositories.cliente_repo import ClienteRepository
+
+            ClienteRepository(self.session).agregar_credito(cliente_id, total)
 
         for item in items:
             self.producto_repo.update_stock(item["producto_id"], -item["cantidad"])

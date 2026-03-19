@@ -16,6 +16,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QColor
+from utils.formato import fmt_moneda
 
 COLORES_CATEGORIA = [
     "#3498db",
@@ -198,18 +199,39 @@ class BuscadorProductosDialog(QDialog):
             elif p.stock < 5:
                 stock_item.setForeground(QColor("#e67e22"))
             tabla.setItem(i, 2, stock_item)
-            tabla.setItem(i, 3, QTableWidgetItem(f"${p.precio:,.2f}"))
+            tabla.setItem(i, 3, QTableWidgetItem(fmt_moneda(p.precio)))
 
     def _cargar_categorias(self):
         """Carga los botones de categorías"""
-        if not self.session:
-            return
         try:
             from models.producto import Categoria
 
-            categorias = (
-                self.session.query(Categoria).order_by(Categoria.nombre.asc()).all()
-            )
+            if self.session:
+                categorias = (
+                    self.session.query(Categoria).order_by(Categoria.nombre.asc()).all()
+                )
+            else:
+                categoria_nombres = set()
+                for p in self.productos:
+                    if hasattr(p, "categoria") and p.categoria:
+                        categoria_nombres.add(p.categoria)
+                categorias = []
+                for i, nombre in enumerate(sorted(categoria_nombres)):
+
+                    class FakeCategoria:
+                        def __init__(self, id, nombre, color):
+                            self.id = id
+                            self.nombre = nombre
+                            self.color = color
+
+                    categorias.append(
+                        FakeCategoria(
+                            id=i + 1,
+                            nombre=nombre,
+                            color=COLORES_CATEGORIA[i % len(COLORES_CATEGORIA)],
+                        )
+                    )
+
             while self.cat_buttons_layout.count():
                 item = self.cat_buttons_layout.takeAt(0)
                 if item.widget():
@@ -254,13 +276,18 @@ class BuscadorProductosDialog(QDialog):
 
     def _filtrar_por_categoria(self, categoria):
         """Filtra productos por categoría"""
-        if not self.session:
-            return
         try:
-            from repositories.producto_repo import ProductoRepository
+            if self.session:
+                from repositories.producto_repo import ProductoRepository
 
-            repo = ProductoRepository(self.session)
-            productos = repo.search_por_categoria(categoria.id)
+                repo = ProductoRepository(self.session)
+                productos = repo.search_por_categoria(categoria.id)
+            else:
+                productos = [
+                    p
+                    for p in self.productos
+                    if hasattr(p, "categoria") and p.categoria == categoria.nombre
+                ]
             self.llenar_tabla(productos, self.tabla_cat)
         except Exception as e:
             print(f"[WARN] Error filtrando por categoría: {e}")

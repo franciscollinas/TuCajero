@@ -16,14 +16,16 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 from datetime import datetime
+from utils.formato import fmt_moneda
 
 
 class CorteView(QWidget):
     """Vista de corte de caja"""
 
-    def __init__(self, session, parent=None):
+    def __init__(self, session, parent=None, cajero_activo=None):
         super().__init__(parent)
         self.session = session
+        self.cajero_activo = cajero_activo
         self.init_ui()
         self.cargar_estadisticas()
 
@@ -57,7 +59,7 @@ class CorteView(QWidget):
         )
         info_layout.addWidget(self.lbl_estado)
 
-        self.lbl_total = QLabel("Total vendido: $0.00")
+        self.lbl_total = QLabel(f"Total vendido: {fmt_moneda(0)}")
         self.lbl_total.setStyleSheet(
             "font-size: 28px; font-weight: bold; color: #27ae60;"
         )
@@ -69,107 +71,133 @@ class CorteView(QWidget):
 
         layout.addWidget(self.info_widget)
 
-        botones_layout = QHBoxLayout()
+        fila1 = QHBoxLayout()
+        fila1.setSpacing(8)
 
         self.btn_abrir = QPushButton("ABRIR CAJA")
+        self.btn_abrir.setFixedHeight(32)
+        self.btn_abrir.setMinimumWidth(160)
+        self.btn_abrir.setMaximumWidth(280)
         self.btn_abrir.setStyleSheet("""
             QPushButton {
                 background-color: #27ae60;
                 color: white;
-                font-size: 16px;
+                font-size: 13px;
                 font-weight: bold;
-                padding: 15px;
+                padding: 6px 12px;
             }
-            QPushButton:hover {
-                background-color: #2ecc71;
-            }
+            QPushButton:hover { background-color: #2ecc71; }
         """)
         self.btn_abrir.clicked.connect(self.abrir_caja)
-        botones_layout.addWidget(self.btn_abrir)
+        fila1.addWidget(self.btn_abrir)
 
         self.btn_cerrar = QPushButton("CERRAR CAJA")
+        self.btn_cerrar.setFixedHeight(32)
+        self.btn_cerrar.setMinimumWidth(160)
+        self.btn_cerrar.setMaximumWidth(280)
         self.btn_cerrar.setStyleSheet("""
             QPushButton {
                 background-color: #e74c3c;
                 color: white;
-                font-size: 16px;
+                font-size: 13px;
                 font-weight: bold;
-                padding: 15px;
+                padding: 6px 12px;
             }
-            QPushButton:hover {
-                background-color: #c0392b;
-            }
+            QPushButton:hover { background-color: #c0392b; }
         """)
         self.btn_cerrar.clicked.connect(self.cerrar_caja)
-        botones_layout.addWidget(self.btn_cerrar)
-
-        layout.addLayout(botones_layout)
+        fila1.addWidget(self.btn_cerrar)
 
         self.btn_gasto = QPushButton("Registrar Gasto de Caja")
+        self.btn_gasto.setFixedHeight(32)
+        self.btn_gasto.setMinimumWidth(160)
+        self.btn_gasto.setMaximumWidth(280)
         self.btn_gasto.setStyleSheet("""
             QPushButton {
                 background-color: #e67e22;
                 color: white;
-                font-size: 14px;
+                font-size: 13px;
                 font-weight: bold;
-                padding: 12px;
+                padding: 6px 12px;
             }
-            QPushButton:hover {
-                background-color: #d35400;
-            }
-            QPushButton:disabled {
-                background-color: #bdc3c7;
-            }
+            QPushButton:hover { background-color: #d35400; }
+            QPushButton:disabled { background-color: #bdc3c7; }
         """)
         self.btn_gasto.clicked.connect(self.registrar_gasto)
-        layout.addWidget(self.btn_gasto)
+        fila1.addWidget(self.btn_gasto)
+
+        fila2 = QHBoxLayout()
+        fila2.setSpacing(8)
 
         self.btn_anular = QPushButton("Anular Venta")
+        self.btn_anular.setFixedHeight(32)
+        self.btn_anular.setMinimumWidth(160)
+        self.btn_anular.setMaximumWidth(280)
         self.btn_anular.setStyleSheet("""
             QPushButton {
                 background-color: #c0392b;
                 color: white;
-                font-size: 14px;
+                font-size: 13px;
                 font-weight: bold;
-                padding: 12px;
+                padding: 6px 12px;
             }
-            QPushButton:hover {
-                background-color: #e74c3c;
-            }
-            QPushButton:disabled {
-                background-color: #bdc3c7;
-            }
+            QPushButton:hover { background-color: #e74c3c; }
+            QPushButton:disabled { background-color: #bdc3c7; }
         """)
         self.btn_anular.clicked.connect(self.anular_venta)
-        layout.addWidget(self.btn_anular)
+        fila2.addWidget(self.btn_anular)
 
-        self.btn_facturas = QPushButton("Ver Facturas del Día")
+        self.btn_facturas = QPushButton("Ver Facturas del Dia")
+        self.btn_facturas.setFixedHeight(32)
+        self.btn_facturas.setMinimumWidth(160)
+        self.btn_facturas.setMaximumWidth(280)
         self.btn_facturas.setStyleSheet("""
             QPushButton {
                 background-color: #2980b9;
                 color: white;
-                font-size: 14px;
+                font-size: 13px;
                 font-weight: bold;
-                padding: 12px;
+                padding: 6px 12px;
             }
-            QPushButton:hover {
-                background-color: #3498db;
-            }
+            QPushButton:hover { background-color: #3498db; }
         """)
         self.btn_facturas.clicked.connect(self.ver_facturas_dia)
-        layout.addWidget(self.btn_facturas)
+        fila2.addWidget(self.btn_facturas)
 
-        self.lbl_ganancia = QLabel("Ganancia neta: $0.00")
+        self.btn_reimprimir = QPushButton("Reimprimir ultimo ticket")
+        self.btn_reimprimir.setFixedHeight(32)
+        self.btn_reimprimir.setMinimumWidth(160)
+        self.btn_reimprimir.setMaximumWidth(280)
+        self.btn_reimprimir.setStyleSheet("""
+            QPushButton {
+                background-color: #7f8c8d;
+                color: white;
+                font-size: 13px;
+                font-weight: bold;
+                padding: 6px 12px;
+            }
+            QPushButton:hover { background-color: #95a5a6; }
+        """)
+        self.btn_reimprimir.clicked.connect(self.reimprimir_ultimo)
+        fila2.addWidget(self.btn_reimprimir)
+
+        btn_layout = QVBoxLayout()
+        btn_layout.setSpacing(4)
+        btn_layout.addLayout(fila1)
+        btn_layout.addLayout(fila2)
+        layout.addLayout(btn_layout, stretch=0)
+
+        self.lbl_ganancia = QLabel(f"Ganancia neta: {fmt_moneda(0)}")
         self.lbl_ganancia.setStyleSheet(
-            "font-size: 20px; font-weight: bold; color: #8e44ad; padding: 8px;"
+            "font-size: 18px; font-weight: bold; color: #8e44ad; padding: 6px;"
         )
-        layout.addWidget(self.lbl_ganancia)
+        layout.addWidget(self.lbl_ganancia, stretch=0)
 
-        historial_label = QLabel("Ventas del día")
+        historial_label = QLabel("Ventas del dia")
         historial_label.setStyleSheet(
-            "font-size: 18px; font-weight: bold; margin-top: 20px;"
+            "font-size: 16px; font-weight: bold; margin-top: 10px;"
         )
-        layout.addWidget(historial_label)
+        layout.addWidget(historial_label, stretch=0)
 
         self.tabla_ventas = QTableWidget()
         self.tabla_ventas.setColumnCount(3)
@@ -178,13 +206,14 @@ class CorteView(QWidget):
             1, QHeaderView.ResizeMode.Stretch
         )
         self.tabla_ventas.setStyleSheet("font-size: 14px;")
-        layout.addWidget(self.tabla_ventas)
+        self.tabla_ventas.setMinimumHeight(120)
+        layout.addWidget(self.tabla_ventas, stretch=3)
 
-        gastos_label = QLabel("Gastos del día")
+        gastos_label = QLabel("Gastos del dia")
         gastos_label.setStyleSheet(
-            "font-size: 16px; font-weight: bold; margin-top: 15px;"
+            "font-size: 16px; font-weight: bold; margin-top: 10px;"
         )
-        layout.addWidget(gastos_label)
+        layout.addWidget(gastos_label, stretch=0)
 
         self.tabla_gastos = QTableWidget()
         self.tabla_gastos.setColumnCount(3)
@@ -193,7 +222,8 @@ class CorteView(QWidget):
             1, QHeaderView.ResizeMode.Stretch
         )
         self.tabla_gastos.setStyleSheet("font-size: 13px;")
-        layout.addWidget(self.tabla_gastos)
+        self.tabla_gastos.setMinimumHeight(80)
+        layout.addWidget(self.tabla_gastos, stretch=2)
 
     def cargar_estadisticas(self):
         """Carga las estadísticas del día"""
@@ -222,11 +252,11 @@ class CorteView(QWidget):
             self.btn_gasto.setEnabled(False)
             self.btn_anular.setEnabled(False)
 
-        self.lbl_total.setText(f"Total vendido: ${stats['total']:.2f}")
+        self.lbl_total.setText(f"Total vendido: {fmt_moneda(stats['total'])}")
         self.lbl_num_ventas.setText(f"Número de ventas: {stats['num_ventas']}")
         self.lbl_ganancia.setText(
-            f"Ganancia neta: ${stats['ganancia_neta']:.2f} "
-            f"(Gastos: ${stats['total_gastos']:.2f})"
+            f"Ganancia neta: {fmt_moneda(stats['ganancia_neta'])} "
+            f"(Gastos: {fmt_moneda(stats['total_gastos'])})"
         )
 
         ventas = stats["ventas"]
@@ -237,7 +267,7 @@ class CorteView(QWidget):
             self.tabla_ventas.setItem(
                 i, 1, QTableWidgetItem(venta.fecha.strftime("%H:%M:%S"))
             )
-            self.tabla_ventas.setItem(i, 2, QTableWidgetItem(f"${venta.total:.2f}"))
+            self.tabla_ventas.setItem(i, 2, QTableWidgetItem(fmt_moneda(venta.total)))
 
         gastos = stats["gastos"]
         self.tabla_gastos.setRowCount(len(gastos))
@@ -247,7 +277,7 @@ class CorteView(QWidget):
                 i, 0, QTableWidgetItem(gasto.fecha.strftime("%H:%M"))
             )
             self.tabla_gastos.setItem(i, 1, QTableWidgetItem(gasto.concepto))
-            self.tabla_gastos.setItem(i, 2, QTableWidgetItem(f"${gasto.monto:.2f}"))
+            self.tabla_gastos.setItem(i, 2, QTableWidgetItem(fmt_moneda(gasto.monto)))
 
     def abrir_caja(self):
         """Abre la caja"""
@@ -316,7 +346,7 @@ class CorteView(QWidget):
                 QMessageBox.information(
                     self,
                     "Gasto Registrado",
-                    f"Gasto registrado:\n{concepto}: ${monto:.2f}",
+                    f"Gasto registrado:\n{concepto}: {fmt_moneda(monto)}",
                 )
             except Exception as e:
                 QMessageBox.critical(self, "Error", str(e))
@@ -343,9 +373,9 @@ class CorteView(QWidget):
                     self,
                     "Corte de Caja",
                     f"Corte de caja cerrado!\n\n"
-                    f"Total vendido: ${corte.total_ventas:.2f}\n"
-                    f"Gastos: ${stats['total_gastos']:.2f}\n"
-                    f"Ganancia neta: ${stats['ganancia_neta']:.2f}\n\n"
+                    f"Total vendido: {fmt_moneda(corte.total_ventas)}\n"
+                    f"Gastos: {fmt_moneda(stats['total_gastos'])}\n"
+                    f"Ganancia neta: {fmt_moneda(stats['ganancia_neta'])}\n\n"
                     f"Ventas: {stats['num_ventas']}",
                 )
             else:
@@ -431,3 +461,36 @@ class CorteView(QWidget):
                 subprocess.run(["xdg-open", pdf_path])
         except Exception as e:
             QMessageBox.warning(self, "Error", f"No se pudo abrir el archivo: {str(e)}")
+
+    def reimprimir_ultimo(self):
+        from services.corte_service import CorteCajaService
+        from utils.store_config import get_printer_enabled
+
+        if not get_printer_enabled():
+            QMessageBox.warning(
+                self,
+                "Sin impresora",
+                "No hay impresora termica configurada.\n"
+                "Ve a Configuracion para anadir una.",
+            )
+            return
+        try:
+            service = CorteCajaService(self.session)
+            stats = service.get_estadisticas_hoy()
+            ventas = stats.get("ventas", [])
+            if not ventas:
+                QMessageBox.information(
+                    self, "Sin ventas", "No hay ventas registradas hoy."
+                )
+                return
+            ultima = ventas[-1]
+            from utils.impresora import get_impresora
+
+            imp = get_impresora()
+            imp.imprimir_ticket(ultima, ultima.items)
+            imp.desconectar()
+            QMessageBox.information(
+                self, "Reimpreso", f"Ticket #{ultima.id} enviado a la impresora."
+            )
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"No se pudo reimprimir:\n{str(e)}")

@@ -48,6 +48,18 @@ class Producto(Base):
     aplica_iva = Column(Boolean, default=True)
     categoria_id = Column(Integer, ForeignKey("categorias.id"), nullable=True)
 
+    unidades_por_empaque = Column(Integer, nullable=True)
+    producto_fraccion_id = Column(Integer, ForeignKey("productos.id"), nullable=True)
+    es_fraccion = Column(Boolean, default=False)
+    stock_minimo = Column(Integer, default=0, nullable=True)
+
+    producto_fraccion = relationship(
+        "Producto",
+        foreign_keys=[producto_fraccion_id],
+        remote_side="Producto.id",
+        uselist=False,
+    )
+
     venta_items = relationship("VentaItem", back_populates="producto")
     movimientos = relationship("MovimientoInventario", back_populates="producto")
     categoria = relationship("Categoria", back_populates="productos")
@@ -66,6 +78,12 @@ class Venta(Base):
     total = Column(Float, nullable=False)
     anulada = Column(Boolean, default=False)
     metodo_pago = Column(String(50), nullable=True)
+    cliente_id = Column(Integer, ForeignKey("clientes.id"), nullable=True)
+    es_credito = Column(Boolean, default=False)
+    descuento_tipo = Column(String(20), nullable=True)
+    descuento_valor = Column(Float, default=0)
+    descuento_total = Column(Float, default=0)
+    cajero_id = Column(Integer, ForeignKey("cajeros.id"), nullable=True)
 
     items = relationship(
         "VentaItem", back_populates="venta", cascade="all, delete-orphan"
@@ -127,6 +145,7 @@ class CorteCaja(Base):
     numero_ventas = Column(Integer, default=0)
     total_gastos = Column(Float, default=0)
     ganancia_neta = Column(Float, default=0)
+    cajero_id = Column(Integer, ForeignKey("cajeros.id"), nullable=True)
 
     gastos = relationship("GastoCaja", backref="corte", cascade="all, delete-orphan")
 

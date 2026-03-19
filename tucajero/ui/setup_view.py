@@ -9,6 +9,10 @@ from PySide6.QtWidgets import (
     QFileDialog,
     QMessageBox,
     QScrollArea,
+    QGroupBox,
+    QCheckBox,
+    QComboBox,
+    QFormLayout,
 )
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QPixmap
@@ -333,6 +337,60 @@ class SetupView(QWidget):
         fields_layout.addWidget(field_label("Logo"))
         fields_layout.addLayout(logo_row)
 
+        printer_group = QGroupBox("Impresora Termica")
+        printer_layout = QFormLayout()
+        printer_group.setLayout(printer_layout)
+
+        self.chk_impresora = QCheckBox("Usar impresora termica")
+        self.chk_impresora.toggled.connect(self.on_impresora_toggled)
+        printer_layout.addRow("", self.chk_impresora)
+
+        self.tipo_impresora = QComboBox()
+        self.tipo_impresora.addItems(["USB", "Red (TCP/IP)", "Serial (COM)"])
+        self.tipo_impresora.currentTextChanged.connect(self.on_tipo_impresora_changed)
+        printer_layout.addRow("Tipo de conexion:", self.tipo_impresora)
+
+        self.usb_widget = QWidget()
+        usb_layout = QFormLayout()
+        self.usb_widget.setLayout(usb_layout)
+        self.vendor_id = QLineEdit("0x0416")
+        self.product_id = QLineEdit("0x5011")
+        usb_layout.addRow("Vendor ID:", self.vendor_id)
+        usb_layout.addRow("Product ID:", self.product_id)
+        printer_layout.addRow("", self.usb_widget)
+
+        self.red_widget = QWidget()
+        red_layout = QFormLayout()
+        self.red_widget.setLayout(red_layout)
+        self.ip_impresora = QLineEdit("192.168.1.100")
+        self.puerto_impresora = QLineEdit("9100")
+        red_layout.addRow("IP:", self.ip_impresora)
+        red_layout.addRow("Puerto:", self.puerto_impresora)
+        printer_layout.addRow("", self.red_widget)
+        self.red_widget.setVisible(False)
+
+        self.serial_widget = QWidget()
+        serial_layout = QFormLayout()
+        self.serial_widget.setLayout(serial_layout)
+        self.com_port = QLineEdit("COM1")
+        serial_layout.addRow("Puerto COM:", self.com_port)
+        printer_layout.addRow("", self.serial_widget)
+        self.serial_widget.setVisible(False)
+
+        self.ancho_papel = QComboBox()
+        self.ancho_papel.addItems(["58mm (32 chars)", "80mm (48 chars)"])
+        self.ancho_papel.setCurrentIndex(1)
+        printer_layout.addRow("Ancho de papel:", self.ancho_papel)
+
+        btn_prueba = QPushButton("Imprimir pagina de prueba")
+        btn_prueba.setStyleSheet("background:#3498db;color:white;padding:8px;")
+        btn_prueba.clicked.connect(self.prueba_impresion)
+        printer_layout.addRow("", btn_prueba)
+
+        self.printer_group = printer_group
+        fields_layout.addWidget(printer_group)
+        self.on_impresora_toggled(False)
+
         layout.addLayout(fields_layout)
         layout.addStretch()
 
@@ -354,6 +412,8 @@ class SetupView(QWidget):
         layout.addWidget(self.btn_guardar)
 
     def cargar_config(self):
+        from utils.store_config import get_printer_config
+
         self.nombre_input.setText(get_store_name())
         self.nit_input.setText(get_nit())
         self.telefono_input.setText(get_phone())
@@ -375,6 +435,25 @@ class SetupView(QWidget):
                     )
                     self.logo_preview.setPixmap(scaled)
                     self.btn_logo.setText(f"📁  {os.path.basename(logo)}")
+
+        printer_cfg = get_printer_config()
+        if printer_cfg.get("tipo"):
+            self.chk_impresora.setChecked(True)
+            tipo = printer_cfg.get("tipo", "usb")
+            if tipo == "usb":
+                self.tipo_impresora.setCurrentText("USB")
+                self.vendor_id.setText(printer_cfg.get("vendor_id", "0x0416"))
+                self.product_id.setText(printer_cfg.get("product_id", "0x5011"))
+            elif tipo == "red":
+                self.tipo_impresora.setCurrentText("Red (TCP/IP)")
+                self.ip_impresora.setText(printer_cfg.get("ip", "192.168.1.100"))
+                self.puerto_impresora.setText(str(printer_cfg.get("puerto", 9100)))
+            elif tipo == "serial":
+                self.tipo_impresora.setCurrentText("Serial (COM)")
+                self.com_port.setText(printer_cfg.get("puerto", "COM1"))
+            ancho = printer_cfg.get("ancho", 48)
+            self.ancho_papel.setCurrentIndex(0 if ancho == 32 else 1)
+        self.on_impresora_toggled(self.chk_impresora.isChecked())
 
     def seleccionar_logo(self):
         file_path, _ = QFileDialog.getOpenFileName(
@@ -415,6 +494,7 @@ class SetupView(QWidget):
             "address": self.direccion_input.text().strip(),
             "logo_path": self.logo_path,
             "setup_complete": True,
+            "impresora": self._build_printer_config(),
         }
 
         if save_store_config(config_data):
@@ -424,3 +504,68 @@ class SetupView(QWidget):
             )
         else:
             QMessageBox.critical(self, "Error", "No se pudo guardar la configuración")
+
+    def on_impresora_toggled(self, checked):
+        self.tipo_impresora.setEnabled(checked)
+        self.usb_widget.setEnabled(checked)
+        self.red_widget.setEnabled(checked)
+        self.serial_widget.setEnabled(checked)
+        self.ancho_papel.setEnabled(checked)
+
+    def on_tipo_impresora_changed(self, tipo):
+        self.usb_widget.setVisible("USB" in tipo)
+        self.red_widget.setVisible("Red" in tipo)
+        self.serial_widget.setVisible("Serial" in tipo)
+
+    def prueba_impresion(self):
+        from utils.impresora import ImpresoraTermica
+
+        config = self._build_printer_config()
+        if not config:
+            QMessageBox.warning(
+                self, "Sin impresora", "Activa y configura la impresora primero."
+            )
+            return
+        try:
+            imp = ImpresoraTermica(config)
+            imp.prueba_impresion()
+            QMessageBox.information(
+                self,
+                "Prueba enviada",
+                "Pagina de prueba enviada a la impresora.\n"
+                "Si no imprimio, verifica la conexion.",
+            )
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Error de impresora",
+                f"No se pudo imprimir:\n{str(e)}\n\n"
+                "Verifica que la impresora este conectada y encendida.",
+            )
+
+    def _build_printer_config(self):
+        if not self.chk_impresora.isChecked():
+            return {}
+        tipo_txt = self.tipo_impresora.currentText()
+        ancho = 32 if "58mm" in self.ancho_papel.currentText() else 48
+        if "USB" in tipo_txt:
+            return {
+                "tipo": "usb",
+                "vendor_id": self.vendor_id.text().strip(),
+                "product_id": self.product_id.text().strip(),
+                "ancho": ancho,
+            }
+        elif "Red" in tipo_txt:
+            return {
+                "tipo": "red",
+                "ip": self.ip_impresora.text().strip(),
+                "puerto": self.puerto_impresora.text().strip(),
+                "ancho": ancho,
+            }
+        elif "Serial" in tipo_txt:
+            return {
+                "tipo": "serial",
+                "puerto": self.com_port.text().strip(),
+                "ancho": ancho,
+            }
+        return {}

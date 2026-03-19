@@ -11,19 +11,37 @@ class VentaRepository:
     def __init__(self, session):
         self.session = session
 
-    def create_venta(self, items, metodo_pago=None):
+    def create_venta(
+        self,
+        items,
+        metodo_pago=None,
+        cliente_id=None,
+        es_credito=False,
+        descuento_tipo=None,
+        descuento_valor=0,
+        descuento_total=0,
+    ):
         """Crea una venta con sus items (incluye IVA)"""
-        total = 0
+        total_bruto = 0
         for item in items:
             subtotal = item["cantidad"] * item["precio"]
             if item.get("aplica_iva", True):
                 iva = round(subtotal * IVA_RATE, 2)
             else:
                 iva = 0
-            total += subtotal + iva
+            total_bruto += subtotal + iva
+
+        total_final = max(0, total_bruto - descuento_total)
 
         venta = Venta(
-            total=round(total, 2), fecha=datetime.now(), metodo_pago=metodo_pago
+            total=round(total_final, 2),
+            fecha=datetime.now(),
+            metodo_pago=metodo_pago,
+            cliente_id=cliente_id,
+            es_credito=es_credito,
+            descuento_tipo=descuento_tipo,
+            descuento_valor=descuento_valor,
+            descuento_total=descuento_total,
         )
         self.session.add(venta)
         self.session.flush()

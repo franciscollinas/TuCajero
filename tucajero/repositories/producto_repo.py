@@ -40,6 +40,7 @@ class ProductoRepository:
         stock=0,
         aplica_iva=True,
         categoria_id=None,
+        stock_minimo=0,
     ):
         """Crea un nuevo producto"""
         producto = Producto(
@@ -50,6 +51,7 @@ class ProductoRepository:
             stock=stock,
             aplica_iva=aplica_iva,
             categoria_id=categoria_id,
+            stock_minimo=stock_minimo,
         )
         self.session.add(producto)
         self.session.commit()

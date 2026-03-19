@@ -19,6 +19,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 import os
+from utils.formato import fmt_moneda
 
 
 class ProductosView(QWidget):
@@ -77,9 +78,14 @@ class ProductosView(QWidget):
         btn_importar.clicked.connect(self.importar_productos)
         btn_layout.addWidget(btn_importar)
 
-        btn_plantilla = QPushButton("⬇ Plantilla")
+        btn_plantilla = QPushButton("⬇ Descargar plantilla Excel")
         btn_plantilla.setStyleSheet(
             "background-color: #7f8c8d; color: white; padding: 10px;"
+        )
+        btn_plantilla.setToolTip(
+            "Descarga una plantilla Excel con el formato correcto\n"
+            "para cargar tus productos masivamente.\n"
+            "Llena la plantilla y usa 'Importar Excel/CSV' para cargarla."
         )
         btn_plantilla.clicked.connect(self.descargar_plantilla)
         btn_layout.addWidget(btn_plantilla)
@@ -111,7 +117,7 @@ class ProductosView(QWidget):
             self.tabla.setItem(i, 0, QTableWidgetItem(str(p.id)))
             self.tabla.setItem(i, 1, QTableWidgetItem(p.codigo))
             self.tabla.setItem(i, 2, QTableWidgetItem(p.nombre))
-            self.tabla.setItem(i, 3, QTableWidgetItem(f"${p.precio:.2f}"))
+            self.tabla.setItem(i, 3, QTableWidgetItem(fmt_moneda(p.precio)))
             self.tabla.setItem(i, 4, QTableWidgetItem(str(p.stock)))
             cat_nombre = p.categoria.nombre if p.categoria else "—"
             self.tabla.setItem(i, 5, QTableWidgetItem(cat_nombre))
@@ -176,6 +182,69 @@ class ProductosView(QWidget):
         dialog.exec()
         self.cargar_productos()
 
+    def importar_productos(self):
+        from PySide6.QtWidgets import QFileDialog
+        from utils.importador import leer_archivo
+
+        filepath, _ = QFileDialog.getOpenFileName(
+            self,
+            "Seleccionar archivo",
+            os.path.expanduser("~"),
+            "Excel/CSV (*.xlsx *.xls *.csv)",
+        )
+        if not filepath:
+            return
+        try:
+            filas = leer_archivo(filepath)
+            if not filas:
+                QMessageBox.warning(self, "Vacío", "El archivo no tiene datos.")
+                return
+            dialog = ImportPreviewDialog(filas, filepath, self.session, self)
+            if dialog.exec() == QDialog.DialogCode.Accepted:
+                self.cargar_productos()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"No se pudo leer:\n{e}")
+
+    def descargar_plantilla(self):
+        import openpyxl
+        from PySide6.QtWidgets import QFileDialog
+
+        QMessageBox.information(
+            self,
+            "¿Cómo usar la plantilla?",
+            "Se descargará una plantilla Excel con el formato correcto.\n\n"
+            "Instrucciones:\n"
+            "1. Abre el archivo en Excel o Google Sheets\n"
+            "2. Llena los datos de tus productos\n"
+            "   • codigo y nombre son obligatorios\n"
+            "   • categoria: si no existe, se crea automáticamente\n"
+            "   • aplica_iva: escribe SI o NO\n"
+            "3. Guarda el archivo como .xlsx\n"
+            "4. Usa el botón 'Importar Excel/CSV' para cargarlo",
+        )
+
+        filepath, _ = QFileDialog.getSaveFileName(
+            self,
+            "Guardar plantilla",
+            os.path.join(os.path.expanduser("~"), "TuCajero_Plantilla_Productos.xlsx"),
+            "Excel (*.xlsx)",
+        )
+        if not filepath:
+            return
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Productos"
+        ws.append(
+            ["codigo", "nombre", "precio", "costo", "stock", "categoria", "aplica_iva"]
+        )
+        ws.append(["001", "Acetaminofen 500mg", 2500, 1200, 50, "Analgesicos", "SI"])
+        ws.append(["002", "Gaseosa", 3000, 1500, 20, "Refrescos", "NO"])
+        ws.append(["003", "Amoxicilina 500mg", 8500, 4000, 30, "Antibioticos", "SI"])
+        for col in ws.columns:
+            ws.column_dimensions[col[0].column_letter].width = 18
+        wb.save(filepath)
+        QMessageBox.information(self, "Listo", f"Plantilla guardada:\n{filepath}")
+
 
 class ProductoDialog(QDialog):
     """Diálogo para agregar/editar productos"""
@@ -217,6 +286,47 @@ class ProductoDialog(QDialog):
         self.stock_input = QSpinBox()
         self.stock_input.setRange(0, 999999)
         layout.addRow("Stock:", self.stock_input)
+
+        self.stock_min_input = QSpinBox()
+        self.stock_min_input.setRange(0, 999999)
+        self.stock_min_input.setToolTip(
+            "El sistema alertará cuando el stock llegue a esta cantidad.\n"
+            "Pon 0 para desactivar la alerta."
+        )
+        layout.addRow("Stock mínimo:", self.stock_min_input)
+
+        separador = QLabel("── Fraccionamiento ──")
+        separador.setStyleSheet("color: #7f8c8d; font-size: 11px;")
+        layout.addRow("", separador)
+
+        self.chk_fraccionable = QCheckBox("¿Este producto se vende por unidades?")
+        self.chk_fraccionable.toggled.connect(self.on_fraccionable_changed)
+        layout.addRow("", self.chk_fraccionable)
+
+        self.fraccion_widget = QWidget()
+        fraccion_layout = QFormLayout()
+        self.fraccion_widget.setLayout(fraccion_layout)
+        self.fraccion_widget.setVisible(False)
+
+        self.und_por_empaque = QSpinBox()
+        self.und_por_empaque.setRange(2, 10000)
+        self.und_por_empaque.setValue(10)
+        fraccion_layout.addRow("Unidades por empaque:", self.und_por_empaque)
+
+        self.btn_crear_fraccion = QPushButton(
+            "✨ Crear producto unitario automáticamente"
+        )
+        self.btn_crear_fraccion.setStyleSheet(
+            "background-color: #8e44ad; color: white; padding: 8px;"
+        )
+        self.btn_crear_fraccion.clicked.connect(self.crear_fraccion_automatica)
+        fraccion_layout.addRow("", self.btn_crear_fraccion)
+
+        self.lbl_fraccion_info = QLabel("")
+        self.lbl_fraccion_info.setStyleSheet("color: #27ae60; font-size: 12px;")
+        fraccion_layout.addRow("", self.lbl_fraccion_info)
+
+        layout.addRow("", self.fraccion_widget)
 
         cat_layout = QHBoxLayout()
         self.cat_combo = QComboBox()
@@ -285,6 +395,18 @@ class ProductoDialog(QDialog):
             except ValueError as e:
                 QMessageBox.warning(self, "Error", str(e))
 
+    def on_fraccionable_changed(self, checked):
+        self.fraccion_widget.setVisible(checked)
+
+    def crear_fraccion_automatica(self):
+        und = self.und_por_empaque.value()
+        precio = self.precio_input.value()
+        precio_und = round(precio / und, 2)
+        nombre = self.nombre_input.text().strip()
+        self.lbl_fraccion_info.setText(
+            f"✓ Se creará: '{nombre} (und)' a ${precio_und:,.2f} c/u"
+        )
+
     def cargar_producto(self):
         """Carga los datos del producto a editar"""
         from services.producto_service import ProductoService
@@ -298,6 +420,7 @@ class ProductoDialog(QDialog):
             self.precio_input.setValue(producto.precio)
             self.costo_input.setValue(producto.costo)
             self.stock_input.setValue(producto.stock)
+            self.stock_min_input.setValue(producto.stock_minimo or 0)
             self.aplica_iva.setChecked(producto.aplica_iva)
 
             if producto.categoria_id:
@@ -305,6 +428,15 @@ class ProductoDialog(QDialog):
                     if self.cat_combo.currentData() == producto.categoria_id:
                         self.cat_combo.setCurrentIndex(i)
                         break
+
+            if producto.unidades_por_empaque:
+                self.chk_fraccionable.setChecked(True)
+                self.und_por_empaque.setValue(producto.unidades_por_empaque)
+                if producto.producto_fraccion:
+                    precio_und = producto.producto_fraccion.precio
+                    self.lbl_fraccion_info.setText(
+                        f"✓ Vinculado: '{producto.producto_fraccion.nombre}' a ${precio_und:,.2f} c/u"
+                    )
 
     def guardar(self):
         """Guarda el producto"""
@@ -315,6 +447,7 @@ class ProductoDialog(QDialog):
         precio = self.precio_input.value()
         costo = self.costo_input.value()
         stock = self.stock_input.value()
+        stock_minimo = self.stock_min_input.value()
         aplica_iva = self.aplica_iva.isChecked()
         categoria_id = self.cat_combo.currentData()
 
@@ -335,64 +468,51 @@ class ProductoDialog(QDialog):
                     stock=stock,
                     aplica_iva=aplica_iva,
                     categoria_id=categoria_id,
+                    stock_minimo=stock_minimo,
                 )
+                producto_guardado = service.get_producto_by_id(self.producto_id)
             else:
-                service.create_producto(
-                    codigo, nombre, precio, costo, stock, aplica_iva, categoria_id
+                producto_guardado = service.create_producto(
+                    codigo,
+                    nombre,
+                    precio,
+                    costo,
+                    stock,
+                    aplica_iva,
+                    categoria_id,
+                    stock_minimo,
                 )
+
+            if self.chk_fraccionable.isChecked() and producto_guardado:
+                from services.fraccion_service import FraccionService
+
+                frac_service = FraccionService(self.session)
+                if self.producto_id:
+                    if producto_guardado.unidades_por_empaque:
+                        unidades = self.und_por_empaque.value()
+                        if producto_guardado.unidades_por_empaque != unidades:
+                            producto_guardado.unidades_por_empaque = unidades
+                            self.session.commit()
+                    if not producto_guardado.producto_fraccion_id:
+                        frac_service.crear_producto_fraccion(
+                            producto_guardado.id, self.und_por_empaque.value()
+                        )
+                        QMessageBox.information(
+                            self,
+                            "Éxito",
+                            "Producto fraccionario creado automáticamente",
+                        )
+                else:
+                    frac_service.crear_producto_fraccion(
+                        producto_guardado.id, self.und_por_empaque.value()
+                    )
+                    QMessageBox.information(
+                        self, "Éxito", "Producto fraccionario creado automáticamente"
+                    )
 
             self.accept()
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error al guardar: {str(e)}")
-
-    def importar_productos(self):
-        from PySide6.QtWidgets import QFileDialog
-        from utils.importador import leer_archivo
-
-        filepath, _ = QFileDialog.getOpenFileName(
-            self,
-            "Seleccionar archivo",
-            os.path.expanduser("~"),
-            "Excel/CSV (*.xlsx *.xls *.csv)",
-        )
-        if not filepath:
-            return
-        try:
-            filas = leer_archivo(filepath)
-            if not filas:
-                QMessageBox.warning(self, "Vacío", "El archivo no tiene datos.")
-                return
-            dialog = ImportPreviewDialog(filas, filepath, self.session, self)
-            if dialog.exec() == QDialog.DialogCode.Accepted:
-                self.cargar_productos()
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"No se pudo leer:\n{e}")
-
-    def descargar_plantilla(self):
-        import openpyxl
-        from PySide6.QtWidgets import QFileDialog
-
-        filepath, _ = QFileDialog.getSaveFileName(
-            self,
-            "Guardar plantilla",
-            os.path.join(os.path.expanduser("~"), "TuCajero_Plantilla_Productos.xlsx"),
-            "Excel (*.xlsx)",
-        )
-        if not filepath:
-            return
-        wb = openpyxl.Workbook()
-        ws = wb.active
-        ws.title = "Productos"
-        ws.append(
-            ["codigo", "nombre", "precio", "costo", "stock", "categoria", "aplica_iva"]
-        )
-        ws.append(["001", "Acetaminofen 500mg", 2500, 1200, 50, "Analgesicos", "SI"])
-        ws.append(["002", "Gaseosa", 3000, 1500, 20, "Refrescos", "NO"])
-        ws.append(["003", "Amoxicilina 500mg", 8500, 4000, 30, "Antibioticos", "SI"])
-        for col in ws.columns:
-            ws.column_dimensions[col[0].column_letter].width = 18
-        wb.save(filepath)
-        QMessageBox.information(self, "Listo", f"Plantilla guardada:\n{filepath}")
 
 
 class ImportPreviewDialog(QDialog):
@@ -422,7 +542,10 @@ class ImportPreviewDialog(QDialog):
         tabla.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         for i, fila in enumerate(preview):
             for j, key in enumerate(headers):
-                tabla.setItem(i, j, QTableWidgetItem(str(fila.get(key, "") or "")))
+                val = fila.get(key, "") or ""
+                if key in ("precio", "costo"):
+                    val = fmt_moneda(val)
+                tabla.setItem(i, j, QTableWidgetItem(str(val)))
         layout.addWidget(tabla)
 
         if len(self.filas) > 20:

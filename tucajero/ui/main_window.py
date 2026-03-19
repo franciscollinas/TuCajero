@@ -138,19 +138,38 @@ class MainWindow(QMainWindow):
 
         self.btn_ventas = self.crear_boton("Ventas", self.switch_to_ventas)
         self.btn_productos = self.crear_boton("Productos", self.switch_to_productos)
+        self.btn_clientes = self.crear_boton("Clientes", self.switch_to_clientes)
         self.btn_inventario = self.crear_boton("Inventario", self.switch_to_inventario)
+        self.btn_cotizaciones = self.crear_boton(
+            "Cotizaciones", self.switch_to_cotizaciones
+        )
         self.btn_corte = self.crear_boton("Corte de Caja", self.switch_to_corte)
         self.btn_historial = self.crear_boton("Historial", self.switch_to_historial)
         self.btn_config = self.crear_boton("Config", self.switch_to_config)
+        self.btn_proveedores = self.crear_boton(
+            "🏭 Proveedores", self.switch_to_proveedores
+        )
 
         layout.addWidget(self.btn_ventas)
         layout.addWidget(self.btn_productos)
+        layout.addWidget(self.btn_clientes)
         layout.addWidget(self.btn_inventario)
+        layout.addWidget(self.btn_cotizaciones)
         layout.addWidget(self.btn_corte)
         layout.addWidget(self.btn_historial)
         layout.addWidget(self.btn_config)
+        layout.addWidget(self.btn_proveedores)
+
+        self._views = {}
 
         layout.addStretch()
+
+        self.lbl_cajero = QLabel("")
+        self.lbl_cajero.setStyleSheet(
+            "color: #3498db; font-size: 11px; padding: 5px; text-align: center;"
+        )
+        self.lbl_cajero.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.lbl_cajero)
 
         btn_acerca = QPushButton("Acerca de")
         btn_acerca.setFixedHeight(40)
@@ -207,29 +226,69 @@ class MainWindow(QMainWindow):
     def add_view(self, widget, name):
         """Agrega una vista al stack"""
         self.content_stack.addWidget(widget)
+        self._views[name] = widget
         return self.content_stack.count() - 1
+
+    def switch_view_by_name(self, name):
+        """Cambia a una vista por nombre"""
+        if name in self._views:
+            self.content_stack.setCurrentWidget(self._views[name])
 
     def switch_view(self, index):
         """Cambia a una vista específica"""
         self.content_stack.setCurrentIndex(index)
 
     def switch_to_ventas(self):
-        self.switch_view(0)
+        self.switch_view_by_name("ventas")
 
     def switch_to_productos(self):
-        self.switch_view(1)
+        self.switch_view_by_name("productos")
+
+    def switch_to_clientes(self):
+        self.switch_view_by_name("clientes")
+
+    def switch_to_cajeros(self):
+        self.switch_view_by_name("cajeros")
 
     def switch_to_inventario(self):
-        self.switch_view(2)
+        self.switch_view_by_name("inventario")
+
+    def switch_to_cotizaciones(self):
+        self.switch_view_by_name("cotizaciones")
 
     def switch_to_corte(self):
-        self.switch_view(3)
+        self.switch_view_by_name("corte")
 
     def switch_to_historial(self):
-        self.switch_view(4)
+        self.switch_view_by_name("historial")
 
     def switch_to_config(self):
-        self.switch_view(5)
+        self.switch_view_by_name("config")
+
+    def switch_to_proveedores(self):
+        self.switch_view_by_name("proveedores")
+
+    def set_cajero_activo(self, cajero):
+        icono = "👑" if cajero.rol == "admin" else "👤"
+        self.lbl_cajero.setText(f"{icono} {cajero.nombre}")
+
+    def actualizar_badge_inventario(self, num_alertas):
+        """Muestra un badge rojo con el número de alertas en el botón Inventario"""
+        if num_alertas > 0:
+            self.btn_inventario.setText(f"Inventario  🔴{num_alertas}")
+            self.btn_inventario.setStyleSheet("""
+                QPushButton {
+                    background-color: #34495e;
+                    color: white;
+                    border: none;
+                    padding: 10px;
+                    font-size: 14px;
+                    text-align: left;
+                }
+                QPushButton:hover { background-color: #3498db; }
+            """)
+        else:
+            self.btn_inventario.setText("Inventario")
 
     def closeEvent(self, event):
         """Cierra la aplicación correctamente"""

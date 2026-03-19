@@ -10,6 +10,7 @@ DEFAULT_CONFIG = {
     "email": "",
     "nit": "",
     "setup_complete": False,
+    "impresora": {},
 }
 
 _store_config = None
@@ -131,3 +132,16 @@ def is_setup_complete():
     if _store_config is None:
         load_store_config()
     return _store_config.get("setup_complete", False)
+
+
+def get_printer_config():
+    """Retorna la configuracion de la impresora"""
+    if _store_config is None:
+        load_store_config()
+    return _store_config.get("impresora", {})
+
+
+def get_printer_enabled():
+    """Retorna True si hay impresora configurada"""
+    config = get_printer_config()
+    return bool(config.get("tipo"))

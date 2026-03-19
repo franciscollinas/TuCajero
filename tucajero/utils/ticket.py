@@ -59,7 +59,13 @@ class GeneradorTicket:
             )
         subtotal_total = round(subtotal_total, 2)
         iva_total = round(iva_total, 2)
-        total_final = round(subtotal_total + iva_total, 2)
+        total_bruto = subtotal_total + iva_total
+
+        descuento_total = getattr(venta, "descuento_total", 0) or 0
+        if descuento_total > 0:
+            lines.append(f"{'Descuento:':<20} -${descuento_total:.2f}")
+
+        total_final = round(max(0, total_bruto - descuento_total), 2)
         lines.append("-" * self.WIDTH)
         lines.append(f"{'Subtotal:':<20} ${subtotal_total:.2f}")
         lines.append(f"{'IVA 19%:':<20} ${iva_total:.2f}")

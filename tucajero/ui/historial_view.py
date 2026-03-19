@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QDate
 from datetime import datetime, timedelta
 import os
+from utils.formato import fmt_moneda
 
 
 class HistorialView(QWidget):
@@ -89,19 +90,19 @@ class HistorialView(QWidget):
         resumen_layout = QHBoxLayout()
         self.resumen_widget.setLayout(resumen_layout)
 
-        self.lbl_ventas = QLabel("Ventas brutas: $0.00")
+        self.lbl_ventas = QLabel(f"Ventas brutas: {fmt_moneda(0)}")
         self.lbl_ventas.setStyleSheet(
             "color: white; font-size: 16px; font-weight: bold;"
         )
         resumen_layout.addWidget(self.lbl_ventas)
 
-        self.lbl_gastos = QLabel("Gastos: $0.00")
+        self.lbl_gastos = QLabel(f"Gastos: {fmt_moneda(0)}")
         self.lbl_gastos.setStyleSheet(
             "color: #e74c3c; font-size: 16px; font-weight: bold;"
         )
         resumen_layout.addWidget(self.lbl_gastos)
 
-        self.lbl_ganancia = QLabel("Ganancia neta: $0.00")
+        self.lbl_ganancia = QLabel(f"Ganancia neta: {fmt_moneda(0)}")
         self.lbl_ganancia.setStyleSheet(
             "color: #2ecc71; font-size: 16px; font-weight: bold;"
         )
@@ -211,18 +212,20 @@ class HistorialView(QWidget):
                 else QTableWidgetItem("—"),
             )
             self.tabla_cierres.setItem(
-                i, 3, QTableWidgetItem(f"${corte.total_ventas:.2f}")
+                i, 3, QTableWidgetItem(fmt_moneda(corte.total_ventas))
             )
             ganancia = getattr(corte, "ganancia_neta", corte.total_ventas)
-            self.tabla_cierres.setItem(i, 4, QTableWidgetItem(f"${ganancia:.2f}"))
+            self.tabla_cierres.setItem(i, 4, QTableWidgetItem(fmt_moneda(ganancia)))
 
             total_ventas += corte.total_ventas
             total_gastos += getattr(corte, "total_gastos", 0)
             total_num_ventas += corte.numero_ventas
 
-        self.lbl_ventas.setText(f"Ventas brutas: ${total_ventas:.2f}")
-        self.lbl_gastos.setText(f"Gastos: ${total_gastos:.2f}")
-        self.lbl_ganancia.setText(f"Ganancia neta: ${total_ventas - total_gastos:.2f}")
+        self.lbl_ventas.setText(f"Ventas brutas: {fmt_moneda(total_ventas)}")
+        self.lbl_gastos.setText(f"Gastos: {fmt_moneda(total_gastos)}")
+        self.lbl_ganancia.setText(
+            f"Ganancia neta: {fmt_moneda(total_ventas - total_gastos)}"
+        )
         self.lbl_resumen_datos.setText(
             f"Cierres: {total_cierres} | Ventas: {total_num_ventas}"
         )
@@ -262,7 +265,9 @@ class HistorialView(QWidget):
             self.tabla_ranking.setItem(i, 0, QTableWidgetItem(str(i + 1)))
             self.tabla_ranking.setItem(i, 1, QTableWidgetItem(item.nombre))
             self.tabla_ranking.setItem(i, 2, QTableWidgetItem(str(int(item.unidades))))
-            self.tabla_ranking.setItem(i, 3, QTableWidgetItem(f"${item.ingresos:.2f}"))
+            self.tabla_ranking.setItem(
+                i, 3, QTableWidgetItem(fmt_moneda(item.ingresos))
+            )
 
     def exportar_excel(self):
         """Exporta el historial a Excel"""

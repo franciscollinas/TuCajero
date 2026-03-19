@@ -59,5 +59,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['assets\\icons\\cruzmedic.ico'],
+    icon=['assets\\icons\\tucajero.ico'],
 )

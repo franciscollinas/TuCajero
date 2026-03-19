@@ -94,9 +94,52 @@ def init_db():
     crear_carpetas()
 
     from models.producto import Producto
+    from models.cliente import Cliente
+    from models.cajero import Cajero
+    from models.cotizacion import Cotizacion, CotizacionItem
+    from models.proveedor import Proveedor, OrdenCompra, OrdenCompraItem
 
     engine = get_engine()
     Base.metadata.create_all(engine)
+    agregar_columnas_si_existen(engine)
+
+
+def agregar_columnas_si_existen(engine):
+    """Agrega las nuevas columnas a las tablas existentes si no existen"""
+    from sqlalchemy import text
+
+    columnas = [
+        ("productos", "unidades_por_empaque", "INTEGER"),
+        ("productos", "producto_fraccion_id", "INTEGER"),
+        ("productos", "es_fraccion", "BOOLEAN DEFAULT 0"),
+        ("productos", "stock_minimo", "INTEGER DEFAULT 0"),
+        ("ventas", "cliente_id", "INTEGER"),
+        ("ventas", "es_credito", "INTEGER DEFAULT 0"),
+        ("ventas", "descuento_tipo", "VARCHAR(20)"),
+        ("ventas", "descuento_valor", "FLOAT DEFAULT 0"),
+        ("ventas", "descuento_total", "FLOAT DEFAULT 0"),
+        ("ventas", "cajero_id", "INTEGER"),
+        ("cortes_caja", "cajero_id", "INTEGER"),
+    ]
+    with engine.connect() as conn:
+        for tabla, columna, tipo in columnas:
+            try:
+                result = conn.execute(text(f"PRAGMA table_info({tabla})"))
+                columnas_tabla = [row[1] for row in result]
+                if columna not in columnas_tabla:
+                    if tipo == "BOOLEAN DEFAULT 0":
+                        conn.execute(
+                            text(
+                                f"ALTER TABLE {tabla} ADD COLUMN {columna} INTEGER DEFAULT 0"
+                            )
+                        )
+                    else:
+                        conn.execute(
+                            text(f"ALTER TABLE {tabla} ADD COLUMN {columna} {tipo}")
+                        )
+                    conn.commit()
+            except Exception:
+                pass
 
 
 def close_db():
