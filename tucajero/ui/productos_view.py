@@ -18,6 +18,7 @@ from PySide6.QtWidgets import (
     QInputDialog,
 )
 from PySide6.QtCore import Qt
+import os
 
 
 class ProductosView(QWidget):
@@ -68,6 +69,20 @@ class ProductosView(QWidget):
         )
         btn_categorias.clicked.connect(self.abrir_gestor_categorias)
         btn_layout.addWidget(btn_categorias)
+
+        btn_importar = QPushButton("⬆ Importar Excel/CSV")
+        btn_importar.setStyleSheet(
+            "background-color: #2980b9; color: white; padding: 10px;"
+        )
+        btn_importar.clicked.connect(self.importar_productos)
+        btn_layout.addWidget(btn_importar)
+
+        btn_plantilla = QPushButton("⬇ Plantilla")
+        btn_plantilla.setStyleSheet(
+            "background-color: #7f8c8d; color: white; padding: 10px;"
+        )
+        btn_plantilla.clicked.connect(self.descargar_plantilla)
+        btn_layout.addWidget(btn_plantilla)
 
         layout.addLayout(btn_layout)
 
@@ -329,6 +344,125 @@ class ProductoDialog(QDialog):
             self.accept()
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error al guardar: {str(e)}")
+
+    def importar_productos(self):
+        from PySide6.QtWidgets import QFileDialog
+        from utils.importador import leer_archivo
+
+        filepath, _ = QFileDialog.getOpenFileName(
+            self,
+            "Seleccionar archivo",
+            os.path.expanduser("~"),
+            "Excel/CSV (*.xlsx *.xls *.csv)",
+        )
+        if not filepath:
+            return
+        try:
+            filas = leer_archivo(filepath)
+            if not filas:
+                QMessageBox.warning(self, "Vacío", "El archivo no tiene datos.")
+                return
+            dialog = ImportPreviewDialog(filas, filepath, self.session, self)
+            if dialog.exec() == QDialog.DialogCode.Accepted:
+                self.cargar_productos()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"No se pudo leer:\n{e}")
+
+    def descargar_plantilla(self):
+        import openpyxl
+        from PySide6.QtWidgets import QFileDialog
+
+        filepath, _ = QFileDialog.getSaveFileName(
+            self,
+            "Guardar plantilla",
+            os.path.join(os.path.expanduser("~"), "TuCajero_Plantilla_Productos.xlsx"),
+            "Excel (*.xlsx)",
+        )
+        if not filepath:
+            return
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Productos"
+        ws.append(
+            ["codigo", "nombre", "precio", "costo", "stock", "categoria", "aplica_iva"]
+        )
+        ws.append(["001", "Acetaminofen 500mg", 2500, 1200, 50, "Analgesicos", "SI"])
+        ws.append(["002", "Gaseosa", 3000, 1500, 20, "Refrescos", "NO"])
+        ws.append(["003", "Amoxicilina 500mg", 8500, 4000, 30, "Antibioticos", "SI"])
+        for col in ws.columns:
+            ws.column_dimensions[col[0].column_letter].width = 18
+        wb.save(filepath)
+        QMessageBox.information(self, "Listo", f"Plantilla guardada:\n{filepath}")
+
+
+class ImportPreviewDialog(QDialog):
+    def __init__(self, filas, filepath, session, parent=None):
+        super().__init__(parent)
+        self.filas = filas
+        self.filepath = filepath
+        self.session = session
+        self.setWindowTitle("Vista previa — Importar productos")
+        self.setMinimumSize(750, 520)
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+
+        info = QLabel(
+            f"📄  {len(self.filas)} filas detectadas  |  {os.path.basename(filepath)}"
+        )
+        info.setStyleSheet(
+            "font-size:13px;padding:8px;background:#ecf0f1;border-radius:4px;"
+        )
+        layout.addWidget(info)
+
+        headers = list(self.filas[0].keys()) if self.filas else []
+        preview = self.filas[:20]
+        tabla = QTableWidget(len(preview), len(headers))
+        tabla.setHorizontalHeaderLabels(headers)
+        tabla.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        tabla.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        for i, fila in enumerate(preview):
+            for j, key in enumerate(headers):
+                tabla.setItem(i, j, QTableWidgetItem(str(fila.get(key, "") or "")))
+        layout.addWidget(tabla)
+
+        if len(self.filas) > 20:
+            nota = QLabel(f"⚠ Mostrando 20 de {len(self.filas)} filas")
+            nota.setStyleSheet("color:#e67e22;font-size:12px;padding:4px;")
+            layout.addWidget(nota)
+
+        btns = QHBoxLayout()
+        btn_imp = QPushButton("⬆ IMPORTAR TODO")
+        btn_imp.setStyleSheet(
+            "background-color:#27ae60;color:white;"
+            "padding:12px;font-weight:bold;font-size:14px;"
+        )
+        btn_imp.clicked.connect(self.ejecutar)
+        btns.addWidget(btn_imp)
+        btn_cancel = QPushButton("Cancelar")
+        btn_cancel.setStyleSheet("padding:12px;")
+        btn_cancel.clicked.connect(self.reject)
+        btns.addWidget(btn_cancel)
+        layout.addLayout(btns)
+
+    def ejecutar(self):
+        from utils.importador import importar_productos
+
+        try:
+            r = importar_productos(self.filepath, self.session)
+            msg = (
+                f"✅ Importación completada:\n\n"
+                f"• Productos nuevos: {r['importados']}\n"
+                f"• Actualizados: {r['actualizados']}\n"
+                f"• Errores: {len(r['errores'])}"
+            )
+            if r["errores"]:
+                msg += "\n\nPrimeros errores:\n"
+                for e in r["errores"][:5]:
+                    msg += f"  Fila {e['fila']}: {e['msg']}\n"
+            QMessageBox.information(self, "Importación completada", msg)
+            self.accept()
+        except Exception as e:
+            QMessageBox.critical(self, "Error al importar", str(e))
 
 
 class CategoriaDialog(QDialog):
