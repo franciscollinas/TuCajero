@@ -7,8 +7,9 @@ from PySide6.QtWidgets import (
     QPushButton,
     QMessageBox,
     QDialog,
+    QApplication,
 )
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from security.license_manager import (
     get_machine_id,
     generar_licencia,
@@ -133,38 +134,86 @@ class ActivationDialog(QDialog):
         self.setFixedSize(450, 380)
 
         titulo = QLabel(f"Activación de {store_name}")
-        titulo.setStyleSheet("font-size: 20px; font-weight: bold; color: #2c3e50;")
+        titulo.setStyleSheet("color: #4a9eff; font-size: 18px; font-weight: bold;")
         titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(titulo)
 
         subtitulo = QLabel("Ingrese su licencia para activar el sistema")
-        subtitulo.setStyleSheet("color: #7f8c8d; padding-bottom: 10px;")
+        subtitulo.setStyleSheet(
+            "color: #cccccc; font-size: 12px; padding-bottom: 10px;"
+        )
         subtitulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(subtitulo)
 
         machine_id = get_machine_id()
 
         machine_label = QLabel("Machine ID de esta computadora:")
-        machine_label.setStyleSheet("font-weight: bold; margin-top: 10px;")
+        machine_label.setStyleSheet(
+            "font-weight: bold; color: #cccccc; margin-top: 10px;"
+        )
         layout.addWidget(machine_label)
 
-        self.machine_id_display = QLabel(machine_id)
-        self.machine_id_display.setStyleSheet(
-            "background-color: #ecf0f1; padding: 10px; font-family: monospace; font-size: 12px;"
-        )
-        self.machine_id_display.setWordWrap(True)
-        layout.addWidget(self.machine_id_display)
+        machine_layout = QHBoxLayout()
+
+        self.txt_machine_id = QLineEdit(machine_id)
+        self.txt_machine_id.setReadOnly(True)
+        self.txt_machine_id.setStyleSheet("""
+            QLineEdit {
+                background-color: #2c2c2c;
+                color: #ffffff;
+                border: 1px solid #555555;
+                border-radius: 4px;
+                padding: 8px;
+                font-family: monospace;
+                font-size: 13px;
+            }
+        """)
+        machine_layout.addWidget(self.txt_machine_id)
+
+        self.btn_copiar = QPushButton("📋 Copiar")
+        self.btn_copiar.setFixedHeight(36)
+        self.btn_copiar.setStyleSheet("""
+            QPushButton {
+                background-color: #0078d4;
+                color: white;
+                border-radius: 4px;
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+            QPushButton:hover {
+                background-color: #1084d8;
+            }
+            QPushButton:pressed {
+                background-color: #006cbd;
+            }
+        """)
+        self.btn_copiar.clicked.connect(self.copiar_machine_id)
+        machine_layout.addWidget(self.btn_copiar)
+
+        layout.addLayout(machine_layout)
 
         info_label = QLabel(
             "Envía tu Machine ID al administrador\npara recibir tu licencia de activación."
         )
-        info_label.setStyleSheet("color: #7f8c8d; font-size: 12px; padding: 8px;")
+        info_label.setStyleSheet("color: #cccccc; font-size: 12px; padding: 8px;")
         info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(info_label)
 
         self.licencia_input = QLineEdit()
         self.licencia_input.setPlaceholderText("Ingrese su licencia de 16 caracteres")
-        self.licencia_input.setStyleSheet("padding: 10px; font-size: 14px;")
+        self.licencia_input.setStyleSheet("""
+            QLineEdit {
+                background-color: #1e1e1e;
+                color: #ffffff;
+                border: 1px solid #0078d4;
+                border-radius: 4px;
+                padding: 8px;
+                font-size: 13px;
+            }
+            QLineEdit:focus {
+                border: 1px solid #4a9eff;
+            }
+        """)
         self.licencia_input.setMaxLength(16)
         layout.addWidget(self.licencia_input)
 
@@ -183,6 +232,12 @@ class ActivationDialog(QDialog):
         """)
         btn_activar.clicked.connect(self.activar)
         layout.addWidget(btn_activar)
+
+    def copiar_machine_id(self):
+        """Copia el Machine ID al portapapeles"""
+        QApplication.clipboard().setText(self.txt_machine_id.text())
+        self.btn_copiar.setText("✅ Copiado")
+        QTimer.singleShot(2000, lambda: self.btn_copiar.setText("📋 Copiar"))
 
     def activar(self):
         """Activa el sistema"""
