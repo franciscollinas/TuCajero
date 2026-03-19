@@ -39,6 +39,8 @@ class GeneradorTicket:
         lines.append("=" * self.WIDTH)
         lines.append(f"Fecha: {venta.fecha.strftime('%d/%m/%Y %H:%M')}")
         lines.append(f"Ticket #: {venta.id}")
+        if getattr(venta, "metodo_pago", None):
+            lines.append(f"Método: {venta.metodo_pago}")
         lines.append("-" * self.WIDTH)
         subtotal_total = 0
         iva_total = 0
@@ -108,6 +110,7 @@ class GeneradorTicket:
         iva_total = round(iva_total, 2)
         total_final = round(subtotal_total + iva_total, 2)
 
+        metodo_pago = getattr(venta, "metodo_pago", None)
         html = f"""
 <html>
 <head>
@@ -193,6 +196,7 @@ class GeneradorTicket:
     <div class="info">
         Fecha: {venta.fecha.strftime("%d/%m/%Y %H:%M")}&nbsp;&nbsp;
         Ticket #: {venta.id}
+        {f"<br>Método: {metodo_pago}" if metodo_pago else ""}
     </div>
     <table>
         <thead>
@@ -215,7 +219,7 @@ class GeneradorTicket:
     </div>
     <div class="footer">
         <p>¡Gracias por su compra!</p>
-        <p>Droguería CruzMedic — {email}</p>
+        <p>{store_name} — {email}</p>
     </div>
 </body>
 </html>
@@ -237,3 +241,57 @@ class GeneradorTicket:
     def imprimir_html(self, venta, items):
         """Genera ticket en HTML para impresión"""
         return self.generar_html(venta, items)
+
+
+def generar_facturas_dia(fecha=None):
+    """
+    Genera el PDF de facturas para un día específico.
+    Si fecha es None, usa la fecha actual.
+    Retorna la ruta del PDF generado.
+    """
+    from utils.factura_diaria import (
+        get_factura_diaria_path,
+        get_facturas_dir,
+        _generar_pdf_diario,
+    )
+    from utils.store_config import (
+        get_store_name,
+        get_address,
+        get_phone,
+        get_email,
+        get_nit,
+    )
+    import json
+    import os
+
+    if fecha is None:
+        from datetime import datetime
+
+        fecha = datetime.now().date()
+
+    json_path = os.path.join(
+        get_facturas_dir(), f"facturas_{fecha.strftime('%Y-%m-%d')}_data.json"
+    )
+    if not os.path.exists(json_path):
+        return None
+
+    try:
+        with open(json_path, "r", encoding="utf-8") as f:
+            tickets = json.load(f)
+    except Exception:
+        return None
+
+    if not tickets:
+        return None
+
+    pdf_path = get_factura_diaria_path(fecha)
+    _generar_pdf_diario(
+        pdf_path,
+        tickets,
+        get_store_name(),
+        get_address(),
+        get_phone(),
+        get_email(),
+        get_nit(),
+    )
+    return pdf_path

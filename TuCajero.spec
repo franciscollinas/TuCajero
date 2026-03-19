@@ -1,64 +1,52 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-import os
-import sys
-
-block_cipher = None
-
-PROJECT_ROOT = os.path.dirname(os.path.abspath(SPEC))
-TUCajero_DIR = os.path.join(PROJECT_ROOT, "tucajero")
-
-hiddenimports = [
-    "sqlalchemy",
-    "sqlalchemy.orm",
-    "sqlalchemy.sql",
-    "sqlalchemy.engine",
-    "sqlalchemy.ext.declarative",
-    "sqlalchemy.ext.automap",
-    "sqlalchemy.orm.decl_api",
-    "PySide6",
-    "PySide6.QtCore",
-    "PySide6.QtGui",
-    "PySide6.QtWidgets",
-]
-
-from PyInstaller.utils.hooks import collect_submodules, collect_data_files
-
-pyside6_datas = collect_data_files("PySide6")
-sqlalchemy_datas = collect_data_files("sqlalchemy")
-
 a = Analysis(
-    [os.path.join(TUCajero_DIR, "main.py")],
+    ['tucajero\\main.py'],
     pathex=[],
     binaries=[],
-    datas=pyside6_datas + sqlalchemy_datas,
-    hiddenimports=hiddenimports,
+    datas=[
+        ('tucajero\\assets', 'assets'),
+    ],
+    hiddenimports=[
+        'sqlalchemy.dialects.sqlite',
+        'sqlalchemy.orm',
+        'sqlalchemy.sql.default_comparator',
+        'reportlab.graphics',
+        'reportlab.platypus',
+        'reportlab.lib.pagesizes',
+        'reportlab.lib.units',
+        'reportlab.lib.colors',
+        'reportlab.lib.styles',
+        'reportlab.lib.enums',
+        'openpyxl',
+        'openpyxl.styles',
+        'openpyxl.utils',
+        'openpyxl.writer.excel',
+        'PySide6.QtCore',
+        'PySide6.QtGui',
+        'PySide6.QtWidgets',
+        'PySide6.QtPrintSupport',
+        'services.categoria_service',
+        'services.historial_service',
+        'utils.factura_diaria',
+        'utils.excel_exporter',
+        'utils.backup',
+    ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[
-        "tkinter",
-        "matplotlib",
-        "numpy",
-        "pandas",
-        "scipy",
-    ],
-    win_no_prefer_redirects=False,
-    win_private_assemblies=False,
-    cipher=block_cipher,
+    excludes=['tkinter', 'matplotlib', 'numpy', 'pandas', 'scipy'],
     noarchive=False,
+    optimize=0,
 )
-
-py = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
-
+pyz = PYZ(a.pure)
 exe = EXE(
-    py,
+    pyz,
     a.scripts,
     a.binaries,
-    a.zipfiles,
     a.datas,
     [],
-    name="TuCajero",
+    name='TuCajero',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -71,5 +59,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=os.path.join(TUCajero_DIR, "assets", "icons", "cruzmedic.ico"),
+    icon=['tucajero\\assets\\icons\\cruzmedic.ico'],
 )

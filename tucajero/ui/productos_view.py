@@ -13,13 +13,11 @@ from PySide6.QtWidgets import (
     QDoubleSpinBox,
     QSpinBox,
     QHeaderView,
-    QTabWidget,
-    QListWidget,
-    QListWidgetItem,
-    QAbstractItemView,
+    QCheckBox,
+    QComboBox,
+    QInputDialog,
 )
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QColor
 
 
 class ProductosView(QWidget):
@@ -40,88 +38,50 @@ class ProductosView(QWidget):
         titulo.setStyleSheet("font-size: 24px; font-weight: bold;")
         layout.addWidget(titulo)
 
-        self.tabs = QTabWidget()
-        layout.addWidget(self.tabs)
-
-        tab_productos = QWidget()
-        tab_prod_layout = QVBoxLayout()
-        tab_productos.setLayout(tab_prod_layout)
-
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
+
         btn_agregar = QPushButton("+ Agregar Producto")
         btn_agregar.setStyleSheet(
             "background-color: #27ae60; color: white; padding: 10px;"
         )
         btn_agregar.clicked.connect(self.abrir_dialogo_agregar)
         btn_layout.addWidget(btn_agregar)
+
         btn_editar = QPushButton("Editar")
         btn_editar.setStyleSheet(
             "background-color: #3498db; color: white; padding: 10px;"
         )
         btn_editar.clicked.connect(self.editar_producto)
         btn_layout.addWidget(btn_editar)
+
         btn_eliminar = QPushButton("Eliminar")
         btn_eliminar.setStyleSheet(
             "background-color: #e74c3c; color: white; padding: 10px;"
         )
         btn_eliminar.clicked.connect(self.eliminar_producto)
         btn_layout.addWidget(btn_eliminar)
-        tab_prod_layout.addLayout(btn_layout)
+
+        btn_categorias = QPushButton("Categorías")
+        btn_categorias.setStyleSheet(
+            "background-color: #9b59b6; color: white; padding: 10px;"
+        )
+        btn_categorias.clicked.connect(self.abrir_gestor_categorias)
+        btn_layout.addWidget(btn_categorias)
+
+        layout.addLayout(btn_layout)
 
         self.tabla = QTableWidget()
         self.tabla.setColumnCount(6)
         self.tabla.setHorizontalHeaderLabels(
-            ["ID", "Código", "Nombre", "Precio", "Stock", "Categorías"]
+            ["ID", "Código", "Nombre", "Precio", "Stock", "Categoría"]
         )
         self.tabla.horizontalHeader().setSectionResizeMode(
             2, QHeaderView.ResizeMode.Stretch
         )
         self.tabla.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.tabla.setStyleSheet("font-size: 14px;")
-        tab_prod_layout.addWidget(self.tabla)
-        self.tabs.addTab(tab_productos, "📦  Productos")
-
-        tab_categorias = QWidget()
-        tab_cat_layout = QVBoxLayout()
-        tab_categorias.setLayout(tab_cat_layout)
-
-        cat_btn_layout = QHBoxLayout()
-        btn_nueva_cat = QPushButton("+ Nueva Categoría")
-        btn_nueva_cat.setStyleSheet(
-            "background-color: #8e44ad; color: white; padding: 10px;"
-        )
-        btn_nueva_cat.clicked.connect(self.crear_categoria)
-        cat_btn_layout.addWidget(btn_nueva_cat)
-        btn_editar_cat = QPushButton("Renombrar")
-        btn_editar_cat.setStyleSheet(
-            "background-color: #3498db; color: white; padding: 10px;"
-        )
-        btn_editar_cat.clicked.connect(self.renombrar_categoria)
-        cat_btn_layout.addWidget(btn_editar_cat)
-        btn_eliminar_cat = QPushButton("Eliminar")
-        btn_eliminar_cat.setStyleSheet(
-            "background-color: #e74c3c; color: white; padding: 10px;"
-        )
-        btn_eliminar_cat.clicked.connect(self.eliminar_categoria)
-        cat_btn_layout.addWidget(btn_eliminar_cat)
-        cat_btn_layout.addStretch()
-        tab_cat_layout.addLayout(cat_btn_layout)
-
-        self.tabla_categorias = QTableWidget()
-        self.tabla_categorias.setColumnCount(3)
-        self.tabla_categorias.setHorizontalHeaderLabels(
-            ["ID", "Nombre", "Productos asignados"]
-        )
-        self.tabla_categorias.horizontalHeader().setSectionResizeMode(
-            1, QHeaderView.ResizeMode.Stretch
-        )
-        self.tabla_categorias.setSelectionBehavior(
-            QTableWidget.SelectionBehavior.SelectRows
-        )
-        self.tabla_categorias.setStyleSheet("font-size: 14px;")
-        tab_cat_layout.addWidget(self.tabla_categorias)
-        self.tabs.addTab(tab_categorias, "🏷️  Categorías")
+        layout.addWidget(self.tabla)
 
     def cargar_productos(self):
         """Carga los productos desde la base de datos"""
@@ -138,22 +98,8 @@ class ProductosView(QWidget):
             self.tabla.setItem(i, 2, QTableWidgetItem(p.nombre))
             self.tabla.setItem(i, 3, QTableWidgetItem(f"${p.precio:.2f}"))
             self.tabla.setItem(i, 4, QTableWidgetItem(str(p.stock)))
-            cats = ", ".join(c.nombre for c in p.categorias) if p.categorias else "—"
-            self.tabla.setItem(i, 5, QTableWidgetItem(cats))
-
-        self._cargar_tabla_categorias()
-
-    def _cargar_tabla_categorias(self):
-        from services.categoria_service import CategoriaService
-
-        service = CategoriaService(self.session)
-        cats = service.get_all()
-        self.tabla_categorias.setRowCount(len(cats))
-        for i, c in enumerate(cats):
-            self.tabla_categorias.setItem(i, 0, QTableWidgetItem(str(c.id)))
-            self.tabla_categorias.setItem(i, 1, QTableWidgetItem(c.nombre))
-            num = len([p for p in c.productos if p.activo])
-            self.tabla_categorias.setItem(i, 2, QTableWidgetItem(str(num)))
+            cat_nombre = p.categoria.nombre if p.categoria else "—"
+            self.tabla.setItem(i, 5, QTableWidgetItem(cat_nombre))
 
     def recargar_productos(self):
         """Recarga los productos (para auto-actualizacion despues de venta)"""
@@ -209,62 +155,11 @@ class ProductosView(QWidget):
             service.delete_producto(producto_id)
             self.cargar_productos()
 
-    def crear_categoria(self):
-        from PySide6.QtWidgets import QInputDialog
-
-        nombre, ok = QInputDialog.getText(
-            self,
-            "Nueva Categoría",
-            "Nombre de la categoría (ej: Antibióticos, Vitaminas):",
-        )
-        if ok and nombre.strip():
-            try:
-                from services.categoria_service import CategoriaService
-
-                CategoriaService(self.session).crear(nombre)
-                self.cargar_productos()
-            except ValueError as e:
-                QMessageBox.warning(self, "Error", str(e))
-
-    def renombrar_categoria(self):
-        from PySide6.QtWidgets import QInputDialog
-
-        row = self.tabla_categorias.currentRow()
-        if row < 0:
-            QMessageBox.warning(self, "Error", "Seleccione una categoría")
-            return
-        cat_id = int(self.tabla_categorias.item(row, 0).text())
-        nombre_actual = self.tabla_categorias.item(row, 1).text()
-        nuevo, ok = QInputDialog.getText(
-            self, "Renombrar Categoría", "Nuevo nombre:", text=nombre_actual
-        )
-        if ok and nuevo.strip():
-            try:
-                from services.categoria_service import CategoriaService
-
-                CategoriaService(self.session).renombrar(cat_id, nuevo)
-                self.cargar_productos()
-            except ValueError as e:
-                QMessageBox.warning(self, "Error", str(e))
-
-    def eliminar_categoria(self):
-        row = self.tabla_categorias.currentRow()
-        if row < 0:
-            QMessageBox.warning(self, "Error", "Seleccione una categoría")
-            return
-        cat_id = int(self.tabla_categorias.item(row, 0).text())
-        nombre = self.tabla_categorias.item(row, 1).text()
-        resp = QMessageBox.question(
-            self,
-            "Confirmar",
-            f"¿Eliminar la categoría '{nombre}'?\nLos productos no serán eliminados.",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-        )
-        if resp == QMessageBox.StandardButton.Yes:
-            from services.categoria_service import CategoriaService
-
-            CategoriaService(self.session).eliminar(cat_id)
-            self.cargar_productos()
+    def abrir_gestor_categorias(self):
+        """Abre el diálogo de gestión de categorías"""
+        dialog = CategoriaDialog(self.session, self)
+        dialog.exec()
+        self.cargar_productos()
 
 
 class ProductoDialog(QDialog):
@@ -308,25 +203,23 @@ class ProductoDialog(QDialog):
         self.stock_input.setRange(0, 999999)
         layout.addRow("Stock:", self.stock_input)
 
-        from services.categoria_service import CategoriaService
+        cat_layout = QHBoxLayout()
+        self.cat_combo = QComboBox()
+        self.cat_combo.addItem("Sin categoría", None)
+        self._cargar_categorias()
+        cat_layout.addWidget(self.cat_combo)
 
-        self.cat_service = CategoriaService(self.session)
-        cats = self.cat_service.get_all()
+        btn_nueva_cat = QPushButton("+")
+        btn_nueva_cat.setFixedWidth(40)
+        btn_nueva_cat.setToolTip("Crear nueva categoría")
+        btn_nueva_cat.clicked.connect(self._crear_categoria_rapida)
+        cat_layout.addWidget(btn_nueva_cat)
 
-        cat_label = QLabel("Categorías:")
-        layout.addRow(cat_label)
+        layout.addRow("Categoría:", cat_layout)
 
-        self.lista_categorias = QListWidget()
-        self.lista_categorias.setSelectionMode(
-            QAbstractItemView.SelectionMode.MultiSelection
-        )
-        self.lista_categorias.setMaximumHeight(120)
-        self.lista_categorias.setStyleSheet("font-size: 13px;")
-        for cat in cats:
-            item = QListWidgetItem(f"🏷 {cat.nombre}")
-            item.setData(Qt.ItemDataRole.UserRole, cat.id)
-            self.lista_categorias.addItem(item)
-        layout.addRow("", self.lista_categorias)
+        self.aplica_iva = QCheckBox("Aplica IVA (19%)")
+        self.aplica_iva.setChecked(True)
+        layout.addRow("", self.aplica_iva)
 
         btn_layout = QHBoxLayout()
 
@@ -346,6 +239,37 @@ class ProductoDialog(QDialog):
 
         layout.addRow("", btn_layout)
 
+    def _cargar_categorias(self):
+        """Carga las categorías en el combo"""
+        self.cat_combo.clear()
+        self.cat_combo.addItem("Sin categoría", None)
+        from services.producto_service import CategoriaService
+
+        service = CategoriaService(self.session)
+        cats = service.get_all()
+        for cat in cats:
+            self.cat_combo.addItem(cat.nombre, cat.id)
+
+    def _crear_categoria_rapida(self):
+        """Crea una categoría rápida"""
+        nombre, ok = QInputDialog.getText(
+            self, "Nueva Categoría", "Nombre de la categoría:"
+        )
+        if ok and nombre.strip():
+            try:
+                from services.producto_service import CategoriaService
+
+                service = CategoriaService(self.session)
+                service.create(nombre.strip())
+                self._cargar_categorias()
+                for i in range(self.cat_combo.count()):
+                    if self.cat_combo.itemText(i) == nombre.strip():
+                        self.cat_combo.setCurrentIndex(i)
+                        break
+                QMessageBox.information(self, "Éxito", f"Categoría '{nombre}' creada")
+            except ValueError as e:
+                QMessageBox.warning(self, "Error", str(e))
+
     def cargar_producto(self):
         """Carga los datos del producto a editar"""
         from services.producto_service import ProductoService
@@ -359,13 +283,13 @@ class ProductoDialog(QDialog):
             self.precio_input.setValue(producto.precio)
             self.costo_input.setValue(producto.costo)
             self.stock_input.setValue(producto.stock)
+            self.aplica_iva.setChecked(producto.aplica_iva)
 
-            if producto.categorias:
-                cat_ids = {c.id for c in producto.categorias}
-                for i in range(self.lista_categorias.count()):
-                    item = self.lista_categorias.item(i)
-                    if item.data(Qt.ItemDataRole.UserRole) in cat_ids:
-                        item.setSelected(True)
+            if producto.categoria_id:
+                for i in range(self.cat_combo.count()):
+                    if self.cat_combo.currentData() == producto.categoria_id:
+                        self.cat_combo.setCurrentIndex(i)
+                        break
 
     def guardar(self):
         """Guarda el producto"""
@@ -376,6 +300,8 @@ class ProductoDialog(QDialog):
         precio = self.precio_input.value()
         costo = self.costo_input.value()
         stock = self.stock_input.value()
+        aplica_iva = self.aplica_iva.isChecked()
+        categoria_id = self.cat_combo.currentData()
 
         if not codigo or not nombre:
             QMessageBox.warning(self, "Error", "Código y nombre son requeridos")
@@ -384,7 +310,6 @@ class ProductoDialog(QDialog):
         service = ProductoService(self.session)
 
         try:
-            producto = None
             if self.producto_id:
                 service.update_producto(
                     self.producto_id,
@@ -393,23 +318,125 @@ class ProductoDialog(QDialog):
                     precio=precio,
                     costo=costo,
                     stock=stock,
+                    aplica_iva=aplica_iva,
+                    categoria_id=categoria_id,
                 )
-                producto_id_guardar = self.producto_id
             else:
-                producto = service.create_producto(codigo, nombre, precio, costo, stock)
-                producto_id_guardar = producto.id
-
-            cat_ids = []
-            for i in range(self.lista_categorias.count()):
-                item = self.lista_categorias.item(i)
-                if item.isSelected():
-                    cat_ids.append(item.data(Qt.ItemDataRole.UserRole))
-            from services.categoria_service import CategoriaService
-
-            CategoriaService(self.session).asignar_a_producto(
-                producto_id_guardar, cat_ids
-            )
+                service.create_producto(
+                    codigo, nombre, precio, costo, stock, aplica_iva, categoria_id
+                )
 
             self.accept()
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error al guardar: {str(e)}")
+
+
+class CategoriaDialog(QDialog):
+    """Diálogo para gestionar categorías"""
+
+    def __init__(self, session, parent=None):
+        super().__init__(parent)
+        self.session = session
+        self.setWindowTitle("Gestión de Categorías")
+        self.setMinimumWidth(500)
+        self.init_ui()
+        self.cargar_categorias()
+
+    def init_ui(self):
+        """Inicializa la interfaz"""
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+
+        self.tabla = QTableWidget()
+        self.tabla.setColumnCount(3)
+        self.tabla.setHorizontalHeaderLabels(["ID", "Nombre", "Descripción"])
+        self.tabla.horizontalHeader().setSectionResizeMode(
+            1, QHeaderView.ResizeMode.Stretch
+        )
+        self.tabla.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.tabla.setStyleSheet("font-size: 14px;")
+        layout.addWidget(self.tabla)
+
+        btn_layout = QHBoxLayout()
+
+        btn_agregar = QPushButton("+ Agregar")
+        btn_agregar.setStyleSheet(
+            "background-color: #27ae60; color: white; padding: 8px;"
+        )
+        btn_agregar.clicked.connect(self.agregar_categoria)
+        btn_layout.addWidget(btn_agregar)
+
+        btn_eliminar = QPushButton("Eliminar")
+        btn_eliminar.setStyleSheet(
+            "background-color: #e74c3c; color: white; padding: 8px;"
+        )
+        btn_eliminar.clicked.connect(self.eliminar_categoria)
+        btn_layout.addWidget(btn_eliminar)
+
+        btn_layout.addStretch()
+
+        btn_cerrar = QPushButton("Cerrar")
+        btn_cerrar.clicked.connect(self.accept)
+        btn_layout.addWidget(btn_cerrar)
+
+        layout.addLayout(btn_layout)
+
+    def cargar_categorias(self):
+        """Carga las categorías"""
+        from services.producto_service import CategoriaService
+
+        service = CategoriaService(self.session)
+        cats = service.get_all()
+
+        self.tabla.setRowCount(len(cats))
+        for i, cat in enumerate(cats):
+            self.tabla.setItem(i, 0, QTableWidgetItem(str(cat.id)))
+            self.tabla.setItem(i, 1, QTableWidgetItem(cat.nombre))
+            self.tabla.setItem(i, 2, QTableWidgetItem(cat.descripcion or ""))
+
+    def agregar_categoria(self):
+        """Agrega una nueva categoría"""
+        nombre, ok1 = QInputDialog.getText(self, "Nueva Categoría", "Nombre:")
+        if not ok1 or not nombre.strip():
+            return
+
+        desc, ok2 = QInputDialog.getText(
+            self, "Nueva Categoría", "Descripción (opcional):"
+        )
+        desc = desc.strip() if ok2 else ""
+
+        try:
+            from services.producto_service import CategoriaService
+
+            service = CategoriaService(self.session)
+            service.create(nombre.strip(), desc)
+            self.cargar_categorias()
+            QMessageBox.information(self, "Éxito", "Categoría creada")
+        except ValueError as e:
+            QMessageBox.warning(self, "Error", str(e))
+
+    def eliminar_categoria(self):
+        """Elimina la categoría seleccionada"""
+        row = self.tabla.currentRow()
+        if row < 0:
+            QMessageBox.warning(self, "Error", "Seleccione una categoría")
+            return
+
+        cat_id = int(self.tabla.item(row, 0).text())
+        cat_nombre = self.tabla.item(row, 1).text()
+
+        resp = QMessageBox.question(
+            self, "Confirmar", f"¿Eliminar la categoría '{cat_nombre}'?"
+        )
+        if resp != QMessageBox.StandardButton.Yes:
+            return
+
+        try:
+            from services.producto_service import CategoriaService
+
+            service = CategoriaService(self.session)
+            service.delete(cat_id)
+            self.cargar_categorias()
+            QMessageBox.information(self, "Éxito", "Categoría eliminada")
+        except ValueError as e:
+            QMessageBox.warning(self, "Error", str(e))

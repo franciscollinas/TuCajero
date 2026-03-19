@@ -9,6 +9,7 @@ DEFAULT_CONFIG = {
     "phone": "",
     "email": "",
     "nit": "",
+    "setup_complete": False,
 }
 
 _store_config = None
@@ -104,3 +105,9 @@ def get_nit():
     if _store_config is None:
         load_store_config()
     return _store_config.get("nit", "")
+
+
+def is_setup_complete():
+    if _store_config is None:
+        load_store_config()
+    return _store_config.get("setup_complete", False)

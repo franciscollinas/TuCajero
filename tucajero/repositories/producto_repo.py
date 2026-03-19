@@ -31,10 +31,25 @@ class ProductoRepository:
             query = query.filter(Producto.id != exclude_id)
         return query.filter(Producto.activo == True).first() is not None
 
-    def create(self, codigo, nombre, precio, costo=0, stock=0):
+    def create(
+        self,
+        codigo,
+        nombre,
+        precio,
+        costo=0,
+        stock=0,
+        aplica_iva=True,
+        categoria_id=None,
+    ):
         """Crea un nuevo producto"""
         producto = Producto(
-            codigo=codigo, nombre=nombre, precio=precio, costo=costo, stock=stock
+            codigo=codigo,
+            nombre=nombre,
+            precio=precio,
+            costo=costo,
+            stock=stock,
+            aplica_iva=aplica_iva,
+            categoria_id=categoria_id,
         )
         self.session.add(producto)
         self.session.commit()
@@ -45,7 +60,10 @@ class ProductoRepository:
         producto = self.get_by_id(producto_id)
         if producto:
             for key, value in kwargs.items():
-                setattr(producto, key, value)
+                if key == "categoria_id" and value is None:
+                    setattr(producto, key, None)
+                elif value is not None:
+                    setattr(producto, key, value)
             self.session.commit()
         return producto
 
@@ -83,7 +101,7 @@ class ProductoRepository:
         )
 
     def search_por_nombre(self, nombre):
-        """Busca productos solo por nombre (búsqueda parcial)"""
+        """Busca productos por nombre parcial"""
         search_term = f"%{nombre}%"
         return (
             self.session.query(Producto)
@@ -93,23 +111,5 @@ class ProductoRepository:
                     Producto.nombre.ilike(search_term),
                 )
             )
-            .order_by(Producto.nombre.asc())
-            .all()
-        )
-
-    def search_por_categoria(self, categoria_id):
-        """Retorna productos de una categoría específica"""
-        from models.producto import Categoria
-
-        return (
-            self.session.query(Producto)
-            .join(Producto.categorias)
-            .filter(
-                and_(
-                    Producto.activo == True,
-                    Categoria.id == categoria_id,
-                )
-            )
-            .order_by(Producto.nombre.asc())
             .all()
         )

@@ -18,15 +18,6 @@ from PySide6.QtCore import Qt
 from datetime import datetime
 
 
-METODOS_PAGO_LABELS = {
-    "efectivo": "Efectivo",
-    "nequi": "Nequi",
-    "daviplata": "Daviplata",
-    "transferencia": "Transferencia",
-    "mixto": "Mixto",
-}
-
-
 class CorteView(QWidget):
     """Vista de corte de caja"""
 
@@ -123,35 +114,56 @@ class CorteView(QWidget):
                 font-weight: bold;
                 padding: 12px;
             }
-            QPushButton:hover { background-color: #d35400; }
-            QPushButton:disabled { background-color: #bdc3c7; }
+            QPushButton:hover {
+                background-color: #d35400;
+            }
+            QPushButton:disabled {
+                background-color: #bdc3c7;
+            }
         """)
         self.btn_gasto.clicked.connect(self.registrar_gasto)
         layout.addWidget(self.btn_gasto)
 
+        self.btn_anular = QPushButton("Anular Venta")
+        self.btn_anular.setStyleSheet("""
+            QPushButton {
+                background-color: #c0392b;
+                color: white;
+                font-size: 14px;
+                font-weight: bold;
+                padding: 12px;
+            }
+            QPushButton:hover {
+                background-color: #e74c3c;
+            }
+            QPushButton:disabled {
+                background-color: #bdc3c7;
+            }
+        """)
+        self.btn_anular.clicked.connect(self.anular_venta)
+        layout.addWidget(self.btn_anular)
+
+        self.btn_facturas = QPushButton("Ver Facturas del Día")
+        self.btn_facturas.setStyleSheet("""
+            QPushButton {
+                background-color: #2980b9;
+                color: white;
+                font-size: 14px;
+                font-weight: bold;
+                padding: 12px;
+            }
+            QPushButton:hover {
+                background-color: #3498db;
+            }
+        """)
+        self.btn_facturas.clicked.connect(self.ver_facturas_dia)
+        layout.addWidget(self.btn_facturas)
+
         self.lbl_ganancia = QLabel("Ganancia neta: $0.00")
         self.lbl_ganancia.setStyleSheet(
-            "font-size: 22px; font-weight: bold; color: #8e44ad; padding: 8px;"
+            "font-size: 20px; font-weight: bold; color: #8e44ad; padding: 8px;"
         )
         layout.addWidget(self.lbl_ganancia)
-
-        self.lbl_efectivo = QLabel("En efectivo: $0.00")
-        self.lbl_efectivo.setStyleSheet(
-            "font-size: 15px; color: #27ae60; padding: 4px;"
-        )
-        layout.addWidget(self.lbl_efectivo)
-
-        self.lbl_transferencias = QLabel(
-            "Transferencias (Nequi/Daviplata/Banco): $0.00"
-        )
-        self.lbl_transferencias.setStyleSheet(
-            "font-size: 15px; color: #3498db; padding: 4px;"
-        )
-        layout.addWidget(self.lbl_transferencias)
-
-        self.lbl_iva = QLabel("IVA recaudado (19%): $0.00")
-        self.lbl_iva.setStyleSheet("font-size: 14px; color: #8e44ad; padding: 4px;")
-        layout.addWidget(self.lbl_iva)
 
         historial_label = QLabel("Ventas del día")
         historial_label.setStyleSheet(
@@ -160,10 +172,8 @@ class CorteView(QWidget):
         layout.addWidget(historial_label)
 
         self.tabla_ventas = QTableWidget()
-        self.tabla_ventas.setColumnCount(5)
-        self.tabla_ventas.setHorizontalHeaderLabels(
-            ["ID", "Hora", "Total", "Método", "Estado"]
-        )
+        self.tabla_ventas.setColumnCount(3)
+        self.tabla_ventas.setHorizontalHeaderLabels(["ID", "Hora", "Total"])
         self.tabla_ventas.horizontalHeader().setSectionResizeMode(
             1, QHeaderView.ResizeMode.Stretch
         )
@@ -172,7 +182,7 @@ class CorteView(QWidget):
 
         gastos_label = QLabel("Gastos del día")
         gastos_label.setStyleSheet(
-            "font-size: 16px; font-weight: bold; margin-top: 10px;"
+            "font-size: 16px; font-weight: bold; margin-top: 15px;"
         )
         layout.addWidget(gastos_label)
 
@@ -183,7 +193,6 @@ class CorteView(QWidget):
             1, QHeaderView.ResizeMode.Stretch
         )
         self.tabla_gastos.setStyleSheet("font-size: 13px;")
-        self.tabla_gastos.setMaximumHeight(150)
         layout.addWidget(self.tabla_gastos)
 
     def cargar_estadisticas(self):
@@ -191,7 +200,6 @@ class CorteView(QWidget):
         from services.corte_service import CorteCajaService
 
         service = CorteCajaService(self.session)
-        self.session.expire_all()
         stats = service.get_estadisticas_hoy()
         caja_abierta = service.esta_caja_abierta()
 
@@ -203,6 +211,7 @@ class CorteView(QWidget):
             self.btn_abrir.setEnabled(False)
             self.btn_cerrar.setEnabled(True)
             self.btn_gasto.setEnabled(True)
+            self.btn_anular.setEnabled(True)
         else:
             self.lbl_estado.setText("Caja: CERRADA")
             self.lbl_estado.setStyleSheet(
@@ -211,42 +220,28 @@ class CorteView(QWidget):
             self.btn_abrir.setEnabled(True)
             self.btn_cerrar.setEnabled(False)
             self.btn_gasto.setEnabled(False)
+            self.btn_anular.setEnabled(False)
 
         self.lbl_total.setText(f"Total vendido: ${stats['total']:.2f}")
         self.lbl_num_ventas.setText(f"Número de ventas: {stats['num_ventas']}")
-        self.lbl_ganancia.setText(f"Ganancia neta: ${stats['ganancia_neta']:.2f}")
-        self.lbl_efectivo.setText(f"En efectivo: ${stats['total_efectivo']:.2f}")
-        self.lbl_transferencias.setText(
-            f"Transferencias (Nequi/Daviplata/Banco): "
-            f"${stats['total_transferencias']:.2f}"
+        self.lbl_ganancia.setText(
+            f"Ganancia neta: ${stats['ganancia_neta']:.2f} "
+            f"(Gastos: ${stats['total_gastos']:.2f})"
         )
-        self.lbl_iva.setText(f"IVA recaudado (19%): ${stats.get('total_iva', 0):.2f}")
 
         ventas = stats["ventas"]
         self.tabla_ventas.setRowCount(len(ventas))
+
         for i, venta in enumerate(ventas):
             self.tabla_ventas.setItem(i, 0, QTableWidgetItem(str(venta.id)))
             self.tabla_ventas.setItem(
                 i, 1, QTableWidgetItem(venta.fecha.strftime("%H:%M:%S"))
             )
             self.tabla_ventas.setItem(i, 2, QTableWidgetItem(f"${venta.total:.2f}"))
-            metodo_label = METODOS_PAGO_LABELS.get(
-                venta.metodo_pago, venta.metodo_pago or "efectivo"
-            )
-            self.tabla_ventas.setItem(i, 3, QTableWidgetItem(metodo_label))
-            estado = "⛔ Anulada" if venta.anulada else "✅ Válida"
-            estado_item = QTableWidgetItem(estado)
-            if venta.anulada:
-                from PySide6.QtGui import QColor
-
-                for col in range(5):
-                    item = self.tabla_ventas.item(i, col)
-                    if item:
-                        item.setForeground(QColor("#e74c3c"))
-            self.tabla_ventas.setItem(i, 4, estado_item)
 
         gastos = stats["gastos"]
         self.tabla_gastos.setRowCount(len(gastos))
+
         for i, gasto in enumerate(gastos):
             self.tabla_gastos.setItem(
                 i, 0, QTableWidgetItem(gasto.fecha.strftime("%H:%M"))
@@ -269,42 +264,6 @@ class CorteView(QWidget):
 
         self.cargar_estadisticas()
 
-    def cerrar_caja(self):
-        """Cierra la caja"""
-        respuesta = QMessageBox.question(
-            self,
-            "Confirmar",
-            "¿Está seguro de cerrar la caja?\nSe registrará el corte del día.",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-        )
-
-        if respuesta == QMessageBox.StandardButton.Yes:
-            from services.corte_service import CorteCajaService
-
-            service = CorteCajaService(self.session)
-            stats = service.get_estadisticas_hoy()
-
-            corte = service.cerrar_caja()
-
-            if corte:
-                QMessageBox.information(
-                    self,
-                    "Corte de Caja",
-                    f"Corte cerrado exitosamente\n\n"
-                    f"Ventas brutas:       ${corte.total_ventas:.2f}\n"
-                    f"  · Efectivo:        ${corte.total_efectivo:.2f}\n"
-                    f"  · Transferencias:  ${corte.total_transferencias:.2f}\n"
-                    f"IVA recaudado:       ${corte.total_iva:.2f}\n"
-                    f"Gastos de caja:      ${corte.total_gastos:.2f}\n"
-                    f"─────────────────────────────\n"
-                    f"Ganancia neta:       ${corte.ganancia_neta:.2f}\n\n"
-                    f"Número de ventas: {stats['num_ventas']}",
-                )
-            else:
-                QMessageBox.warning(self, "Error", "No hay caja abierta")
-
-            self.cargar_estadisticas()
-
     def registrar_gasto(self):
         """Abre diálogo para registrar gasto"""
         dialog = QDialog(self)
@@ -320,7 +279,7 @@ class CorteView(QWidget):
         concepto_input = QLineEdit()
         concepto_input.setPlaceholderText("Ej: Compra de bolsas, Pasaje, Luz...")
         concepto_input.setStyleSheet("padding: 8px; font-size: 14px;")
-        layout.addRow("¿En qué se gastó?:", concepto_input)
+        layout.addRow("Concepto:", concepto_input)
 
         monto_input = QDoubleSpinBox()
         monto_input.setRange(0.01, 999999)
@@ -361,3 +320,114 @@ class CorteView(QWidget):
                 )
             except Exception as e:
                 QMessageBox.critical(self, "Error", str(e))
+
+    def cerrar_caja(self):
+        """Cierra la caja"""
+        respuesta = QMessageBox.question(
+            self,
+            "Confirmar",
+            "¿Está seguro de cerrar la caja?\nSe registrará el corte del día.",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        )
+
+        if respuesta == QMessageBox.StandardButton.Yes:
+            from services.corte_service import CorteCajaService
+
+            service = CorteCajaService(self.session)
+            stats = service.get_estadisticas_hoy()
+
+            corte = service.cerrar_caja()
+
+            if corte:
+                QMessageBox.information(
+                    self,
+                    "Corte de Caja",
+                    f"Corte de caja cerrado!\n\n"
+                    f"Total vendido: ${corte.total_ventas:.2f}\n"
+                    f"Gastos: ${stats['total_gastos']:.2f}\n"
+                    f"Ganancia neta: ${stats['ganancia_neta']:.2f}\n\n"
+                    f"Ventas: {stats['num_ventas']}",
+                )
+            else:
+                QMessageBox.warning(self, "Error", "No hay caja abierta")
+
+            self.cargar_estadisticas()
+
+    def anular_venta(self):
+        """Anula una venta del día"""
+        from services.corte_service import CorteCajaService
+        from services.producto_service import VentaService
+        from ui.ventas_view import VentasView
+
+        service = CorteCajaService(self.session)
+        stats = service.get_estadisticas_hoy()
+        ventas = stats["ventas"]
+
+        if not ventas:
+            QMessageBox.warning(self, "Sin ventas", "No hay ventas registradas hoy")
+            return
+
+        from PySide6.QtWidgets import QInputDialog
+
+        venta_ids = [str(v.id) for v in ventas]
+        venta_id_str, ok = QInputDialog.getItem(
+            self,
+            "Anular Venta",
+            "Seleccione la venta a anular:",
+            venta_ids,
+            0,
+            False,
+        )
+
+        if not ok or not venta_id_str:
+            return
+
+        venta_id = int(venta_id_str)
+
+        respuesta = QMessageBox.question(
+            self,
+            "Confirmar Anulación",
+            f"¿Está seguro de anular la venta #{venta_id}?\n"
+            "El stock de los productos será restaurado.",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        )
+
+        if respuesta != QMessageBox.StandardButton.Yes:
+            return
+
+        try:
+            venta_service = VentaService(self.session)
+            venta_service.anular_venta(venta_id)
+            QMessageBox.information(
+                self,
+                "Venta Anulada",
+                f"Venta #{venta_id} ha sido anulada.\nEl stock ha sido restaurado.",
+            )
+            self.cargar_estadisticas()
+        except ValueError as e:
+            QMessageBox.warning(self, "Error", str(e))
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Error al anular venta: {str(e)}")
+
+    def ver_facturas_dia(self):
+        """Abre o genera el PDF de facturas del día"""
+        from utils.factura_diaria import get_factura_diaria_path
+        import subprocess
+        import os
+
+        pdf_path = get_factura_diaria_path()
+        if not os.path.exists(pdf_path):
+            QMessageBox.information(
+                self,
+                "Sin facturas",
+                "No hay facturas registradas para el día de hoy.",
+            )
+            return
+
+        try:
+            if os.name == "nt":
+                os.startfile(pdf_path)
+            else:
+                subprocess.run(["xdg-open", pdf_path])
+        except Exception as e:
+            QMessageBox.warning(self, "Error", f"No se pudo abrir el archivo: {str(e)}")

@@ -4,23 +4,15 @@ import json
 import os
 import sys
 import platform
-import base64
 
-_S = b"dGl0b19jYXN0aWxsYV9wb3Nfc2VjcmV0"
-SECRET = base64.b64decode(_S).decode()
+SECRET = "tito_castilla_pos_secret"
 
 
-def get_license_path():
-    """Retorna la ruta del archivo de licencia en LOCALAPPDATA"""
-    import sys
-
-    if sys.platform == "win32":
-        base = os.environ.get("LOCALAPPDATA", os.environ.get("APPDATA", ""))
-        config_dir = os.path.join(base, "TuCajero", "config")
-    else:
-        config_dir = os.path.join(os.path.expanduser("~"), ".tucajero", "config")
-    os.makedirs(config_dir, exist_ok=True)
-    return os.path.join(config_dir, "license.json")
+def get_base_dir():
+    """Retorna el directorio base de la aplicación"""
+    if getattr(sys, "frozen", False):
+        return os.path.dirname(sys.executable)
+    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def get_machine_id():
@@ -39,6 +31,14 @@ def generar_licencia(machine_id):
     """Genera una licencia basada en el machine_id"""
     licencia = hashlib.sha256((machine_id + SECRET).encode()).hexdigest()[:16]
     return licencia.upper()
+
+
+def get_license_path():
+    """Retorna la ruta del archivo de licencia"""
+    base_dir = get_base_dir()
+    config_dir = os.path.join(base_dir, "config")
+    os.makedirs(config_dir, exist_ok=True)
+    return os.path.join(config_dir, "license.json")
 
 
 def cargar_licencia():

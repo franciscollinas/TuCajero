@@ -100,7 +100,6 @@ class InventarioView(QWidget):
 
     def recargar_inventario(self):
         """Recarga el inventario (para auto-actualizacion despues de venta)"""
-        self.session.expire_all()
         self.cargar_inventario()
 
     def obtener_producto_seleccionado(self):

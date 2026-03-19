@@ -1,5 +1,6 @@
 from repositories.producto_repo import ProductoRepository
 from repositories.venta_repo import VentaRepository, InventarioRepository
+from models.producto import Categoria
 
 
 class ProductoService:
@@ -26,10 +27,25 @@ class ProductoService:
         """Retorna un producto por código"""
         return self.repo.get_by_codigo(codigo)
 
-    def create_producto(self, codigo, nombre, precio, costo=0, stock=0):
+    def get_producto_by_nombre(self, nombre):
+        """Busca productos por nombre parcial"""
+        return self.repo.search_por_nombre(nombre)
+
+    def create_producto(
+        self,
+        codigo,
+        nombre,
+        precio,
+        costo=0,
+        stock=0,
+        aplica_iva=True,
+        categoria_id=None,
+    ):
         """Crea un nuevo producto"""
         self.validar_codigo(codigo)
-        return self.repo.create(codigo, nombre, precio, costo, stock)
+        return self.repo.create(
+            codigo, nombre, precio, costo, stock, aplica_iva, categoria_id
+        )
 
     def update_producto(self, producto_id, **kwargs):
         """Actualiza un producto"""
@@ -46,6 +62,58 @@ class ProductoService:
         return self.repo.search(query)
 
 
+class CategoriaService:
+    """Servicio para gestión de categorías"""
+
+    def __init__(self, session):
+        self.session = session
+
+    def get_all(self):
+        """Retorna todas las categorías ordenadas"""
+        return self.session.query(Categoria).order_by(Categoria.nombre).all()
+
+    def get_by_id(self, categoria_id):
+        """Retorna una categoría por ID"""
+        return (
+            self.session.query(Categoria).filter(Categoria.id == categoria_id).first()
+        )
+
+    def create(self, nombre, descripcion=""):
+        """Crea una nueva categoría"""
+        if self.session.query(Categoria).filter(Categoria.nombre == nombre).first():
+            raise ValueError(f"La categoría '{nombre}' ya existe")
+        c = Categoria(nombre=nombre, descripcion=descripcion)
+        self.session.add(c)
+        self.session.commit()
+        return c
+
+    def update(self, categoria_id, nombre, descripcion=""):
+        """Actualiza una categoría"""
+        c = self.get_by_id(categoria_id)
+        if not c:
+            raise ValueError("Categoría no encontrada")
+        if nombre != c.nombre:
+            existente = (
+                self.session.query(Categoria).filter(Categoria.nombre == nombre).first()
+            )
+            if existente:
+                raise ValueError(f"La categoría '{nombre}' ya existe")
+        c.nombre = nombre
+        c.descripcion = descripcion
+        self.session.commit()
+        return c
+
+    def delete(self, categoria_id):
+        """Elimina una categoría (solo si no tiene productos)"""
+        c = self.get_by_id(categoria_id)
+        if not c:
+            raise ValueError("Categoría no encontrada")
+        if c.productos and len([p for p in c.productos if p.activo]) > 0:
+            raise ValueError("No se puede eliminar: hay productos en esta categoría")
+        self.session.delete(c)
+        self.session.commit()
+
+
 class VentaService:
     """Servicio para lógica de negocio de ventas"""
 
@@ -58,8 +126,8 @@ class VentaService:
 
         self.corte_service = CorteCajaService(session)
 
-    def registrar_venta(self, items, pagos=None, metodo_pago="efectivo"):
-        """Registra una venta con método de pago"""
+    def registrar_venta(self, items, metodo_pago=None):
+        """Registra una venta y descuenta inventario"""
         if not self.corte_service.esta_caja_abierta():
             raise Exception(
                 "No se puede registrar la venta porque la caja está cerrada."
@@ -70,7 +138,7 @@ class VentaService:
             if producto.stock < item["cantidad"]:
                 raise ValueError(f"Stock insuficiente para {producto.nombre}")
 
-        venta = self.venta_repo.create_venta(items, pagos, metodo_pago)
+        venta = self.venta_repo.create_venta(items, metodo_pago=metodo_pago)
 
         for item in items:
             self.producto_repo.update_stock(item["producto_id"], -item["cantidad"])
@@ -80,21 +148,21 @@ class VentaService:
 
         return venta
 
-    def anular_venta(self, venta_id, motivo):
-        """Anula una venta y restaura el stock de todos sus productos"""
-        if not self.corte_service.esta_caja_abierta():
-            raise Exception("No se puede anular: la caja está cerrada.")
-        if not motivo or not motivo.strip():
-            raise ValueError("Debe ingresar un motivo de anulación")
-        venta = self.venta_repo.anular_venta(venta_id, motivo.strip())
-        from models.producto import VentaItem
+    def anular_venta(self, venta_id):
+        """Anula una venta y restaura el stock"""
+        venta = self.venta_repo.get_venta_by_id(venta_id)
+        if not venta:
+            raise ValueError(f"Venta #{venta_id} no encontrada")
+        if venta.anulada:
+            raise ValueError(f"Venta #{venta_id} ya está anulada")
 
-        items = self.session.query(VentaItem).filter_by(venta_id=venta_id).all()
-        for item in items:
+        for item in venta.items:
             self.producto_repo.update_stock(item.producto_id, item.cantidad)
             self.inventario_repo.create_movimiento(
                 item.producto_id, "entrada", item.cantidad
             )
+
+        self.venta_repo.anular_venta(venta_id)
         return venta
 
     def get_ventas_hoy(self):

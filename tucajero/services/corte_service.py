@@ -33,17 +33,8 @@ class CorteCajaService:
         """Registra un gasto de caja en el corte actual"""
         corte = self.get_corte_actual()
         if not corte:
-            raise ValueError("No hay caja abierta")
-        if not concepto or not concepto.strip():
-            raise ValueError("El concepto es obligatorio")
-        if monto <= 0:
-            raise ValueError("El monto debe ser mayor a cero")
-        gasto = GastoCaja(
-            corte_id=corte.id,
-            concepto=concepto.strip(),
-            monto=monto,
-            fecha=datetime.now(),
-        )
+            raise Exception("No hay caja abierta")
+        gasto = GastoCaja(corte_id=corte.id, concepto=concepto, monto=monto)
         self.session.add(gasto)
         self.session.commit()
         return gasto
@@ -54,16 +45,12 @@ class CorteCajaService:
         if not corte:
             return []
         return (
-            self.session.query(GastoCaja)
-            .filter(GastoCaja.corte_id == corte.id)
-            .order_by(GastoCaja.fecha.asc())
-            .all()
+            self.session.query(GastoCaja).filter(GastoCaja.corte_id == corte.id).all()
         )
 
     def get_total_gastos_hoy(self):
-        """Retorna el total de gastos del día"""
-        gastos = self.get_gastos_hoy()
-        return sum(g.monto for g in gastos)
+        """Retorna el total de gastos de hoy"""
+        return sum(g.monto for g in self.get_gastos_hoy())
 
     def cerrar_caja(self):
         """Cierra la caja actual"""
@@ -74,17 +61,11 @@ class CorteCajaService:
         total = self.venta_repo.get_total_hoy()
         num_ventas = self.venta_repo.get_count_hoy()
         total_gastos = self.get_total_gastos_hoy()
-        totales_metodo = self.venta_repo.get_totales_por_metodo_hoy()
-        total_iva = self.venta_repo.get_total_iva_hoy()
-
         corte.fecha_cierre = datetime.now()
         corte.total_ventas = total
         corte.numero_ventas = num_ventas
         corte.total_gastos = total_gastos
         corte.ganancia_neta = total - total_gastos
-        corte.total_efectivo = totales_metodo["efectivo"]
-        corte.total_transferencias = totales_metodo["transferencias"]
-        corte.total_iva = total_iva
         self.session.commit()
 
         try:
@@ -111,9 +92,8 @@ class CorteCajaService:
     def get_estadisticas_hoy(self):
         """Retorna las estadísticas de ventas de hoy"""
         gastos = self.get_gastos_hoy()
-        total_ventas = self.venta_repo.get_total_hoy()
         total_gastos = sum(g.monto for g in gastos)
-        totales_metodo = self.venta_repo.get_totales_por_metodo_hoy()
+        total_ventas = self.venta_repo.get_total_hoy()
         return {
             "total": total_ventas,
             "num_ventas": self.venta_repo.get_count_hoy(),
@@ -121,9 +101,6 @@ class CorteCajaService:
             "gastos": gastos,
             "total_gastos": total_gastos,
             "ganancia_neta": total_ventas - total_gastos,
-            "total_efectivo": totales_metodo["efectivo"],
-            "total_transferencias": totales_metodo["transferencias"],
-            "total_iva": self.venta_repo.get_total_iva_hoy(),
         }
 
     def get_historial_cortes(self):

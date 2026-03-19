@@ -1,4 +1,3 @@
-import os
 from PySide6.QtWidgets import (
     QWidget,
     QVBoxLayout,
@@ -7,25 +6,27 @@ from PySide6.QtWidgets import (
     QPushButton,
     QTableWidget,
     QTableWidgetItem,
-    QMessageBox,
     QHeaderView,
     QDateEdit,
     QComboBox,
-    QFrame,
+    QMessageBox,
 )
-from PySide6.QtCore import Qt, QDate, QLocale
-from datetime import datetime, date
+from PySide6.QtCore import Qt, QDate
+from datetime import datetime, timedelta
+import os
 
 
 class HistorialView(QWidget):
+    """Vista de historial de cierres y ranking de productos"""
+
     def __init__(self, session, parent=None):
         super().__init__(parent)
         self.session = session
-        self.cierres = []
         self.init_ui()
         self.cargar_historial()
 
     def init_ui(self):
+        """Inicializa la interfaz"""
         layout = QVBoxLayout()
         self.setLayout(layout)
 
@@ -33,51 +34,32 @@ class HistorialView(QWidget):
         titulo.setStyleSheet("font-size: 24px; font-weight: bold;")
         layout.addWidget(titulo)
 
-        filtros_widget = QWidget()
-        filtros_widget.setStyleSheet(
-            "background-color: #ecf0f1; padding: 10px; border-radius: 8px;"
-        )
         filtros_layout = QHBoxLayout()
-        filtros_widget.setLayout(filtros_layout)
-
-        locale_es = QLocale(QLocale.Language.Spanish, QLocale.Country.Colombia)
 
         filtros_layout.addWidget(QLabel("Desde:"))
-        self.fecha_desde = QDateEdit()
-        self.fecha_desde.setLocale(locale_es)
-        self.fecha_desde.setDate(QDate.currentDate().addMonths(-1))
-        self.fecha_desde.setCalendarPopup(True)
-        self.fecha_desde.setStyleSheet("padding: 6px;")
-        filtros_layout.addWidget(self.fecha_desde)
+        self.desde_edit = QDateEdit()
+        self.desde_edit.setCalendarPopup(True)
+        self.desde_edit.setDate(QDate.currentDate().addDays(-30))
+        filtros_layout.addWidget(self.desde_edit)
 
         filtros_layout.addWidget(QLabel("Hasta:"))
-        self.fecha_hasta = QDateEdit()
-        self.fecha_hasta.setLocale(locale_es)
-        self.fecha_hasta.setDate(QDate.currentDate())
-        self.fecha_hasta.setCalendarPopup(True)
-        self.fecha_hasta.setStyleSheet("padding: 6px;")
-        filtros_layout.addWidget(self.fecha_hasta)
+        self.hasta_edit = QDateEdit()
+        self.hasta_edit.setCalendarPopup(True)
+        self.hasta_edit.setDate(QDate.currentDate())
+        filtros_layout.addWidget(self.hasta_edit)
 
-        self.combo_mes = QComboBox()
-        self.combo_mes.addItem("Filtro rápido por mes...")
-        meses_es = [
-            "Enero",
-            "Febrero",
-            "Marzo",
-            "Abril",
-            "Mayo",
-            "Junio",
-            "Julio",
-            "Agosto",
-            "Septiembre",
-            "Octubre",
-            "Noviembre",
-            "Diciembre",
-        ]
-        for i, nombre_mes in enumerate(meses_es, start=1):
-            self.combo_mes.addItem(nombre_mes, i)
-        self.combo_mes.currentIndexChanged.connect(self.filtro_rapido_mes)
-        filtros_layout.addWidget(self.combo_mes)
+        self.filtro_rapido = QComboBox()
+        self.filtro_rapido.addItems(
+            [
+                "Filtro rápido...",
+                "Este mes",
+                "Mes anterior",
+                "Últimos 3 meses",
+                "Este año",
+            ]
+        )
+        self.filtro_rapido.currentTextChanged.connect(self.on_filtro_rapido_changed)
+        filtros_layout.addWidget(self.filtro_rapido)
 
         btn_filtrar = QPushButton("Filtrar")
         btn_filtrar.setStyleSheet(
@@ -86,76 +68,74 @@ class HistorialView(QWidget):
         btn_filtrar.clicked.connect(self.cargar_historial)
         filtros_layout.addWidget(btn_filtrar)
 
-        filtros_layout.addStretch()
-
-        btn_excel = QPushButton("Exportar Excel")
-        btn_excel.setStyleSheet(
-            "background-color: #27ae60; color: white; "
-            "padding: 8px 16px; font-weight: bold;"
+        btn_exportar = QPushButton("Exportar Excel")
+        btn_exportar.setStyleSheet(
+            "background-color: #27ae60; color: white; padding: 8px 16px;"
         )
-        btn_excel.clicked.connect(self.exportar_excel)
-        filtros_layout.addWidget(btn_excel)
+        btn_exportar.clicked.connect(self.exportar_excel)
+        filtros_layout.addWidget(btn_exportar)
 
-        layout.addWidget(filtros_widget)
+        filtros_layout.addStretch()
+        layout.addLayout(filtros_layout)
 
         self.resumen_widget = QWidget()
-        self.resumen_widget.setStyleSheet(
-            "background-color: #2c3e50; border-radius: 8px; padding: 12px;"
-        )
+        self.resumen_widget.setStyleSheet("""
+            QWidget {
+                background-color: #2c3e50;
+                border-radius: 8px;
+                padding: 15px;
+            }
+        """)
         resumen_layout = QHBoxLayout()
         self.resumen_widget.setLayout(resumen_layout)
 
-        self.lbl_r_ventas = QLabel("Ventas brutas: $0.00")
-        self.lbl_r_ventas.setStyleSheet("color: white; font-size: 14px;")
-        self.lbl_r_gastos = QLabel("Gastos: $0.00")
-        self.lbl_r_gastos.setStyleSheet("color: #e74c3c; font-size: 14px;")
-        self.lbl_r_ganancia = QLabel("Ganancia neta: $0.00")
-        self.lbl_r_ganancia.setStyleSheet(
+        self.lbl_ventas = QLabel("Ventas brutas: $0.00")
+        self.lbl_ventas.setStyleSheet(
+            "color: white; font-size: 16px; font-weight: bold;"
+        )
+        resumen_layout.addWidget(self.lbl_ventas)
+
+        self.lbl_gastos = QLabel("Gastos: $0.00")
+        self.lbl_gastos.setStyleSheet(
+            "color: #e74c3c; font-size: 16px; font-weight: bold;"
+        )
+        resumen_layout.addWidget(self.lbl_gastos)
+
+        self.lbl_ganancia = QLabel("Ganancia neta: $0.00")
+        self.lbl_ganancia.setStyleSheet(
             "color: #2ecc71; font-size: 16px; font-weight: bold;"
         )
-        self.lbl_r_cierres = QLabel("Cierres: 0")
-        self.lbl_r_cierres.setStyleSheet("color: #bdc3c7; font-size: 13px;")
+        resumen_layout.addWidget(self.lbl_ganancia)
 
-        resumen_layout.addWidget(self.lbl_r_ventas)
-        resumen_layout.addWidget(self.lbl_r_gastos)
-        resumen_layout.addWidget(self.lbl_r_ganancia)
         resumen_layout.addStretch()
-        resumen_layout.addWidget(self.lbl_r_cierres)
+
+        self.lbl_resumen_datos = QLabel("Cierres: 0 | Ventas: 0")
+        self.lbl_resumen_datos.setStyleSheet("color: #bdc3c7; font-size: 14px;")
+        resumen_layout.addWidget(self.lbl_resumen_datos)
+
         layout.addWidget(self.resumen_widget)
 
         cierres_label = QLabel("Cierres del período")
         cierres_label.setStyleSheet(
-            "font-size: 16px; font-weight: bold; margin-top: 8px;"
+            "font-size: 18px; font-weight: bold; margin-top: 15px;"
         )
         layout.addWidget(cierres_label)
 
         self.tabla_cierres = QTableWidget()
-        self.tabla_cierres.setColumnCount(8)
+        self.tabla_cierres.setColumnCount(5)
         self.tabla_cierres.setHorizontalHeaderLabels(
-            [
-                "ID",
-                "Apertura",
-                "Cierre",
-                "Ventas brutas",
-                "Efectivo",
-                "Transferencias",
-                "Gastos",
-                "Ganancia neta",
-            ]
+            ["ID", "Apertura", "Cierre", "Ventas brutas", "Ganancia neta"]
         )
         self.tabla_cierres.horizontalHeader().setSectionResizeMode(
             1, QHeaderView.ResizeMode.Stretch
         )
-        self.tabla_cierres.setSelectionBehavior(
-            QTableWidget.SelectionBehavior.SelectRows
-        )
-        self.tabla_cierres.setStyleSheet("font-size: 13px;")
-        self.tabla_cierres.clicked.connect(self.mostrar_detalle_cierre)
+        self.tabla_cierres.setStyleSheet("font-size: 14px;")
+        self.tabla_cierres.setMinimumHeight(200)
         layout.addWidget(self.tabla_cierres)
 
         ranking_label = QLabel("Ranking de productos")
         ranking_label.setStyleSheet(
-            "font-size: 16px; font-weight: bold; margin-top: 8px;"
+            "font-size: 18px; font-weight: bold; margin-top: 15px;"
         )
         layout.addWidget(ranking_label)
 
@@ -167,138 +147,211 @@ class HistorialView(QWidget):
         self.tabla_ranking.horizontalHeader().setSectionResizeMode(
             1, QHeaderView.ResizeMode.Stretch
         )
-        self.tabla_ranking.setStyleSheet("font-size: 13px;")
+        self.tabla_ranking.setStyleSheet("font-size: 14px;")
+        self.tabla_ranking.setMaximumHeight(250)
         layout.addWidget(self.tabla_ranking)
 
-    def filtro_rapido_mes(self, index):
-        if index == 0:
-            return
-        mes = self.combo_mes.itemData(index)
-        anio = QDate.currentDate().year()
-        self.fecha_desde.setDate(QDate(anio, mes, 1))
-        ultimo_dia = QDate(anio, mes, 1).daysInMonth()
-        self.fecha_hasta.setDate(QDate(anio, mes, ultimo_dia))
-        self.cargar_historial()
+    def on_filtro_rapido_changed(self, text):
+        """Aplica filtro rápido"""
+        today = QDate.currentDate()
+        if text == "Este mes":
+            self.desde_edit.setDate(QDate(today.year(), today.month(), 1))
+            self.hasta_edit.setDate(today)
+        elif text == "Mes anterior":
+            first_this_month = QDate(today.year(), today.month(), 1)
+            last_prev_month = first_this_month.addDays(-1)
+            first_prev_month = QDate(last_prev_month.year(), last_prev_month.month(), 1)
+            self.desde_edit.setDate(first_prev_month)
+            self.hasta_edit.setDate(last_prev_month)
+        elif text == "Últimos 3 meses":
+            self.desde_edit.setDate(today.addDays(-90))
+            self.hasta_edit.setDate(today)
+        elif text == "Este año":
+            self.desde_edit.setDate(QDate(today.year(), 1, 1))
+            self.hasta_edit.setDate(today)
 
     def cargar_historial(self):
-        from services.historial_service import HistorialService
+        """Carga el historial de cierres"""
+        desde = self.desde_edit.date().toPython()
+        hasta = self.hasta_edit.date().toPython()
+        hasta = datetime.combine(hasta, datetime.max.time())
 
-        self.session.expire_all()
-        service = HistorialService(self.session)
+        from models.producto import CorteCaja, VentaItem, Venta, Producto
+        from sqlalchemy import and_
 
-        desde = self.fecha_desde.date().toPython()
-        hasta = self.fecha_hasta.date().toPython()
-        desde_dt = datetime.combine(desde, datetime.min.time())
-        hasta_dt = datetime.combine(hasta, datetime.max.time())
-
-        self.cierres = service.get_cierres(desde_dt, hasta_dt)
-        resumen = service.get_resumen_periodo(desde_dt, hasta_dt)
-        ranking = service.get_ranking_productos(desde_dt, hasta_dt)
-
-        self.lbl_r_ventas.setText(f"Ventas brutas: ${resumen['total_ventas']:.2f}")
-        self.lbl_r_gastos.setText(f"Gastos: ${resumen['total_gastos']:.2f}")
-        self.lbl_r_ganancia.setText(f"Ganancia neta: ${resumen['ganancia_neta']:.2f}")
-        self.lbl_r_cierres.setText(
-            f"Cierres: {resumen['num_cierres']} | Ventas: {resumen['num_ventas']}"
+        cierres = (
+            self.session.query(CorteCaja)
+            .filter(
+                CorteCaja.fecha_cierre.isnot(None),
+                CorteCaja.fecha_apertura
+                >= datetime.combine(desde, datetime.min.time()),
+                CorteCaja.fecha_apertura <= hasta,
+            )
+            .order_by(CorteCaja.fecha_apertura.desc())
+            .all()
         )
 
-        self.tabla_cierres.setRowCount(len(self.cierres))
-        for i, c in enumerate(self.cierres):
-            self.tabla_cierres.setItem(i, 0, QTableWidgetItem(str(c.id)))
+        self.tabla_cierres.setRowCount(len(cierres))
+
+        total_ventas = 0
+        total_gastos = 0
+        total_cierres = len(cierres)
+        total_num_ventas = 0
+
+        for i, corte in enumerate(cierres):
+            self.tabla_cierres.setItem(i, 0, QTableWidgetItem(str(corte.id)))
             self.tabla_cierres.setItem(
-                i,
-                1,
-                QTableWidgetItem(
-                    c.fecha_apertura.strftime("%d/%m/%Y %H:%M")
-                    if c.fecha_apertura
-                    else ""
-                ),
+                i, 1, QTableWidgetItem(corte.fecha_apertura.strftime("%d/%m/%Y %H:%M"))
             )
             self.tabla_cierres.setItem(
                 i,
                 2,
-                QTableWidgetItem(
-                    c.fecha_cierre.strftime("%d/%m/%Y %H:%M")
-                    if c.fecha_cierre
-                    else "Abierto"
-                ),
-            )
-            self.tabla_cierres.setItem(i, 3, QTableWidgetItem(f"${c.total_ventas:.2f}"))
-            self.tabla_cierres.setItem(
-                i, 4, QTableWidgetItem(f"${c.total_efectivo or 0:.2f}")
+                QTableWidgetItem(corte.fecha_cierre.strftime("%d/%m/%Y %H:%M"))
+                if corte.fecha_cierre
+                else QTableWidgetItem("—"),
             )
             self.tabla_cierres.setItem(
-                i, 5, QTableWidgetItem(f"${c.total_transferencias or 0:.2f}")
+                i, 3, QTableWidgetItem(f"${corte.total_ventas:.2f}")
             )
-            self.tabla_cierres.setItem(
-                i, 6, QTableWidgetItem(f"${c.total_gastos or 0:.2f}")
-            )
-            self.tabla_cierres.setItem(
-                i, 7, QTableWidgetItem(f"${c.ganancia_neta or 0:.2f}")
-            )
+            ganancia = getattr(corte, "ganancia_neta", corte.total_ventas)
+            self.tabla_cierres.setItem(i, 4, QTableWidgetItem(f"${ganancia:.2f}"))
 
-        self.tabla_ranking.setRowCount(len(ranking))
-        for i, r in enumerate(ranking):
-            self.tabla_ranking.setItem(i, 0, QTableWidgetItem(str(i + 1)))
-            self.tabla_ranking.setItem(i, 1, QTableWidgetItem(r.nombre))
-            self.tabla_ranking.setItem(
-                i, 2, QTableWidgetItem(str(int(r.total_vendido or 0)))
-            )
-            self.tabla_ranking.setItem(
-                i, 3, QTableWidgetItem(f"${float(r.total_ingresos or 0):.2f}")
-            )
+            total_ventas += corte.total_ventas
+            total_gastos += getattr(corte, "total_gastos", 0)
+            total_num_ventas += corte.numero_ventas
 
-    def mostrar_detalle_cierre(self):
-        row = self.tabla_cierres.currentRow()
-        if row < 0 or row >= len(self.cierres):
-            return
-        corte = self.cierres[row]
-        from services.historial_service import HistorialService
+        self.lbl_ventas.setText(f"Ventas brutas: ${total_ventas:.2f}")
+        self.lbl_gastos.setText(f"Gastos: ${total_gastos:.2f}")
+        self.lbl_ganancia.setText(f"Ganancia neta: ${total_ventas - total_gastos:.2f}")
+        self.lbl_resumen_datos.setText(
+            f"Cierres: {total_cierres} | Ventas: {total_num_ventas}"
+        )
 
-        service = HistorialService(self.session)
-        ventas = service.get_ventas_del_cierre(corte.id)
-        detalle = f"Cierre #{corte.id} — {corte.fecha_apertura.strftime('%d/%m/%Y')}\n"
-        detalle += f"Ventas brutas: ${corte.total_ventas:.2f}\n"
-        detalle += f"Gastos: ${corte.total_gastos or 0:.2f}\n"
-        detalle += f"Ganancia neta: ${corte.ganancia_neta or 0:.2f}\n"
-        detalle += f"Número de ventas: {len(ventas)}\n\n"
-        detalle += "Ventas del día:\n"
-        for v in ventas[:20]:
-            detalle += f"  #{v.id} {v.fecha.strftime('%H:%M')} — ${v.total:.2f}\n"
-        if len(ventas) > 20:
-            detalle += f"  ... y {len(ventas) - 20} más"
-        QMessageBox.information(self, "Detalle del cierre", detalle)
+        self.cargar_ranking(desde, hasta)
 
-    def exportar_excel(self):
-        from services.historial_service import HistorialService
-        from utils.excel_exporter import exportar_historial_excel
-
-        service = HistorialService(self.session)
-
-        desde = self.fecha_desde.date().toPython()
-        hasta = self.fecha_hasta.date().toPython()
+    def cargar_ranking(self, desde, hasta):
+        """Carga el ranking de productos"""
         desde_dt = datetime.combine(desde, datetime.min.time())
         hasta_dt = datetime.combine(hasta, datetime.max.time())
 
-        cierres = service.get_cierres(desde_dt, hasta_dt)
-        if not cierres:
-            QMessageBox.warning(
-                self, "Sin datos", "No hay cierres en el período seleccionado"
-            )
-            return
-        ventas_por_cierre = {c.id: service.get_ventas_del_cierre(c.id) for c in cierres}
-        ranking = service.get_ranking_productos(desde_dt, hasta_dt)
-        resumen = service.get_resumen_periodo(desde_dt, hasta_dt)
+        from models.producto import VentaItem, Venta, Producto
+        from sqlalchemy import func
 
+        ranking = (
+            self.session.query(
+                Producto.nombre,
+                func.sum(VentaItem.cantidad).label("unidades"),
+                func.sum(VentaItem.cantidad * VentaItem.precio).label("ingresos"),
+            )
+            .join(VentaItem, VentaItem.producto_id == Producto.id)
+            .join(Venta, Venta.id == VentaItem.venta_id)
+            .filter(
+                Venta.fecha >= desde_dt,
+                Venta.fecha <= hasta_dt,
+                Venta.anulada == False,
+            )
+            .group_by(Producto.id, Producto.nombre)
+            .order_by(func.sum(VentaItem.cantidad * VentaItem.precio).desc())
+            .limit(50)
+            .all()
+        )
+
+        self.tabla_ranking.setRowCount(len(ranking))
+
+        for i, item in enumerate(ranking):
+            self.tabla_ranking.setItem(i, 0, QTableWidgetItem(str(i + 1)))
+            self.tabla_ranking.setItem(i, 1, QTableWidgetItem(item.nombre))
+            self.tabla_ranking.setItem(i, 2, QTableWidgetItem(str(int(item.unidades))))
+            self.tabla_ranking.setItem(i, 3, QTableWidgetItem(f"${item.ingresos:.2f}"))
+
+    def exportar_excel(self):
+        """Exporta el historial a Excel"""
         try:
-            ruta = exportar_historial_excel(
-                cierres, ventas_por_cierre, ranking, resumen
-            )
+            from openpyxl import Workbook
+            from openpyxl.styles import Font, Alignment, PatternFill
+
+            wb = Workbook()
+
+            desde = self.desde_edit.date().toPython()
+            hasta = self.hasta_edit.date().toPython()
+            fecha_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+            downloads = os.path.join(os.path.expanduser("~"), "Downloads")
+            filename = os.path.join(downloads, f"TuCajero_Historial_{fecha_str}.xlsx")
+
+            ws_cierres = wb.active
+            ws_cierres.title = "Cierres"
+
+            headers = [
+                "ID",
+                "Apertura",
+                "Cierre",
+                "Ventas brutas",
+                "Gastos",
+                "Ganancia neta",
+                "N° Ventas",
+            ]
+            ws_cierres.append(headers)
+
+            for cell in ws_cierres[1]:
+                cell.font = Font(bold=True)
+                cell.fill = PatternFill(
+                    start_color="3498db", end_color="3498db", fill_type="solid"
+                )
+                cell.alignment = Alignment(horizontal="center")
+
+            for row in range(self.tabla_cierres.rowCount()):
+                row_data = []
+                for col in range(self.tabla_cierres.columnCount()):
+                    item = self.tabla_cierres.item(row, col)
+                    row_data.append(item.text() if item else "")
+                total = (
+                    self.tabla_cierres.item(row, 3).text()
+                    if self.tabla_cierres.item(row, 3)
+                    else "$0.00"
+                )
+                row_data.extend(["$0.00", "$0.00", "0"])
+                ws_cierres.append(row_data)
+
+            ws_ranking = wb.create_sheet("Ranking")
+            ranking_headers = ["#", "Producto", "Unidades vendidas", "Ingresos"]
+            ws_ranking.append(ranking_headers)
+
+            for cell in ws_ranking[1]:
+                cell.font = Font(bold=True)
+                cell.fill = PatternFill(
+                    start_color="27ae60", end_color="27ae60", fill_type="solid"
+                )
+
+            for row in range(self.tabla_ranking.rowCount()):
+                row_data = []
+                for col in range(self.tabla_ranking.columnCount()):
+                    item = self.tabla_ranking.item(row, col)
+                    row_data.append(item.text() if item else "")
+                ws_ranking.append(row_data)
+
+            for ws in [ws_cierres, ws_ranking]:
+                for column in ws.columns:
+                    max_length = 0
+                    column_letter = column[0].column_letter
+                    for cell in column:
+                        try:
+                            if len(str(cell.value)) > max_length:
+                                max_length = len(str(cell.value))
+                        except:
+                            pass
+                    ws.column_dimensions[column_letter].width = min(max_length + 2, 50)
+
+            wb.save(filename)
             QMessageBox.information(
-                self, "Excel exportado", f"Archivo guardado en:\n{ruta}"
+                self,
+                "Exportación exitosa",
+                f"Archivo exportado a:\n{filename}",
             )
-            os.startfile(os.path.dirname(ruta))
-        except ImportError as e:
-            QMessageBox.critical(self, "Error", str(e))
+
         except Exception as e:
-            QMessageBox.critical(self, "Error al exportar", str(e))
+            QMessageBox.critical(
+                self,
+                "Error al exportar",
+                f"No se pudo exportar el archivo:\n{str(e)}",
+            )

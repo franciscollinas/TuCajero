@@ -8,49 +8,16 @@ from PySide6.QtWidgets import (
     QLabel,
 )
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QIcon, QPixmap, QPainter, QColor
-from utils.store_config import get_store_name, get_logo_path
+from PySide6.QtGui import QIcon, QPixmap
+from utils.store_config import (
+    get_store_name,
+    get_logo_path,
+    get_nit,
+    get_phone,
+    get_email,
+    get_address,
+)
 import os
-
-
-class WatermarkWidget(QWidget):
-    """Widget con marca de agua del logo en el fondo"""
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self._watermark = None
-        self._cargar_logo()
-
-    def _cargar_logo(self):
-        try:
-            from utils.store_config import get_logo_path
-            import os
-
-            logo_path = get_logo_path()
-            if logo_path and os.path.exists(logo_path):
-                pixmap = QPixmap(logo_path)
-                if not pixmap.isNull():
-                    self._watermark = pixmap
-        except Exception:
-            self._watermark = None
-
-    def paintEvent(self, event):
-        super().paintEvent(event)
-        if self._watermark is None:
-            return
-        painter = QPainter(self)
-        painter.setOpacity(0.06)
-        size = min(self.width(), self.height()) * 0.65
-        scaled = self._watermark.scaled(
-            int(size),
-            int(size),
-            Qt.AspectRatioMode.KeepAspectRatio,
-            Qt.TransformationMode.SmoothTransformation,
-        )
-        x = (self.width() - scaled.width()) // 2
-        y = (self.height() - scaled.height()) // 2
-        painter.drawPixmap(x, y, scaled)
-        painter.end()
 
 
 class MainWindow(QMainWindow):
@@ -67,117 +34,88 @@ class MainWindow(QMainWindow):
         """Configura la interfaz de usuario"""
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
+
         main_layout = QHBoxLayout()
-        main_layout.setContentsMargins(0, 0, 0, 0)
-        main_layout.setSpacing(0)
         central_widget.setLayout(main_layout)
 
         self.sidebar = self.crear_sidebar()
         main_layout.addWidget(self.sidebar)
 
-        # Área de contenido con marca de agua
         content_area = QWidget()
         content_layout = QVBoxLayout()
-        content_layout.setContentsMargins(0, 0, 0, 0)
-        content_layout.setSpacing(0)
         content_area.setLayout(content_layout)
 
         header = self.crear_header()
         content_layout.addWidget(header)
 
-        # Contenedor con marca de agua
-        self.watermark_container = WatermarkWidget(self)
-        wm_layout = QVBoxLayout()
-        wm_layout.setContentsMargins(0, 0, 0, 0)
-        self.watermark_container.setLayout(wm_layout)
-
         self.content_stack = QStackedWidget()
-        wm_layout.addWidget(self.content_stack)
+        content_layout.addWidget(self.content_stack, 1)
 
-        content_layout.addWidget(self.watermark_container, 1)
         main_layout.addWidget(content_area, 1)
 
     def crear_header(self):
-        """Crea el encabezado con información de la tienda"""
-        from utils.store_config import (
-            get_store_name,
-            get_logo_path,
-            get_address,
-            get_phone,
-            get_email,
-            get_nit,
-        )
-        import os
-
+        """Crea el encabezado con logo, nombre e info de tienda"""
         header = QWidget()
-        header.setStyleSheet("""
-            QWidget {
-                background-color: #1a252f;
-            }
-        """)
-        header.setFixedHeight(100)
+        header.setStyleSheet("background-color: #2c3e50;")
+        header.setFixedHeight(80)
+
         layout = QHBoxLayout()
-        layout.setContentsMargins(16, 10, 16, 10)
         header.setLayout(layout)
 
-        # Logo en el header
         logo_path = get_logo_path()
         if logo_path and os.path.exists(logo_path):
             logo_label = QLabel()
             pixmap = QPixmap(logo_path)
             if not pixmap.isNull():
-                scaled = pixmap.scaled(
-                    70,
-                    70,
+                scaled_pixmap = pixmap.scaled(
+                    60,
+                    60,
                     Qt.AspectRatioMode.KeepAspectRatio,
                     Qt.TransformationMode.SmoothTransformation,
                 )
-                logo_label.setPixmap(scaled)
+                logo_label.setPixmap(scaled_pixmap)
                 logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-                logo_label.setStyleSheet("padding-right: 12px;")
-                layout.addWidget(logo_label)
-
-        # Bloque de texto
-        text_widget = QWidget()
-        text_layout = QVBoxLayout()
-        text_layout.setContentsMargins(0, 0, 0, 0)
-        text_layout.setSpacing(2)
-        text_widget.setLayout(text_layout)
+                layout.addWidget(logo_label, 0)
 
         store_name = get_store_name()
-        name_label = QLabel(store_name.upper())
-        name_label.setStyleSheet("""
-            color: #ffffff;
-            font-size: 26px;
-            font-weight: bold;
-            letter-spacing: 2px;
-        """)
-        text_layout.addWidget(name_label)
-
-        address = get_address()
+        nit = get_nit()
         phone = get_phone()
         email = get_email()
-        nit = get_nit()
+        address = get_address()
 
-        info_parts = []
-        if address:
-            info_parts.append(f"📍 {address}")
-        if phone:
-            info_parts.append(f"📞 {phone}")
-        if email:
-            info_parts.append(f"✉ {email}")
+        info_layout = QVBoxLayout()
+        info_layout.setSpacing(2)
+
+        title_label = QLabel(f"TuCajero POS")
+        title_label.setStyleSheet("color: white; font-size: 20px; font-weight: bold;")
+        info_layout.addWidget(title_label)
+
+        if store_name:
+            store_label = QLabel(store_name)
+            store_label.setStyleSheet(
+                "color: #3498db; font-size: 14px; font-weight: bold;"
+            )
+            info_layout.addWidget(store_label)
+
+        contact_parts = []
         if nit:
-            info_parts.append(f"NIT: {nit}")
+            contact_parts.append(f"NIT: {nit}")
+        if phone:
+            contact_parts.append(f"Tel: {phone}")
+        if email:
+            contact_parts.append(email)
+        if contact_parts:
+            contact_label = QLabel("  |  ".join(contact_parts))
+            contact_label.setStyleSheet("color: #bdc3c7; font-size: 11px;")
+            info_layout.addWidget(contact_label)
 
-        if info_parts:
-            info_label = QLabel("   |   ".join(info_parts))
-            info_label.setStyleSheet("""
-                color: #a0b0c0;
-                font-size: 12px;
-            """)
-            text_layout.addWidget(info_label)
+        if address:
+            addr_label = QLabel(address)
+            addr_label.setStyleSheet("color: #95a5a6; font-size: 11px;")
+            info_layout.addWidget(addr_label)
 
-        layout.addWidget(text_widget, 1)
+        layout.addLayout(info_layout, 1)
+
         return header
 
     def crear_sidebar(self):
@@ -200,7 +138,7 @@ class MainWindow(QMainWindow):
         self.btn_inventario = self.crear_boton("Inventario", self.switch_to_inventario)
         self.btn_corte = self.crear_boton("Corte de Caja", self.switch_to_corte)
         self.btn_historial = self.crear_boton("Historial", self.switch_to_historial)
-        self.btn_config = self.crear_boton("Configuración", self.abrir_configuracion)
+        self.btn_config = self.crear_boton("Config", self.switch_to_config)
 
         layout.addWidget(self.btn_ventas)
         layout.addWidget(self.btn_productos)
@@ -235,12 +173,6 @@ class MainWindow(QMainWindow):
         layout.addWidget(copyright_label)
 
         return sidebar
-
-    def abrir_configuracion(self):
-        from ui.config_view import ConfigNegocioDialog
-
-        dialog = ConfigNegocioDialog(self)
-        dialog.exec()
 
     def mostrar_acerca(self):
         """Muestra la ventana Acerca de"""
@@ -292,3 +224,18 @@ class MainWindow(QMainWindow):
 
     def switch_to_historial(self):
         self.switch_view(4)
+
+    def switch_to_config(self):
+        self.switch_view(5)
+
+    def closeEvent(self, event):
+        """Cierra la aplicación correctamente"""
+        try:
+            from config.database import close_db
+
+            close_db()
+        except Exception as e:
+            import logging
+
+            logging.error(f"closeEvent error: {e}")
+        event.accept()

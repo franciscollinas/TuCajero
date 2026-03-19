@@ -1,6 +1,8 @@
-from models.producto import Venta, VentaItem, MovimientoInventario, PagoVenta
+from models.producto import Venta, VentaItem, MovimientoInventario
 from sqlalchemy import and_
 from datetime import datetime, timedelta
+
+IVA_RATE = 0.19
 
 
 class VentaRepository:
@@ -9,27 +11,29 @@ class VentaRepository:
     def __init__(self, session):
         self.session = session
 
-    def create_venta(self, items, pagos=None, metodo_pago="efectivo"):
-        """Crea una venta con sus items, pagos e IVA"""
-        IVA_RATE = 0.19
+    def create_venta(self, items, metodo_pago=None):
+        """Crea una venta con sus items (incluye IVA)"""
         total = 0
         for item in items:
             subtotal = item["cantidad"] * item["precio"]
-            iva = round(subtotal * IVA_RATE, 2)
+            if item.get("aplica_iva", True):
+                iva = round(subtotal * IVA_RATE, 2)
+            else:
+                iva = 0
             total += subtotal + iva
 
         venta = Venta(
-            total=round(total, 2),
-            fecha=datetime.now(),
-            metodo_pago=metodo_pago,
-            anulada=False,
+            total=round(total, 2), fecha=datetime.now(), metodo_pago=metodo_pago
         )
         self.session.add(venta)
         self.session.flush()
 
         for item in items:
             subtotal = item["cantidad"] * item["precio"]
-            iva_monto = round(subtotal * IVA_RATE, 2)
+            if item.get("aplica_iva", True):
+                iva_monto = round(subtotal * IVA_RATE, 2)
+            else:
+                iva_monto = 0
             venta_item = VentaItem(
                 venta_id=venta.id,
                 producto_id=item["producto_id"],
@@ -39,80 +43,52 @@ class VentaRepository:
             )
             self.session.add(venta_item)
 
-        if pagos:
-            for pago in pagos:
-                pago_obj = PagoVenta(
-                    venta_id=venta.id, metodo=pago["metodo"], monto=pago["monto"]
-                )
-                self.session.add(pago_obj)
-
         self.session.commit()
         return venta
 
-    def anular_venta(self, venta_id, motivo):
-        """Anula una venta y retorna sus items para restaurar stock"""
-        venta = self.session.query(Venta).filter(Venta.id == venta_id).first()
-        if not venta:
-            raise ValueError("Venta no encontrada")
-        if venta.anulada:
-            raise ValueError("La venta ya está anulada")
-        venta.anulada = True
-        venta.motivo_anulacion = motivo
-        self.session.commit()
-        return venta
-
-    def get_ventas_hoy(self):
-        """Retorna las ventas de hoy (incluidas anuladas para mostrar)"""
+    def get_ventas_hoy(self, incluir_anuladas=False):
+        """Retorna las ventas de hoy"""
         hoy = datetime.now().date()
         inicio_dia = datetime.combine(hoy, datetime.min.time())
         fin_dia = datetime.combine(hoy, datetime.max.time())
 
-        return (
-            self.session.query(Venta)
-            .filter(and_(Venta.fecha >= inicio_dia, Venta.fecha <= fin_dia))
-            .all()
+        query = self.session.query(Venta).filter(
+            and_(Venta.fecha >= inicio_dia, Venta.fecha <= fin_dia)
         )
+        if not incluir_anuladas:
+            query = query.filter(Venta.anulada == False)
+        return query.all()
 
     def get_total_hoy(self):
-        """Retorna el total de ventas válidas de hoy"""
+        """Retorna el total de ventas de hoy"""
         ventas = self.get_ventas_hoy()
-        return sum(v.total for v in ventas if not v.anulada)
+        return sum(v.total for v in ventas)
 
     def get_count_hoy(self):
-        """Retorna el número de ventas válidas de hoy"""
-        return len([v for v in self.get_ventas_hoy() if not v.anulada])
+        """Retorna el número de ventas de hoy"""
+        return len(self.get_ventas_hoy())
 
-    def get_totales_por_metodo_hoy(self):
-        """Retorna totales desglosados por método de pago del día"""
-        ventas = [v for v in self.get_ventas_hoy() if not v.anulada]
-        total_efectivo = 0
-        total_transferencias = 0
-        metodos = ["nequi", "daviplata", "transferencia"]
-        for v in ventas:
-            if v.metodo_pago == "mixto":
-                for pago in v.pagos:
-                    if pago.metodo == "efectivo":
-                        total_efectivo += pago.monto
-                    else:
-                        total_transferencias += pago.monto
-            elif v.metodo_pago == "efectivo":
-                total_efectivo += v.total
-            else:
-                total_transferencias += v.total
-        return {"efectivo": total_efectivo, "transferencias": total_transferencias}
+    def get_venta_by_id(self, venta_id):
+        """Retorna una venta por su ID"""
+        return self.session.query(Venta).filter(Venta.id == venta_id).first()
 
-    def get_all(self):
+    def anular_venta(self, venta_id):
+        """Anula una venta y la marca como cancelada"""
+        venta = self.get_venta_by_id(venta_id)
+        if not venta:
+            raise ValueError(f"Venta #{venta_id} no encontrada")
+        if venta.anulada:
+            raise ValueError(f"Venta #{venta_id} ya está anulada")
+        venta.anulada = True
+        self.session.commit()
+        return venta
+
+    def get_all(self, incluir_anuladas=False):
         """Retorna todas las ventas"""
-        return self.session.query(Venta).order_by(Venta.fecha.desc()).all()
-
-    def get_total_iva_hoy(self):
-        """Retorna el total de IVA recaudado hoy"""
-        ventas = [v for v in self.get_ventas_hoy() if not v.anulada]
-        total = 0
-        for v in ventas:
-            for item in v.items:
-                total += item.iva_monto or 0
-        return round(total, 2)
+        query = self.session.query(Venta)
+        if not incluir_anuladas:
+            query = query.filter(Venta.anulada == False)
+        return query.order_by(Venta.fecha.desc()).all()
 
 
 class InventarioRepository:
