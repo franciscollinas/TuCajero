@@ -9,11 +9,19 @@ SECRET = "tito_castilla_pos_secret"
 
 
 def get_config_dir():
-    """Retorna el directorio de configuración en %LOCALAPPDATA%"""
-    if sys.platform == "win32":
-        base = os.environ.get("LOCALAPPDATA", os.environ.get("APPDATA", ""))
-        return os.path.join(base, "TuCajero", "config")
-    return os.path.join(os.path.expanduser("~"), ".tucajero", "config")
+    """Retorna el directorio de configuración.
+
+    Compilado (frozen): usa %LOCALAPPDATA%\\TuCajero\\config (evita C:\\Program Files).
+    Desarrollo: usa ruta relativa security/../config/.
+    """
+    if getattr(sys, "frozen", False):
+        if sys.platform == "win32":
+            base = os.environ.get("LOCALAPPDATA", os.environ.get("APPDATA", ""))
+            return os.path.join(base, "TuCajero", "config")
+        return os.path.join(os.path.expanduser("~"), ".tucajero", "config")
+    else:
+        base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        return os.path.join(base, "config")
 
 
 def get_machine_id():
