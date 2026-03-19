@@ -113,3 +113,16 @@ class ProductoRepository:
             )
             .all()
         )
+
+    def search_por_categoria(self, categoria_id):
+        """Busca productos por categoría"""
+        return (
+            self.session.query(Producto)
+            .filter(
+                and_(
+                    Producto.activo == True,
+                    Producto.categoria_id == categoria_id,
+                )
+            )
+            .all()
+        )

@@ -6,6 +6,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     QStackedWidget,
     QLabel,
+    QSizePolicy,
 )
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon, QPixmap
@@ -57,7 +58,8 @@ class MainWindow(QMainWindow):
         """Crea el encabezado con logo, nombre e info de tienda"""
         header = QWidget()
         header.setStyleSheet("background-color: #2c3e50;")
-        header.setFixedHeight(80)
+        header.setMinimumHeight(70)
+        header.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         layout = QHBoxLayout()
         header.setLayout(layout)
@@ -92,8 +94,9 @@ class MainWindow(QMainWindow):
 
         if store_name:
             store_label = QLabel(store_name)
+            store_label.setWordWrap(True)
             store_label.setStyleSheet(
-                "color: #3498db; font-size: 14px; font-weight: bold;"
+                "color: #3498db; font-size: 13px; font-weight: bold;"
             )
             info_layout.addWidget(store_label)
 

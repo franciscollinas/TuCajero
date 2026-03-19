@@ -83,8 +83,12 @@ def get_store_name():
 
 
 def _get_default_logo():
-    base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    logo = os.path.join(base, "assets", "icons", "logo.png")
+    if getattr(sys, "frozen", False):
+        base = getattr(sys, "_MEIPASS", os.path.dirname(sys.executable))
+        logo = os.path.join(base, "tucajero", "assets", "icons", "logo.png")
+    else:
+        base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        logo = os.path.join(base, "assets", "icons", "logo.png")
     if os.path.exists(logo):
         return logo
     return ""

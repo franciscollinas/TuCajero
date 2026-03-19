@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
     QDialogButtonBox,
     QButtonGroup,
     QRadioButton,
+    QSizePolicy,
 )
 from PySide6.QtCore import Qt, Signal
 
@@ -35,7 +36,8 @@ class PaymentDialog(QDialog):
     def init_ui(self):
         """Initialize the payment dialog UI"""
         self.setWindowTitle("Cobro")
-        self.setFixedSize(400, 480)
+        self.setMinimumSize(420, 500)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         layout = QVBoxLayout()
         self.setLayout(layout)
@@ -56,7 +58,7 @@ class PaymentDialog(QDialog):
 
         self.lbl_total = QLabel(f"${self.total:.2f}")
         self.lbl_total.setStyleSheet(
-            "font-size: 36px; font-weight: bold; color: #27ae60;"
+            "font-size: 28px; font-weight: bold; color: #27ae60;"
         )
         self.lbl_total.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.lbl_total)
@@ -94,14 +96,15 @@ class PaymentDialog(QDialog):
         self.pago_input = QDoubleSpinBox()
         self.pago_input.setRange(0, 999999999)
         self.pago_input.setDecimals(2)
-        self.pago_input.setStyleSheet("font-size: 24px; padding: 10px;")
+        self.pago_input.setStyleSheet("font-size: 18px; padding: 8px;")
+        self.pago_input.setMinimumWidth(200)
         self.pago_input.setFocus()
         self.pago_input.valueChanged.connect(self.calcular_cambio)
         efectivo_layout.addWidget(self.pago_input)
 
         self.lbl_cambio = QLabel("Cambio: $0.00")
         self.lbl_cambio.setStyleSheet(
-            "font-size: 24px; font-weight: bold; color: #3498db;"
+            "font-size: 18px; font-weight: bold; color: #27ae60;"
         )
         self.lbl_cambio.setAlignment(Qt.AlignmentFlag.AlignCenter)
         efectivo_layout.addWidget(self.lbl_cambio)
@@ -144,13 +147,13 @@ class PaymentDialog(QDialog):
         if cambio >= 0:
             self.lbl_cambio.setText(f"Cambio: ${cambio:.2f}")
             self.lbl_cambio.setStyleSheet(
-                "font-size: 24px; font-weight: bold; color: #27ae60;"
+                "font-size: 18px; font-weight: bold; color: #27ae60;"
             )
             self.payment_amount = pago
         else:
             self.lbl_cambio.setText(f"Faltan: ${abs(cambio):.2f}")
             self.lbl_cambio.setStyleSheet(
-                "font-size: 24px; font-weight: bold; color: #e74c3c;"
+                "font-size: 18px; font-weight: bold; color: #e74c3c;"
             )
             self.payment_amount = 0
 
