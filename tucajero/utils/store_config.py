@@ -74,13 +74,21 @@ def get_store_name():
     return _store_config.get("store_name", "")
 
 
+def _get_default_logo():
+    base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    logo = os.path.join(base, "assets", "icons", "logo.png")
+    if os.path.exists(logo):
+        return logo
+    return ""
+
+
 def get_logo_path():
     if _store_config is None:
         load_store_config()
     logo = _store_config.get("logo_path", "")
     if logo and os.path.exists(logo):
         return logo
-    return ""
+    return _get_default_logo()
 
 
 def get_address():

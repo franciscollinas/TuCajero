@@ -1,5 +1,6 @@
 import os
 import sys
+import logging
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, declarative_base
 
@@ -40,9 +41,6 @@ def crear_carpetas():
 
     logs_dir = os.path.join(data_dir, "logs")
     os.makedirs(logs_dir, exist_ok=True)
-
-    config_dir = os.path.join(data_dir, "config")
-    os.makedirs(config_dir, exist_ok=True)
 
 
 def get_db_path():
@@ -94,15 +92,26 @@ def get_session():
 def init_db():
     """Initializes the database creating all tables"""
     crear_carpetas()
-    from models.producto import (
-        Producto,
-        Venta,
-        VentaItem,
-        MovimientoInventario,
-        CorteCaja,
-        PagoVenta,
-        Categoria,
-    )
+
+    from models.producto import Producto
 
     engine = get_engine()
     Base.metadata.create_all(engine)
+
+
+def close_db():
+    """Cierra la base de datos correctamente con WAL checkpoint"""
+    global _engine
+    try:
+        if _engine:
+            with _engine.connect() as conn:
+                conn.execute(text("PRAGMA wal_checkpoint(TRUNCATE)"))
+    except Exception as e:
+        logging.error(f"WAL checkpoint error: {e}")
+    finally:
+        try:
+            if _engine:
+                _engine.dispose()
+                _engine = None
+        except Exception as e:
+            logging.error(f"Engine dispose error: {e}")

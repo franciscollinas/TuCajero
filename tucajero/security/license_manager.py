@@ -8,11 +8,12 @@ import platform
 SECRET = "tito_castilla_pos_secret"
 
 
-def get_base_dir():
-    """Retorna el directorio base de la aplicación"""
-    if getattr(sys, "frozen", False):
-        return os.path.dirname(sys.executable)
-    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+def get_config_dir():
+    """Retorna el directorio de configuración en %LOCALAPPDATA%"""
+    if sys.platform == "win32":
+        base = os.environ.get("LOCALAPPDATA", os.environ.get("APPDATA", ""))
+        return os.path.join(base, "TuCajero", "config")
+    return os.path.join(os.path.expanduser("~"), ".tucajero", "config")
 
 
 def get_machine_id():
@@ -34,9 +35,8 @@ def generar_licencia(machine_id):
 
 
 def get_license_path():
-    """Retorna la ruta del archivo de licencia"""
-    base_dir = get_base_dir()
-    config_dir = os.path.join(base_dir, "config")
+    """Retorna la ruta del archivo de licencia en %LOCALAPPDATA%"""
+    config_dir = get_config_dir()
     os.makedirs(config_dir, exist_ok=True)
     return os.path.join(config_dir, "license.json")
 

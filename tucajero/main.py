@@ -53,7 +53,7 @@ def main():
     load_store_config()
 
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    ICON_PATH = os.path.join(BASE_DIR, "assets", "icons", "cruzmedic.ico")
+    ICON_PATH = os.path.join(BASE_DIR, "assets", "icons", "logo.png")
 
     print(f"[INFO] Icono cargado desde: {ICON_PATH}")
     print(f"[INFO] Archivo existe: {os.path.exists(ICON_PATH)}")

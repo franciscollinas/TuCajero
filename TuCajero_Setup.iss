@@ -11,7 +11,6 @@ DefaultGroupName=TuCajero POS
 AllowNoIcons=yes
 OutputDir=installer
 OutputBaseFilename=TuCajero_Setup_v1.0
-SetupIconFile=tucajero\assets\icons\cruzmedic.ico
 Compression=lzma2/ultra64
 SolidCompression=yes
 PrivilegesRequired=admin
