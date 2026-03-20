@@ -201,7 +201,10 @@ class VentasView(QWidget):
         layout = QVBoxLayout()
         self.setLayout(layout)
 
+        from utils.theme import get_colors
         from utils.store_config import get_store_name, get_address, get_phone
+
+        c = get_colors()
 
         store_name = get_store_name()
         address = get_address()
