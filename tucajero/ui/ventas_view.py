@@ -198,13 +198,15 @@ class VentasView(QWidget):
 
     def init_ui(self):
         """Initialize the interface"""
+        from utils.theme import get_colors
+
+        c = get_colors()
+        self.setStyleSheet(f"background-color: {c['bg_app']};")
+
         layout = QVBoxLayout()
         self.setLayout(layout)
 
-        from utils.theme import get_colors
         from utils.store_config import get_store_name, get_address, get_phone
-
-        c = get_colors()
 
         store_name = get_store_name()
         address = get_address()

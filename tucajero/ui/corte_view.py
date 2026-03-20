@@ -31,6 +31,11 @@ class CorteView(QWidget):
 
     def init_ui(self):
         """Inicializa la interfaz"""
+        from utils.theme import get_colors
+
+        c = get_colors()
+        self.setStyleSheet(f"background-color: {c['bg_app']};")
+
         layout = QVBoxLayout()
         self.setLayout(layout)
 
@@ -38,9 +43,7 @@ class CorteView(QWidget):
         titulo.setStyleSheet("font-size: 24px; font-weight: bold;")
         layout.addWidget(titulo)
 
-        from utils.theme import get_colors, card_style
-
-        c = get_colors()
+        from utils.theme import card_style
 
         self.info_widget = QWidget()
         self.info_widget.setStyleSheet(f"""

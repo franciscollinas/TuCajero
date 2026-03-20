@@ -48,18 +48,18 @@ def get_colors():
         }
     else:
         return {
-            "bg_app": "#f0f2f8",
+            "bg_app": "#f4f6fb",
             "bg_sidebar": "#1a1d35",
             "bg_card": "#ffffff",
             "bg_card_hover": "#f8f9ff",
-            "bg_input": "#f0f2f8",
+            "bg_input": "#eef0f8",
             "bg_elevated": "#ffffff",
             "text_primary": "#1a1d2e",
             "text_secondary": "#5a6080",
             "text_muted": "#9ba3c4",
             "text_inverse": "#ffffff",
-            "border": "#e4e6f0",
-            "border_strong": "#c8cce0",
+            "border": "#e2e5f0",
+            "border_strong": "#c5c9de",
             "accent": "#6c63ff",
             "accent_hover": "#5a52e0",
             "accent_light": "#6c63ff18",
@@ -73,20 +73,24 @@ def get_colors():
             "info_light": "#00b8d918",
             "purple": "#a855f7",
             "purple_light": "#a855f718",
-            "shadow_sm": "0px 2px 8px rgba(99,102,241,0.08)",
-            "shadow_md": "0px 4px 16px rgba(99,102,241,0.12)",
-            "shadow_lg": "0px 8px 32px rgba(99,102,241,0.18)",
+            "shadow_sm": "0px 2px 8px rgba(99,102,241,0.07)",
+            "shadow_md": "0px 4px 16px rgba(99,102,241,0.10)",
+            "shadow_lg": "0px 8px 32px rgba(99,102,241,0.15)",
         }
 
 
 def get_stylesheet():
     c = get_colors()
+    bg = c["bg_app"]
     return f"""
         QMainWindow, QDialog {{
-            background-color: {c["bg_app"]};
+            background-color: {bg};
+        }}
+        QWidget#centralWidget, QStackedWidget, QWidget {{
+            background-color: transparent;
         }}
         QWidget {{
-            background-color: transparent;
+            background-color: {bg};
             color: {c["text_primary"]};
             font-family: 'Segoe UI', Arial, sans-serif;
             font-size: 13px;

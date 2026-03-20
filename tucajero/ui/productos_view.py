@@ -33,6 +33,11 @@ class ProductosView(QWidget):
 
     def init_ui(self):
         """Inicializa la interfaz"""
+        from utils.theme import get_colors
+
+        c = get_colors()
+        self.setStyleSheet(f"background-color: {c['bg_app']};")
+
         layout = QVBoxLayout()
         self.setLayout(layout)
 

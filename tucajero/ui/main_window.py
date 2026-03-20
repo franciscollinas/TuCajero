@@ -194,6 +194,8 @@ class MainWindow(QMainWindow):
 
     def _build_sidebar(self):
         from utils.theme import get_colors
+        from utils.store_config import get_logo_path
+        import os
 
         c = get_colors()
 
@@ -214,21 +216,58 @@ class MainWindow(QMainWindow):
         header.setStyleSheet(f"background-color: {c['bg_sidebar']};")
         h_layout = QHBoxLayout(header)
         h_layout.setContentsMargins(16, 0, 16, 0)
-        logo_label = QLabel("TC")
-        logo_label.setFixedSize(36, 36)
-        logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        logo_label.setStyleSheet(f"""
-            background-color: {c["accent"]};
-            color: white;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: bold;
-        """)
+
+        logo_container = QLabel()
+        logo_container.setFixedSize(38, 38)
+        logo_container.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        app_icon_path = os.path.join(
+            os.path.dirname(__file__), "..", "assets", "icons", "tucajero.ico"
+        )
+        store_logo = get_logo_path()
+
+        if os.path.exists(app_icon_path):
+            from PySide6.QtGui import QPixmap
+
+            pix = QPixmap(app_icon_path).scaled(
+                34,
+                34,
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation,
+            )
+            logo_container.setPixmap(pix)
+            logo_container.setStyleSheet(
+                "border-radius: 8px; border: none; background: transparent;"
+            )
+        elif store_logo and os.path.exists(store_logo):
+            from PySide6.QtGui import QPixmap
+
+            pix = QPixmap(store_logo).scaled(
+                34,
+                34,
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation,
+            )
+            logo_container.setPixmap(pix)
+            logo_container.setStyleSheet(
+                "border-radius: 8px; border: none; background: transparent;"
+            )
+        else:
+            logo_container.setText("TC")
+            logo_container.setStyleSheet(f"""
+                background-color: {c["accent"]};
+                color: white;
+                border-radius: 8px;
+                font-size: 13px;
+                font-weight: bold;
+                border: none;
+            """)
+
         app_name = QLabel("TuCajero")
         app_name.setStyleSheet(
             f"color: {c['text_primary']}; font-size: 18px; font-weight: bold;"
         )
-        h_layout.addWidget(logo_label)
+        h_layout.addWidget(logo_container)
         h_layout.addWidget(app_name)
         h_layout.addStretch()
         layout.addWidget(header)
