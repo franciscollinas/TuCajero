@@ -47,8 +47,8 @@ class MainWindow(QMainWindow):
         content_layout = QVBoxLayout()
         content_area.setLayout(content_layout)
 
-        header = self._build_header()
-        content_layout.addWidget(header)
+        self.header, self.header_user_label = self._build_header()
+        content_layout.addWidget(self.header)
 
         self.content_stack = QStackedWidget()
         content_layout.addWidget(self.content_stack, 1)
@@ -136,19 +136,36 @@ class MainWindow(QMainWindow):
         layout.addLayout(info_layout)
         layout.addStretch()
 
-        version_badge = QLabel("v1.2")
-        version_badge.setStyleSheet(f"""
-            background-color: {c["accent"]}33;
-            color: {c["accent"]};
-            border: 1px solid {c["accent"]};
-            border-radius: 10px;
-            padding: 2px 10px;
-            font-size: 11px;
-            font-weight: bold;
+        right_widget = QWidget()
+        right_widget.setStyleSheet(f"""
+            QWidget {{
+                background-color: {c["bg_input"]};
+                border-radius: 20px;
+                border: 1px solid {c["border"]};
+            }}
         """)
-        layout.addWidget(version_badge)
+        right_layout = QHBoxLayout(right_widget)
+        right_layout.setContentsMargins(12, 6, 12, 6)
+        right_layout.setSpacing(8)
 
-        return header
+        avatar = QLabel("👑")
+        avatar.setStyleSheet("font-size: 16px; background: transparent; border: none;")
+        user_label = QLabel("Administrador")
+        user_label.setObjectName("user_label")
+        user_label.setStyleSheet(
+            f"color: {c['text_primary']}; font-size: 13px; font-weight: bold; background: transparent; border: none;"
+        )
+        version = QLabel("v3.0")
+        version.setStyleSheet(
+            f"color: {c['text_muted']}; font-size: 11px; background: transparent; border: none;"
+        )
+
+        right_layout.addWidget(avatar)
+        right_layout.addWidget(user_label)
+        right_layout.addWidget(version)
+        layout.addWidget(right_widget)
+
+        return header, user_label
 
     def _build_sidebar(self):
         from utils.theme import get_colors
@@ -221,8 +238,9 @@ class MainWindow(QMainWindow):
             btn.setFixedHeight(42)
             btn.setCheckable(True)
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn.setProperty("navButton", True)
             btn.setStyleSheet(f"""
-                QPushButton {{
+                QPushButton[navButton="true"] {{
                     background: transparent;
                     color: {c["text_secondary"]};
                     border: none;
@@ -233,11 +251,11 @@ class MainWindow(QMainWindow):
                     font-weight: normal;
                     margin: 1px 8px;
                 }}
-                QPushButton:hover {{
+                QPushButton[navButton="true"]:hover {{
                     background-color: {c["bg_input"]};
                     color: {c["text_primary"]};
                 }}
-                QPushButton:checked {{
+                QPushButton[navButton="true"]:checked {{
                     background-color: {c["accent_light"]};
                     color: {c["accent"]};
                     font-weight: bold;
@@ -306,7 +324,9 @@ class MainWindow(QMainWindow):
         if name in self._views:
             self.content_stack.setCurrentWidget(self._views[name])
         for key, btn in self._nav_buttons.items():
+            btn.blockSignals(True)
             btn.setChecked(key == name)
+            btn.blockSignals(False)
 
     def switch_view(self, index):
         """Cambia a una vista específica"""
@@ -345,6 +365,8 @@ class MainWindow(QMainWindow):
     def set_cajero_activo(self, cajero):
         icono = "👑" if cajero.rol == "admin" else "👤"
         self.lbl_cajero.setText(f"{icono} {cajero.nombre}")
+        if hasattr(self, "header_user_label") and self.header_user_label:
+            self.header_user_label.setText(cajero.nombre)
 
     def actualizar_badge_inventario(self, num_alertas):
         """Actualiza el botón de Inventario con badge de alertas"""

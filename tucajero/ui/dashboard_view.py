@@ -30,10 +30,16 @@ class MetricCard(QWidget):
         self.setMinimumHeight(120)
         self.setStyleSheet(f"""
             QWidget {{
-                {card_style(elevated=True)}
+                background-color: {c["bg_card"]};
+                border-radius: 16px;
+                border: 1.5px solid {c["border_strong"]};
             }}
         """)
-        add_shadow(self, blur=24, offset_y=6, opacity=60)
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(20)
+        shadow.setOffset(0, 4)
+        shadow.setColor(QColor(0, 0, 0, 80))
+        self.setGraphicsEffect(shadow)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 18, 20, 18)
@@ -175,42 +181,53 @@ class DashboardView(QWidget):
 
     def _cargar_datos(self):
         try:
-            from services.venta_service import VentaService
-            from services.producto_service import ProductoService
             from models.venta import Venta
-            from datetime import datetime
+            from models.producto import Producto
+            from models.cliente import Cliente
+            from datetime import datetime, date
 
-            vs = VentaService(self.session)
-            ventas_hoy = vs.get_ventas_del_dia()
-            total_hoy = sum(v.total for v in ventas_hoy if not v.anulada)
-            self.card_ventas_hoy.update_value(fmt_moneda(total_hoy))
-
+            hoy = date.today()
+            inicio_hoy = datetime.combine(hoy, datetime.min.time())
             inicio_mes = datetime.now().replace(
                 day=1, hour=0, minute=0, second=0, microsecond=0
             )
-            todas = self.session.query(Venta).filter(Venta.fecha >= inicio_mes).all()
-            total_mes = sum(v.total for v in todas if not v.anulada)
+
+            ventas_hoy = (
+                self.session.query(Venta)
+                .filter(Venta.fecha >= inicio_hoy, Venta.anulada == False)
+                .all()
+            )
+            total_hoy = sum(v.total for v in ventas_hoy)
+            self.card_ventas_hoy.update_value(fmt_moneda(total_hoy))
+
+            ventas_mes = (
+                self.session.query(Venta)
+                .filter(Venta.fecha >= inicio_mes, Venta.anulada == False)
+                .all()
+            )
+            total_mes = sum(v.total for v in ventas_mes)
             self.card_ventas_mes.update_value(fmt_moneda(total_mes))
 
             try:
-                from services.cliente_service import ClienteService
-
-                cs = ClienteService(self.session)
-                clientes = cs.get_all_clientes()
-                self.card_clientes.update_value(str(len(clientes)))
-            except:
+                num_clientes = self.session.query(Cliente).count()
+                self.card_clientes.update_value(str(num_clientes))
+            except Exception:
                 self.card_clientes.update_value("—")
 
-            ps = ProductoService(self.session)
-            productos = ps.get_all_productos()
-            self.card_productos.update_value(str(len(productos)))
+            try:
+                num_productos = (
+                    self.session.query(Producto).filter(Producto.activo == True).count()
+                )
+                self.card_productos.update_value(str(num_productos))
+            except Exception:
+                self.card_productos.update_value("—")
 
-            self._cargar_top_productos(todas)
+            self._cargar_top_productos(ventas_mes)
 
         except Exception as e:
             import logging
 
-            logging.error(f"Dashboard error: {e}")
+            logging.error(f"Dashboard._cargar_datos error: {e}", exc_info=True)
 
     def _cargar_top_productos(self, ventas):
         from collections import defaultdict

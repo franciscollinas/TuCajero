@@ -294,10 +294,14 @@ class VentasView(QWidget):
         self.btn_menos.setStyleSheet(f"""
             QPushButton {{
                 background-color: {c["danger"]};
-                color: white; border-radius: 17px;
-                font-size: 18px; font-weight: bold; border: none;
+                color: white;
+                border-radius: 17px;
+                font-size: 20px;
+                font-weight: bold;
+                border: none;
+                padding: 0px;
             }}
-            QPushButton:hover {{ background-color: {c["danger"]}cc; }}
+            QPushButton:hover {{ background-color: #ff3a3a; }}
         """)
         self.btn_menos.clicked.connect(self.disminuir_cantidad)
         btn_layout.addWidget(self.btn_menos)
@@ -307,10 +311,14 @@ class VentasView(QWidget):
         self.btn_mas.setStyleSheet(f"""
             QPushButton {{
                 background-color: {c["success"]};
-                color: white; border-radius: 17px;
-                font-size: 18px; font-weight: bold; border: none;
+                color: white;
+                border-radius: 17px;
+                font-size: 20px;
+                font-weight: bold;
+                border: none;
+                padding: 0px;
             }}
-            QPushButton:hover {{ background-color: {c["success"]}cc; }}
+            QPushButton:hover {{ background-color: #00d699; }}
         """)
         self.btn_mas.clicked.connect(self.aumentar_cantidad)
         btn_layout.addWidget(self.btn_mas)
