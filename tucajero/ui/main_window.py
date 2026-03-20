@@ -19,6 +19,7 @@ from utils.store_config import (
     get_email,
     get_address,
 )
+import os
 
 
 class MainWindow(QMainWindow):
@@ -59,46 +60,94 @@ class MainWindow(QMainWindow):
 
     def _build_header(self):
         from utils.theme import get_colors
+        from utils.store_config import (
+            get_store_name,
+            get_nit,
+            get_phone,
+            get_address,
+            get_logo_path,
+        )
+        import os
 
         c = get_colors()
+
         header = QWidget()
-        header.setFixedHeight(70)
-        header.setStyleSheet(
-            f"background-color: {c['bg_card']}; border-bottom: 1px solid {c['border']};"
-        )
+        header.setFixedHeight(80)
+        header.setStyleSheet(f"""
+            QWidget {{
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 {c["bg_sidebar"]}, stop:1 {c["bg_card"]});
+                border-bottom: 2px solid {c["accent"]};
+            }}
+        """)
         layout = QHBoxLayout(header)
         layout.setContentsMargins(24, 0, 24, 0)
+        layout.setSpacing(16)
 
-        logo_label = QLabel("🏪")
-        logo_label.setFixedSize(44, 44)
-        logo_label.setStyleSheet(
-            f"border-radius: 22px; background: {c['accent']}; color: white; font-size: 20px;"
-        )
-        logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(logo_label)
+        logo_container = QLabel()
+        logo_container.setFixedSize(52, 52)
+        logo_path = get_logo_path()
+        if logo_path and os.path.exists(logo_path):
+            from PySide6.QtGui import QPixmap
+
+            pixmap = QPixmap(logo_path).scaled(
+                52,
+                52,
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation,
+            )
+            logo_container.setPixmap(pixmap)
+            logo_container.setStyleSheet(
+                "border-radius: 26px; border: 2px solid " + c["accent"] + ";"
+            )
+        else:
+            logo_container.setText("🏪")
+            logo_container.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            logo_container.setStyleSheet(f"""
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                    stop:0 {c["accent"]}, stop:1 {c["info"]});
+                border-radius: 26px;
+                font-size: 24px;
+            """)
+        layout.addWidget(logo_container)
 
         info_layout = QVBoxLayout()
-        info_layout.setSpacing(2)
-        self.lbl_store_name = QLabel(get_store_name())
-        self.lbl_store_name.setStyleSheet(
-            f"color: {c['text_primary']}; font-size: 16px; font-weight: bold;"
+        info_layout.setSpacing(3)
+        info_layout.setContentsMargins(0, 0, 0, 0)
+
+        store_name = QLabel(get_store_name())
+        store_name.setStyleSheet(
+            f"color: {c['text_primary']}; font-size: 18px; font-weight: bold;"
         )
-        info_layout.addWidget(self.lbl_store_name)
+        info_layout.addWidget(store_name)
 
         parts = []
         if get_nit():
             parts.append(f"NIT: {get_nit()}")
         if get_phone():
-            parts.append(f"Tel: {get_phone()}")
+            parts.append(f"📞 {get_phone()}")
         if get_address():
-            parts.append(get_address())
+            parts.append(f"📍 {get_address()}")
         if parts:
-            sub = QLabel("  |  ".join(parts))
-            sub.setStyleSheet(f"color: {c['text_secondary']}; font-size: 11px;")
+            sub = QLabel("   |   ".join(parts))
+            sub.setStyleSheet(f"color: {c['text_secondary']}; font-size: 12px;")
             info_layout.addWidget(sub)
 
         layout.addLayout(info_layout)
         layout.addStretch()
+
+        version_badge = QLabel("v1.2")
+        version_badge.setStyleSheet(f"""
+            background-color: {c["accent"]}33;
+            color: {c["accent"]};
+            border: 1px solid {c["accent"]};
+            border-radius: 10px;
+            padding: 2px 10px;
+            font-size: 11px;
+            font-weight: bold;
+        """)
+        layout.addWidget(version_badge)
+
         return header
 
     def _build_sidebar(self):
@@ -123,8 +172,16 @@ class MainWindow(QMainWindow):
         header.setStyleSheet(f"background-color: {c['bg_sidebar']};")
         h_layout = QHBoxLayout(header)
         h_layout.setContentsMargins(16, 0, 16, 0)
-        logo_label = QLabel("🏪")
-        logo_label.setStyleSheet("font-size: 24px;")
+        logo_label = QLabel("TC")
+        logo_label.setFixedSize(36, 36)
+        logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        logo_label.setStyleSheet(f"""
+            background-color: {c["accent"]};
+            color: white;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+        """)
         app_name = QLabel("TuCajero")
         app_name.setStyleSheet(
             f"color: {c['text_primary']}; font-size: 18px; font-weight: bold;"

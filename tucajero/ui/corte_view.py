@@ -38,35 +38,42 @@ class CorteView(QWidget):
         titulo.setStyleSheet("font-size: 24px; font-weight: bold;")
         layout.addWidget(titulo)
 
+        from utils.theme import get_colors
+
+        c = get_colors()
+
         self.info_widget = QWidget()
-        self.info_widget.setStyleSheet("""
-            QWidget {
-                background-color: #ecf0f1;
-                border-radius: 10px;
+        self.info_widget.setStyleSheet(f"""
+            QWidget {{
+                background-color: {c["bg_card"]};
+                border-radius: 12px;
+                border: 1px solid {c["border"]};
                 padding: 20px;
-            }
+            }}
         """)
         info_layout = QVBoxLayout()
         self.info_widget.setLayout(info_layout)
 
         self.lbl_fecha = QLabel(f"Fecha: {datetime.now().strftime('%d/%m/%Y')}")
-        self.lbl_fecha.setStyleSheet("font-size: 18px;")
+        self.lbl_fecha.setStyleSheet(f"font-size: 18px; color: {c['text_secondary']};")
         info_layout.addWidget(self.lbl_fecha)
 
         self.lbl_estado = QLabel("Caja: ABIERTA")
         self.lbl_estado.setStyleSheet(
-            "font-size: 18px; font-weight: bold; color: #27ae60;"
+            f"font-size: 18px; font-weight: bold; color: {c['success']};"
         )
         info_layout.addWidget(self.lbl_estado)
 
         self.lbl_total = QLabel(f"Total vendido: {fmt_moneda(0)}")
         self.lbl_total.setStyleSheet(
-            "font-size: 28px; font-weight: bold; color: #27ae60;"
+            f"font-size: 28px; font-weight: bold; color: {c['success']};"
         )
         info_layout.addWidget(self.lbl_total)
 
         self.lbl_num_ventas = QLabel("Número de ventas: 0")
-        self.lbl_num_ventas.setStyleSheet("font-size: 18px;")
+        self.lbl_num_ventas.setStyleSheet(
+            f"font-size: 18px; color: {c['text_primary']};"
+        )
         info_layout.addWidget(self.lbl_num_ventas)
 
         layout.addWidget(self.info_widget)

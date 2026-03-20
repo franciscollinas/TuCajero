@@ -286,13 +286,35 @@ class VentasView(QWidget):
 
         btn_layout = QHBoxLayout()
 
-        self.btn_menos = QPushButton("-")
-        self.btn_menos.setFixedWidth(50)
+        self.btn_menos = QPushButton("−")
+        self.btn_menos.setFixedSize(36, 36)
+        self.btn_menos.setStyleSheet("""
+            QPushButton {
+                background-color: #ff5b5b;
+                color: white;
+                border-radius: 18px;
+                font-size: 18px;
+                font-weight: bold;
+                border: none;
+            }
+            QPushButton:hover { background-color: #ff3333; }
+        """)
         self.btn_menos.clicked.connect(self.disminuir_cantidad)
         btn_layout.addWidget(self.btn_menos)
 
         self.btn_mas = QPushButton("+")
-        self.btn_mas.setFixedWidth(50)
+        self.btn_mas.setFixedSize(36, 36)
+        self.btn_mas.setStyleSheet("""
+            QPushButton {
+                background-color: #00c48c;
+                color: white;
+                border-radius: 18px;
+                font-size: 18px;
+                font-weight: bold;
+                border: none;
+            }
+            QPushButton:hover { background-color: #00e6a0; }
+        """)
         self.btn_mas.clicked.connect(self.aumentar_cantidad)
         btn_layout.addWidget(self.btn_mas)
 
