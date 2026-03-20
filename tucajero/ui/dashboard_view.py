@@ -3,67 +3,90 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QHBoxLayout,
     QLabel,
-    QGridLayout,
     QTableWidget,
     QTableWidgetItem,
     QHeaderView,
+    QFrame,
+    QGraphicsDropShadowEffect,
 )
 from PySide6.QtCore import Qt
-from utils.theme import get_colors
+from PySide6.QtGui import QColor
+from utils.theme import get_colors, card_style, label_style
 from utils.formato import fmt_moneda
+
+
+def add_shadow(widget, blur=20, offset_y=4, opacity=80):
+    shadow = QGraphicsDropShadowEffect()
+    shadow.setBlurRadius(blur)
+    shadow.setOffset(0, offset_y)
+    shadow.setColor(QColor(0, 0, 0, opacity))
+    widget.setGraphicsEffect(shadow)
 
 
 class MetricCard(QWidget):
     def __init__(self, icon, title, value, color, parent=None):
         super().__init__(parent)
         c = get_colors()
-        self.setMinimumHeight(110)
+        self.setMinimumHeight(120)
         self.setStyleSheet(f"""
             QWidget {{
-                background-color: {c["bg_card"]};
-                border-radius: 16px;
-                border: 1px solid {c["border"]};
+                {card_style(elevated=True)}
             }}
         """)
-        layout = QHBoxLayout(self)
-        layout.setContentsMargins(20, 16, 20, 16)
-        layout.setSpacing(16)
+        add_shadow(self, blur=24, offset_y=6, opacity=60)
 
-        icon_label = QLabel(icon)
-        icon_label.setFixedSize(56, 56)
-        icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        icon_label.setStyleSheet(f"""
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 18, 20, 18)
+        layout.setSpacing(10)
+
+        top = QHBoxLayout()
+        top.setSpacing(16)
+
+        icon_box = QLabel(icon)
+        icon_box.setFixedSize(52, 52)
+        icon_box.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        icon_box.setStyleSheet(f"""
             background-color: {color}33;
             color: {color};
-            border-radius: 28px;
-            font-size: 26px;
+            border-radius: 14px;
+            font-size: 24px;
             border: none;
         """)
-        layout.addWidget(icon_label)
+        top.addWidget(icon_box)
 
-        text_layout = QVBoxLayout()
-        text_layout.setSpacing(4)
-
+        val_layout = QVBoxLayout()
+        val_layout.setSpacing(2)
         self.value_label = QLabel(value)
         self.value_label.setStyleSheet(f"""
             color: {c["text_primary"]};
-            font-size: 26px;
+            font-size: 28px;
             font-weight: bold;
             border: none;
             background: transparent;
         """)
-        text_layout.addWidget(self.value_label)
+        val_layout.addWidget(self.value_label)
 
-        title_label = QLabel(title)
-        title_label.setStyleSheet(f"""
+        self.title_label = QLabel(title)
+        self.title_label.setStyleSheet(f"""
             color: {c["text_secondary"]};
             font-size: 12px;
             border: none;
             background: transparent;
         """)
-        text_layout.addWidget(title_label)
-        layout.addLayout(text_layout)
-        layout.addStretch()
+        val_layout.addWidget(self.title_label)
+        top.addLayout(val_layout)
+        top.addStretch()
+        layout.addLayout(top)
+
+        line = QFrame()
+        line.setFixedHeight(3)
+        line.setStyleSheet(f"""
+            background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                stop:0 {color}, stop:1 {color}44);
+            border-radius: 2px;
+            border: none;
+        """)
+        layout.addWidget(line)
 
     def update_value(self, value):
         self.value_label.setText(value)
@@ -74,45 +97,61 @@ class DashboardView(QWidget):
         super().__init__(parent)
         self.session = session
         self._init_ui()
-        self._cargar_datos()
-
-    def showEvent(self, event):
-        super().showEvent(event)
-        self._cargar_datos()
 
     def _init_ui(self):
         c = get_colors()
+        self.setStyleSheet(f"background-color: {c['bg_app']};")
+
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(24, 24, 24, 24)
-        layout.setSpacing(20)
+        layout.setContentsMargins(28, 24, 28, 24)
+        layout.setSpacing(24)
 
+        title_layout = QVBoxLayout()
+        title_layout.setSpacing(4)
         title = QLabel("Escritorio")
-        title.setStyleSheet(
-            f"color: {c['text_primary']}; font-size: 22px; font-weight: bold; background: transparent;"
-        )
-        layout.addWidget(title)
+        title.setStyleSheet(label_style("xl", "bold"))
+        from datetime import datetime
 
-        grid = QGridLayout()
+        sub = QLabel(f"Bienvenido — {datetime.now().strftime('%A %d de %B, %Y')}")
+        sub.setStyleSheet(label_style("sm", color_key="text_secondary"))
+        title_layout.addWidget(title)
+        title_layout.addWidget(sub)
+        layout.addLayout(title_layout)
+
+        grid = QHBoxLayout()
         grid.setSpacing(16)
 
-        self.card_ventas_hoy = MetricCard("🛒", "Ventas hoy", fmt_moneda(0), "#6c63ff")
-        self.card_ventas_mes = MetricCard(
-            "📈", "Ventas del mes", fmt_moneda(0), "#00c48c"
+        self.card_ventas_hoy = MetricCard(
+            "🛒", "Ventas hoy", fmt_moneda(0), c["accent"]
         )
-        self.card_clientes = MetricCard("👥", "Clientes", "0", "#00b8d9")
-        self.card_productos = MetricCard("📦", "Productos activos", "0", "#ffab2e")
+        self.card_ventas_mes = MetricCard(
+            "📈", "Ventas del mes", fmt_moneda(0), c["success"]
+        )
+        self.card_clientes = MetricCard("👥", "Clientes", "0", c["info"])
+        self.card_productos = MetricCard("📦", "Productos activos", "0", c["warning"])
 
-        grid.addWidget(self.card_ventas_hoy, 0, 0)
-        grid.addWidget(self.card_ventas_mes, 0, 1)
-        grid.addWidget(self.card_clientes, 0, 2)
-        grid.addWidget(self.card_productos, 0, 3)
+        for card in [
+            self.card_ventas_hoy,
+            self.card_ventas_mes,
+            self.card_clientes,
+            self.card_productos,
+        ]:
+            grid.addWidget(card)
         layout.addLayout(grid)
 
-        sep_label = QLabel("Artículos más vendidos")
-        sep_label.setStyleSheet(
-            f"color: {c['text_primary']}; font-size: 16px; font-weight: bold; margin-top: 8px; background: transparent;"
-        )
-        layout.addWidget(sep_label)
+        section_label = QLabel("Artículos más vendidos")
+        section_label.setStyleSheet(label_style("lg", "bold"))
+        layout.addWidget(section_label)
+
+        table_container = QWidget()
+        table_container.setStyleSheet(f"""
+            QWidget {{
+                {card_style()}
+            }}
+        """)
+        add_shadow(table_container, blur=16, offset_y=4, opacity=40)
+        tc_layout = QVBoxLayout(table_container)
+        tc_layout.setContentsMargins(0, 0, 0, 0)
 
         self.tabla_top = QTableWidget()
         self.tabla_top.setColumnCount(4)
@@ -123,23 +162,25 @@ class DashboardView(QWidget):
             0, QHeaderView.ResizeMode.Stretch
         )
         self.tabla_top.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.tabla_top.setMaximumHeight(220)
-        layout.addWidget(self.tabla_top)
+        self.tabla_top.setAlternatingRowColors(True)
+        self.tabla_top.verticalHeader().setVisible(False)
+        self.tabla_top.setMinimumHeight(200)
+        self.tabla_top.setStyleSheet("border: none; border-radius: 14px;")
+        tc_layout.addWidget(self.tabla_top)
+        layout.addWidget(table_container)
 
-        layout.addStretch()
+    def showEvent(self, event):
+        super().showEvent(event)
+        self._cargar_datos()
 
     def _cargar_datos(self):
         try:
             from services.venta_service import VentaService
             from services.producto_service import ProductoService
-            from services.cliente_service import ClienteService
             from models.venta import Venta
             from datetime import datetime
 
             vs = VentaService(self.session)
-            ps = ProductoService(self.session)
-            cs = ClienteService(self.session)
-
             ventas_hoy = vs.get_ventas_del_dia()
             total_hoy = sum(v.total for v in ventas_hoy if not v.anulada)
             self.card_ventas_hoy.update_value(fmt_moneda(total_hoy))
@@ -151,9 +192,16 @@ class DashboardView(QWidget):
             total_mes = sum(v.total for v in todas if not v.anulada)
             self.card_ventas_mes.update_value(fmt_moneda(total_mes))
 
-            clientes = cs.get_all_clientes()
-            self.card_clientes.update_value(str(len(clientes)))
+            try:
+                from services.cliente_service import ClienteService
 
+                cs = ClienteService(self.session)
+                clientes = cs.get_all_clientes()
+                self.card_clientes.update_value(str(len(clientes)))
+            except:
+                self.card_clientes.update_value("—")
+
+            ps = ProductoService(self.session)
             productos = ps.get_all_productos()
             self.card_productos.update_value(str(len(productos)))
 
@@ -173,18 +221,26 @@ class DashboardView(QWidget):
         for v in ventas:
             if v.anulada:
                 continue
-            for item in v.items:
+            for item in v.items if hasattr(v, "items") else []:
                 k = item.producto_id
                 conteo[k]["nombre"] = item.producto.nombre if item.producto else str(k)
                 conteo[k]["stock"] = item.producto.stock if item.producto else 0
                 conteo[k]["cantidad"] += item.cantidad
                 conteo[k]["ingresos"] += item.cantidad * item.precio
 
-        top = sorted(conteo.values(), key=lambda x: x["cantidad"], reverse=True)[:5]
+        top = sorted(conteo.values(), key=lambda x: x["cantidad"], reverse=True)[:8]
         self.tabla_top.setRowCount(len(top))
+        c = get_colors()
         for i, p in enumerate(top):
             self.tabla_top.setItem(i, 0, QTableWidgetItem(p["nombre"]))
-            self.tabla_top.setItem(i, 1, QTableWidgetItem(str(p["stock"])))
+            stock_item = QTableWidgetItem(str(p["stock"]))
+            if p["stock"] <= 0:
+                stock_item.setForeground(QColor(c["danger"]))
+            elif p["stock"] < 5:
+                stock_item.setForeground(QColor(c["warning"]))
+            else:
+                stock_item.setForeground(QColor(c["success"]))
+            self.tabla_top.setItem(i, 1, stock_item)
             self.tabla_top.setItem(i, 2, QTableWidgetItem(str(p["cantidad"])))
             self.tabla_top.setItem(i, 3, QTableWidgetItem(fmt_moneda(p["ingresos"])))
 

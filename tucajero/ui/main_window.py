@@ -217,29 +217,32 @@ class MainWindow(QMainWindow):
 
         self._nav_buttons = {}
         for icon, label, key in nav_items:
-            btn = QPushButton(f"  {icon}  {label}")
-            btn.setFixedHeight(44)
+            btn = QPushButton(f"  {icon}   {label}")
+            btn.setFixedHeight(42)
             btn.setCheckable(True)
+            btn.setCursor(Qt.CursorShape.PointingHandCursor)
             btn.setStyleSheet(f"""
                 QPushButton {{
                     background: transparent;
                     color: {c["text_secondary"]};
                     border: none;
-                    border-radius: 0;
+                    border-radius: 10px;
                     text-align: left;
-                    padding-left: 16px;
+                    padding-left: 12px;
                     font-size: 13px;
                     font-weight: normal;
+                    margin: 1px 8px;
                 }}
                 QPushButton:hover {{
-                    background-color: {c["bg_card"]};
+                    background-color: {c["bg_input"]};
                     color: {c["text_primary"]};
                 }}
                 QPushButton:checked {{
-                    background-color: {c["accent"]};
-                    color: white;
+                    background-color: {c["accent_light"]};
+                    color: {c["accent"]};
                     font-weight: bold;
-                    border-left: 3px solid white;
+                    border-left: 3px solid {c["accent"]};
+                    padding-left: 9px;
                 }}
             """)
             btn.clicked.connect(lambda checked, k=key: self.switch_view_by_name(k))
