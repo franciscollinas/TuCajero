@@ -146,6 +146,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(menu_label)
 
         nav_items = [
+            ("🖥️", "Escritorio", "dashboard"),
             ("🛒", "Ventas", "ventas"),
             ("📦", "Productos", "productos"),
             ("👥", "Clientes", "clientes"),

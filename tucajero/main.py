@@ -19,6 +19,7 @@ from ui.corte_view import CorteView
 from ui.historial_view import HistorialView
 from ui.clientes_view import ClientesView
 from ui.cotizaciones_view import CotizacionesView
+from ui.dashboard_view import DashboardView
 from ui.proveedores_view import ProveedoresView
 from models.cliente import Cliente
 from ui.activate_view import ActivationDialog
@@ -160,7 +161,10 @@ def main():
             )
         )
 
+        dashboard_view = DashboardView(session)
+        window.add_view(dashboard_view, "dashboard")
         window.add_view(ventas_view, "ventas")
+        ventas_view.sale_completed.connect(dashboard_view.refresh)
         window.add_view(productos_view, "productos")
         window.add_view(inventario_view, "inventario")
         window.add_view(corte_view, "corte")
@@ -187,6 +191,7 @@ def main():
         window.add_view(proveedores_view, "proveedores")
 
         window.set_cajero_activo(cajero_activo)
+        window.switch_view_by_name("dashboard")
 
         ventas_view.sale_completed.connect(clientes_view.cargar_clientes)
 
