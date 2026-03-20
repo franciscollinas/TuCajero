@@ -15,6 +15,7 @@ from PySide6.QtCore import Qt, QDate
 from datetime import datetime, timedelta
 import os
 from utils.formato import fmt_moneda
+from utils.theme import texto_terciario
 
 
 class HistorialView(QWidget):
@@ -111,7 +112,9 @@ class HistorialView(QWidget):
         resumen_layout.addStretch()
 
         self.lbl_resumen_datos = QLabel("Cierres: 0 | Ventas: 0")
-        self.lbl_resumen_datos.setStyleSheet("color: #bdc3c7; font-size: 14px;")
+        self.lbl_resumen_datos.setStyleSheet(
+            f"color: {texto_terciario()}; font-size: 14px;"
+        )
         resumen_layout.addWidget(self.lbl_resumen_datos)
 
         layout.addWidget(self.resumen_widget)

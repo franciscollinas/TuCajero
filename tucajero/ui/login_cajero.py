@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
     QLineEdit,
 )
 from PySide6.QtCore import Qt
+from utils.theme import texto_terciario, texto_secundario, fondo_widget
 
 
 class LoginCajeroDialog(QDialog):
@@ -38,7 +39,7 @@ class LoginCajeroDialog(QDialog):
         header_layout.addWidget(titulo)
 
         subtitulo = QLabel("Selecciona tu nombre e ingresa tu PIN")
-        subtitulo.setStyleSheet("color: #bdc3c7; font-size: 14px;")
+        subtitulo.setStyleSheet(f"color: {texto_terciario()}; font-size: 14px;")
         subtitulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         header_layout.addWidget(subtitulo)
         layout.addWidget(header)
@@ -56,7 +57,7 @@ class LoginCajeroDialog(QDialog):
 
         self.lbl_cajero_sel = QLabel("Selecciona un cajero")
         self.lbl_cajero_sel.setStyleSheet(
-            "font-size: 14px; color: #7f8c8d; padding: 8px; text-align: center;"
+            f"font-size: 14px; color: {texto_secundario()}; padding: 8px; text-align: center;"
         )
         self.lbl_cajero_sel.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.lbl_cajero_sel)

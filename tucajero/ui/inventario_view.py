@@ -15,6 +15,11 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
 from utils.formato import fmt_moneda
+from utils.theme import (
+    texto_secundario,
+    estilo_boton_secundario,
+    estilo_boton_secundario_hover,
+)
 
 
 class InventarioView(QWidget):
@@ -36,7 +41,7 @@ class InventarioView(QWidget):
         layout.addWidget(titulo)
 
         info_label = QLabel("Seleccione un producto y elija Entrada o Salida")
-        info_label.setStyleSheet("color: #7f8c8d; padding-bottom: 10px;")
+        info_label.setStyleSheet(f"color: {texto_secundario()}; padding-bottom: 10px;")
         layout.addWidget(info_label)
 
         self.banner_stock = QWidget()
@@ -289,9 +294,7 @@ class MovimientoDialog(QDialog):
         btn_layout.addWidget(btn_aceptar)
 
         btn_cancelar = QPushButton("Cancelar")
-        btn_cancelar.setStyleSheet(
-            "background-color: #95a5a6; color: white; padding: 12px;"
-        )
+        btn_cancelar.setStyleSheet(estilo_boton_secundario())
         btn_cancelar.clicked.connect(self.reject)
         btn_layout.addWidget(btn_cancelar)
 

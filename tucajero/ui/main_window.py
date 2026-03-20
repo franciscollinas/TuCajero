@@ -18,6 +18,7 @@ from utils.store_config import (
     get_email,
     get_address,
 )
+from utils.theme import texto_secundario, texto_terciario
 import os
 
 
@@ -109,12 +110,12 @@ class MainWindow(QMainWindow):
             contact_parts.append(email)
         if contact_parts:
             contact_label = QLabel("  |  ".join(contact_parts))
-            contact_label.setStyleSheet("color: #bdc3c7; font-size: 11px;")
+            contact_label.setStyleSheet(f"color: {texto_terciario()}; font-size: 11px;")
             info_layout.addWidget(contact_label)
 
         if address:
             addr_label = QLabel(address)
-            addr_label.setStyleSheet("color: #95a5a6; font-size: 11px;")
+            addr_label.setStyleSheet(f"color: {texto_terciario()}; font-size: 11px;")
             info_layout.addWidget(addr_label)
 
         layout.addLayout(info_layout, 1)
@@ -173,24 +174,26 @@ class MainWindow(QMainWindow):
 
         btn_acerca = QPushButton("Acerca de")
         btn_acerca.setFixedHeight(40)
-        btn_acerca.setStyleSheet("""
-            QPushButton {
+        btn_acerca.setStyleSheet(f"""
+            QPushButton {{
                 background-color: #34495e;
-                color: #95a5a6;
+                color: {texto_terciario()};
                 border: none;
                 padding: 8px;
                 font-size: 12px;
-            }
-            QPushButton:hover {
+            }}
+            QPushButton:hover {{
                 background-color: #3498db;
                 color: white;
-            }
+            }}
         """)
         btn_acerca.clicked.connect(self.mostrar_acerca)
         layout.addWidget(btn_acerca)
 
         copyright_label = QLabel("© Ing. Francisco Llinas P.")
-        copyright_label.setStyleSheet("color: #7f8c8d; font-size: 10px; padding: 10px;")
+        copyright_label.setStyleSheet(
+            f"color: {texto_secundario()}; font-size: 10px; padding: 10px;"
+        )
         copyright_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(copyright_label)
 

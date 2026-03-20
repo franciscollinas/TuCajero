@@ -17,6 +17,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QColor
 from utils.formato import fmt_moneda
+from utils.theme import texto_secundario
 
 COLORES_CATEGORIA = [
     "#3498db",
@@ -76,7 +77,7 @@ class BuscadorProductosDialog(QDialog):
 
         self.lbl_resultados = QLabel("Mostrando todos los productos")
         self.lbl_resultados.setStyleSheet(
-            "color: #7f8c8d; font-size: 12px; padding: 2px;"
+            f"color: {texto_secundario()}; font-size: 12px; padding: 2px;"
         )
         tab_resultados_layout.addWidget(self.lbl_resultados)
 
@@ -149,7 +150,7 @@ class BuscadorProductosDialog(QDialog):
                 color: white;
                 padding: 10px 20px;
             }
-            QPushButton:hover { background-color: #7f8c8d; }
+            QPushButton:hover { background-color: #6a7a8a; }
         """)
         btn_cancelar.clicked.connect(self.reject)
         btn_layout.addWidget(btn_cancelar)

@@ -20,6 +20,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 import os
 from utils.formato import fmt_moneda
+from utils.theme import texto_secundario, texto_terciario, estilo_boton_secundario
 
 
 class ProductosView(QWidget):
@@ -80,7 +81,7 @@ class ProductosView(QWidget):
 
         btn_plantilla = QPushButton("⬇ Descargar plantilla Excel")
         btn_plantilla.setStyleSheet(
-            "background-color: #7f8c8d; color: white; padding: 10px;"
+            f"background-color: #5a6a7a; color: white; padding: 10px;"
         )
         btn_plantilla.setToolTip(
             "Descarga una plantilla Excel con el formato correcto\n"
@@ -296,7 +297,7 @@ class ProductoDialog(QDialog):
         layout.addRow("Stock mínimo:", self.stock_min_input)
 
         separador = QLabel("── Fraccionamiento ──")
-        separador.setStyleSheet("color: #7f8c8d; font-size: 11px;")
+        separador.setStyleSheet(f"color: {texto_secundario()}; font-size: 11px;")
         layout.addRow("", separador)
 
         self.chk_fraccionable = QCheckBox("¿Este producto se vende por unidades?")
@@ -356,9 +357,7 @@ class ProductoDialog(QDialog):
         btn_layout.addWidget(btn_guardar)
 
         btn_cancelar = QPushButton("Cancelar")
-        btn_cancelar.setStyleSheet(
-            "background-color: #95a5a6; color: white; padding: 10px;"
-        )
+        btn_cancelar.setStyleSheet(estilo_boton_secundario())
         btn_cancelar.clicked.connect(self.reject)
         btn_layout.addWidget(btn_cancelar)
 

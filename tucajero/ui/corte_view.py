@@ -17,6 +17,12 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 from datetime import datetime
 from utils.formato import fmt_moneda
+from utils.theme import (
+    texto_secundario,
+    texto_terciario,
+    estilo_boton_secundario,
+    estilo_boton_secundario_hover,
+)
 
 
 class CorteView(QWidget):
@@ -168,15 +174,15 @@ class CorteView(QWidget):
         self.btn_reimprimir.setFixedHeight(32)
         self.btn_reimprimir.setMinimumWidth(160)
         self.btn_reimprimir.setMaximumWidth(280)
-        self.btn_reimprimir.setStyleSheet("""
-            QPushButton {
-                background-color: #7f8c8d;
+        self.btn_reimprimir.setStyleSheet(f"""
+            QPushButton {{
+                background-color: #5a6a7a;
                 color: white;
                 font-size: 13px;
                 font-weight: bold;
                 padding: 6px 12px;
-            }
-            QPushButton:hover { background-color: #95a5a6; }
+            }}
+            QPushButton:hover {{ background-color: {estilo_boton_secundario_hover()}; }}
         """)
         self.btn_reimprimir.clicked.connect(self.reimprimir_ultimo)
         fila2.addWidget(self.btn_reimprimir)
@@ -303,7 +309,7 @@ class CorteView(QWidget):
         dialog.setLayout(layout)
 
         info = QLabel("El monto será descontado de la ganancia del día.")
-        info.setStyleSheet("color: #7f8c8d; font-size: 12px;")
+        info.setStyleSheet(f"color: {texto_secundario()}; font-size: 12px;")
         layout.addRow("", info)
 
         concepto_input = QLineEdit()

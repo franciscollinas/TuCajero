@@ -17,6 +17,7 @@ from security.license_manager import (
     validar_licencia,
 )
 from utils.store_config import get_store_name
+from utils.theme import texto_secundario, texto_terciario, fondo_widget, fondo_input
 
 
 class ActivateView(QWidget):
@@ -41,7 +42,7 @@ class ActivateView(QWidget):
         layout.addWidget(titulo)
 
         subtitulo = QLabel("Ingrese su licencia para activar el sistema")
-        subtitulo.setStyleSheet("color: #7f8c8d; padding-bottom: 20px;")
+        subtitulo.setStyleSheet(f"color: {texto_secundario()}; padding-bottom: 20px;")
         subtitulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(subtitulo)
 
@@ -52,7 +53,7 @@ class ActivateView(QWidget):
 
         self.machine_id_display = QLabel(machine_id)
         self.machine_id_display.setStyleSheet(
-            "background-color: #ecf0f1; padding: 10px; font-family: monospace; font-size: 14px;"
+            f"background-color: {fondo_widget()}; padding: 10px; font-family: monospace; font-size: 14px;"
         )
         self.machine_id_display.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.machine_id_display)
@@ -60,7 +61,9 @@ class ActivateView(QWidget):
         info_label = QLabel(
             "Envía tu Machine ID al administrador\npara recibir tu licencia de activación."
         )
-        info_label.setStyleSheet("color: #7f8c8d; font-size: 12px; padding: 8px;")
+        info_label.setStyleSheet(
+            f"color: {texto_secundario()}; font-size: 12px; padding: 8px;"
+        )
         info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(info_label)
 
@@ -120,7 +123,7 @@ class ActivateView(QWidget):
 
 
 class ActivationDialog(QDialog):
-    """Diálogo de activación"""
+    """Diálogo de activación con tema adaptativo"""
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -140,7 +143,7 @@ class ActivationDialog(QDialog):
 
         subtitulo = QLabel("Ingrese su licencia para activar el sistema")
         subtitulo.setStyleSheet(
-            "color: #cccccc; font-size: 12px; padding-bottom: 10px;"
+            f"color: {texto_terciario()}; font-size: 12px; padding-bottom: 10px;"
         )
         subtitulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(subtitulo)
@@ -149,7 +152,7 @@ class ActivationDialog(QDialog):
 
         machine_label = QLabel("Machine ID de esta computadora:")
         machine_label.setStyleSheet(
-            "font-weight: bold; color: #cccccc; margin-top: 10px;"
+            f"font-weight: bold; color: {texto_terciario()}; margin-top: 10px;"
         )
         layout.addWidget(machine_label)
 
@@ -159,13 +162,14 @@ class ActivationDialog(QDialog):
         self.txt_machine_id.setReadOnly(True)
         self.txt_machine_id.setStyleSheet("""
             QLineEdit {
-                background-color: #2c2c2c;
-                color: #ffffff;
-                border: 1px solid #555555;
+                background-color: #f0f0f0;
+                color: #1a1a1a;
+                border: 1px solid #999999;
                 border-radius: 4px;
                 padding: 8px;
                 font-family: monospace;
                 font-size: 13px;
+                font-weight: bold;
             }
         """)
         machine_layout.addWidget(self.txt_machine_id)
@@ -195,23 +199,25 @@ class ActivationDialog(QDialog):
         info_label = QLabel(
             "Envía tu Machine ID al administrador\npara recibir tu licencia de activación."
         )
-        info_label.setStyleSheet("color: #cccccc; font-size: 12px; padding: 8px;")
+        info_label.setStyleSheet(
+            f"color: {texto_terciario()}; font-size: 12px; padding: 8px;"
+        )
         info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(info_label)
 
         self.licencia_input = QLineEdit()
-        self.licencia_input.setPlaceholderText("Ingrese su licencia de 16 caracteres")
+        self.licencia_input.setPlaceholderText("Licencia de 16 caracteres")
         self.licencia_input.setStyleSheet("""
             QLineEdit {
-                background-color: #1e1e1e;
-                color: #ffffff;
-                border: 1px solid #0078d4;
+                background-color: #ffffff;
+                color: #1a1a1a;
+                border: 2px solid #0078d4;
                 border-radius: 4px;
                 padding: 8px;
                 font-size: 13px;
             }
             QLineEdit:focus {
-                border: 1px solid #4a9eff;
+                border: 2px solid #005a9e;
             }
         """)
         self.licencia_input.setMaxLength(16)

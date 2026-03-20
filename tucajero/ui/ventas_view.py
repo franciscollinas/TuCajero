@@ -19,6 +19,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, Signal
 from utils.formato import fmt_moneda
+from utils.theme import texto_secundario, texto_terciario, fondo_widget
 
 IVA_RATE = 0.19
 
@@ -56,7 +57,7 @@ class PaymentDialog(QDialog):
         layout.addWidget(store_name_label)
 
         total_label = QLabel("TOTAL A PAGAR")
-        total_label.setStyleSheet("font-size: 14px; color: #7f8c8d;")
+        total_label.setStyleSheet(f"font-size: 14px; color: {texto_secundario()};")
         total_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(total_label)
 
@@ -218,12 +219,12 @@ class VentasView(QWidget):
 
         if address:
             addr_label = QLabel(address)
-            addr_label.setStyleSheet("font-size: 12px; color: #bdc3c7;")
+            addr_label.setStyleSheet(f"font-size: 12px; color: {texto_terciario()};")
             header_layout.addWidget(addr_label)
 
         if phone:
             phone_label = QLabel(f"Tel: {phone}")
-            phone_label.setStyleSheet("font-size: 12px; color: #bdc3c7;")
+            phone_label.setStyleSheet(f"font-size: 12px; color: {texto_terciario()};")
             header_layout.addWidget(phone_label)
 
         layout.addWidget(header_widget)
@@ -322,7 +323,9 @@ class VentasView(QWidget):
         resumen_layout = QVBoxLayout()
 
         self.lbl_subtotal = QLabel(f"Subtotal: {fmt_moneda(0)}")
-        self.lbl_subtotal.setStyleSheet("font-size: 16px; color: #7f8c8d;")
+        self.lbl_subtotal.setStyleSheet(
+            f"font-size: 16px; color: {texto_secundario()};"
+        )
         self.lbl_subtotal.setAlignment(Qt.AlignmentFlag.AlignRight)
         resumen_layout.addWidget(self.lbl_subtotal)
 
@@ -335,7 +338,7 @@ class VentasView(QWidget):
         resumen_layout.addWidget(self.lbl_descuento)
 
         self.lbl_iva = QLabel(f"IVA (19%): {fmt_moneda(0)}")
-        self.lbl_iva.setStyleSheet("font-size: 16px; color: #7f8c8d;")
+        self.lbl_iva.setStyleSheet(f"font-size: 16px; color: {texto_secundario()};")
         self.lbl_iva.setAlignment(Qt.AlignmentFlag.AlignRight)
         resumen_layout.addWidget(self.lbl_iva)
 
@@ -484,7 +487,9 @@ class VentasView(QWidget):
     def quitar_cliente(self):
         self.cliente_seleccionado = None
         self.lbl_cliente.setText("👤 Sin cliente")
-        self.lbl_cliente.setStyleSheet("font-size:13px;color:#7f8c8d;padding:4px;")
+        self.lbl_cliente.setStyleSheet(
+            f"font-size:13px;color:{texto_secundario()};padding:4px;"
+        )
         self.btn_quitar_cliente.setVisible(False)
 
     def mostrar_buscador_productos(self, productos):

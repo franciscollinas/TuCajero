@@ -26,6 +26,7 @@ from utils.store_config import (
     get_nit,
     get_logo_path,
 )
+from utils.theme import texto_terciario, texto_secundario, fondo_widget
 
 
 class SetupDialog(QDialog):
@@ -56,7 +57,7 @@ class SetupDialog(QDialog):
         header_layout.addWidget(title)
 
         subtitle = QLabel("Configura tu negocio para comenzar")
-        subtitle.setStyleSheet("color: #bdc3c7; font-size: 14px;")
+        subtitle.setStyleSheet(f"color: {texto_terciario()}; font-size: 14px;")
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
         header_layout.addWidget(subtitle)
 
@@ -166,7 +167,7 @@ class SetupDialog(QDialog):
         footer_layout.setSpacing(8)
 
         nota = QLabel("* Campo requerido")
-        nota.setStyleSheet("color: #95a5a6; font-size: 11px;")
+        nota.setStyleSheet(f"color: {texto_secundario()}; font-size: 11px;")
         footer_layout.addWidget(nota)
 
         self.btn_comenzar = QPushButton("COMENZAR")

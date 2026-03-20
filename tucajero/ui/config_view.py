@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap
+from utils.theme import texto_secundario, texto_terciario, estilo_boton_secundario
 
 
 class ConfigNegocioDialog(QDialog):
@@ -108,7 +109,9 @@ class ConfigNegocioDialog(QDialog):
         logo_btn_layout.addWidget(btn_seleccionar_logo)
 
         self.lbl_logo_path = QLabel("Ningún archivo seleccionado")
-        self.lbl_logo_path.setStyleSheet("color: #7f8c8d; font-size: 11px;")
+        self.lbl_logo_path.setStyleSheet(
+            f"color: {texto_secundario()}; font-size: 11px;"
+        )
         self.lbl_logo_path.setWordWrap(True)
         logo_btn_layout.addWidget(self.lbl_logo_path)
         logo_btn_layout.addStretch()
@@ -142,9 +145,7 @@ class ConfigNegocioDialog(QDialog):
 
         if not self.primera_vez:
             btn_cancelar = QPushButton("Cancelar")
-            btn_cancelar.setStyleSheet(
-                "background-color: #95a5a6; color: white; padding: 12px 24px;"
-            )
+            btn_cancelar.setStyleSheet(estilo_boton_secundario())
             btn_cancelar.clicked.connect(self.reject)
             btn_layout.addWidget(btn_cancelar)
 
