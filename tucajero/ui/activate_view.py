@@ -17,7 +17,6 @@ from security.license_manager import (
     validar_licencia,
 )
 from utils.store_config import get_store_name
-from utils.theme import texto_secundario, texto_terciario, fondo_widget, fondo_input
 
 
 class ActivateView(QWidget):
@@ -42,7 +41,7 @@ class ActivateView(QWidget):
         layout.addWidget(titulo)
 
         subtitulo = QLabel("Ingrese su licencia para activar el sistema")
-        subtitulo.setStyleSheet(f"color: {texto_secundario()}; padding-bottom: 20px;")
+        subtitulo.setObjectName("subtitulo")
         subtitulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(subtitulo)
 
@@ -52,18 +51,14 @@ class ActivateView(QWidget):
         layout.addWidget(machine_label)
 
         self.machine_id_display = QLabel(machine_id)
-        self.machine_id_display.setStyleSheet(
-            f"background-color: {fondo_widget()}; padding: 10px; font-family: monospace; font-size: 14px;"
-        )
+        self.machine_id_display.setObjectName("machine_id_display")
         self.machine_id_display.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.machine_id_display)
 
         info_label = QLabel(
             "Envía tu Machine ID al administrador\npara recibir tu licencia de activación."
         )
-        info_label.setStyleSheet(
-            f"color: {texto_secundario()}; font-size: 12px; padding: 8px;"
-        )
+        info_label.setObjectName("info_label")
         info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(info_label)
 
@@ -142,18 +137,14 @@ class ActivationDialog(QDialog):
         layout.addWidget(titulo)
 
         subtitulo = QLabel("Ingrese su licencia para activar el sistema")
-        subtitulo.setStyleSheet(
-            f"color: {texto_terciario()}; font-size: 12px; padding-bottom: 10px;"
-        )
+        subtitulo.setObjectName("subtitulo")
         subtitulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(subtitulo)
 
         machine_id = get_machine_id()
 
         machine_label = QLabel("Machine ID de esta computadora:")
-        machine_label.setStyleSheet(
-            f"font-weight: bold; color: {texto_terciario()}; margin-top: 10px;"
-        )
+        machine_label.setObjectName("machine_label")
         layout.addWidget(machine_label)
 
         machine_layout = QHBoxLayout()
@@ -199,9 +190,7 @@ class ActivationDialog(QDialog):
         info_label = QLabel(
             "Envía tu Machine ID al administrador\npara recibir tu licencia de activación."
         )
-        info_label.setStyleSheet(
-            f"color: {texto_terciario()}; font-size: 12px; padding: 8px;"
-        )
+        info_label.setObjectName("info_label")
         info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(info_label)
 

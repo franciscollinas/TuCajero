@@ -10,7 +10,6 @@ from PySide6.QtWidgets import (
     QHeaderView,
 )
 from PySide6.QtCore import Qt
-from utils.theme import texto_secundario
 
 
 class CajerosView(QWidget):
@@ -32,9 +31,7 @@ class CajerosView(QWidget):
             "Administra los cajeros que pueden usar el sistema. "
             "Solo el administrador puede ver esta sección."
         )
-        info.setStyleSheet(
-            f"color: {texto_secundario()}; font-size: 13px; padding-bottom: 10px;"
-        )
+        info.setStyleSheet("")
         info.setWordWrap(True)
         layout.addWidget(info)
 

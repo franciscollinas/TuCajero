@@ -25,6 +25,7 @@ from ui.activate_view import ActivationDialog
 from security.license_manager import validar_licencia, crear_license_default
 from utils.store_config import load_store_config, is_setup_complete
 from ui.setup_view import SetupDialog
+from utils.theme import get_stylesheet
 
 
 def configurar_logging():
@@ -70,6 +71,7 @@ def main():
     if not validar_licencia():
         app = QApplication(sys.argv)
         app.setStyle("Fusion")
+        app.setStyleSheet(get_stylesheet())
         app.setWindowIcon(QIcon(ICON_PATH))
 
         while True:
@@ -86,6 +88,7 @@ def main():
     else:
         app = QApplication(sys.argv)
         app.setStyle("Fusion")
+        app.setStyleSheet(get_stylesheet())
         app.setWindowIcon(QIcon(ICON_PATH))
 
     if not is_setup_complete():

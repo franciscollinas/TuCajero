@@ -15,11 +15,6 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
 from utils.formato import fmt_moneda
-from utils.theme import (
-    texto_secundario,
-    estilo_boton_secundario,
-    estilo_boton_secundario_hover,
-)
 
 
 class InventarioView(QWidget):
@@ -41,7 +36,7 @@ class InventarioView(QWidget):
         layout.addWidget(titulo)
 
         info_label = QLabel("Seleccione un producto y elija Entrada o Salida")
-        info_label.setStyleSheet(f"color: {texto_secundario()}; padding-bottom: 10px;")
+        info_label.setObjectName("info_label")
         layout.addWidget(info_label)
 
         self.banner_stock = QWidget()

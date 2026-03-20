@@ -20,7 +20,6 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 import os
 from utils.formato import fmt_moneda
-from utils.theme import texto_secundario, texto_terciario, estilo_boton_secundario
 
 
 class ProductosView(QWidget):
@@ -297,7 +296,7 @@ class ProductoDialog(QDialog):
         layout.addRow("Stock mínimo:", self.stock_min_input)
 
         separador = QLabel("── Fraccionamiento ──")
-        separador.setStyleSheet(f"color: {texto_secundario()}; font-size: 11px;")
+        separador.setObjectName("separador")
         layout.addRow("", separador)
 
         self.chk_fraccionable = QCheckBox("¿Este producto se vende por unidades?")
@@ -357,7 +356,7 @@ class ProductoDialog(QDialog):
         btn_layout.addWidget(btn_guardar)
 
         btn_cancelar = QPushButton("Cancelar")
-        btn_cancelar.setStyleSheet(estilo_boton_secundario())
+        btn_cancelar.setObjectName("btn_cancelar")
         btn_cancelar.clicked.connect(self.reject)
         btn_layout.addWidget(btn_cancelar)
 

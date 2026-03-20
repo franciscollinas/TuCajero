@@ -1,7 +1,6 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QDialog
 from PySide6.QtCore import Qt
 from utils.store_config import get_store_name, get_address, get_phone, get_nit
-from utils.theme import texto_secundario, texto_terciario
 
 
 class AboutView(QDialog):
@@ -26,7 +25,7 @@ class AboutView(QDialog):
         layout.addWidget(titulo)
 
         descripcion = QLabel("Sistema de ventas para pequeños negocios")
-        descripcion.setStyleSheet(f"font-size: 14px; color: {texto_secundario()};")
+        descripcion.setObjectName("descripcion")
         descripcion.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(descripcion)
 
@@ -40,21 +39,21 @@ class AboutView(QDialog):
         address = get_address()
         if address:
             addr_label = QLabel(address)
-            addr_label.setStyleSheet(f"font-size: 12px; color: {texto_terciario()};")
+            addr_label.setObjectName("addr_label")
             addr_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             layout.addWidget(addr_label)
 
         phone = get_phone()
         if phone:
             phone_label = QLabel(f"Tel: {phone}")
-            phone_label.setStyleSheet(f"font-size: 12px; color: {texto_terciario()};")
+            phone_label.setObjectName("phone_label")
             phone_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             layout.addWidget(phone_label)
 
         nit = get_nit()
         if nit:
             nit_label = QLabel(f"NIT: {nit}")
-            nit_label.setStyleSheet(f"font-size: 12px; color: {texto_terciario()};")
+            nit_label.setObjectName("nit_label")
             nit_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             layout.addWidget(nit_label)
 
@@ -63,7 +62,7 @@ class AboutView(QDialog):
         layout.addWidget(separator)
 
         desarrollado = QLabel("Desarrollado por:")
-        desarrollado.setStyleSheet(f"font-size: 12px; color: {texto_terciario()};")
+        desarrollado.setObjectName("desarrollado")
         desarrollado.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(desarrollado)
 

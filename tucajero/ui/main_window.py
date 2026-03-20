@@ -7,6 +7,7 @@ from PySide6.QtWidgets import (
     QStackedWidget,
     QLabel,
     QSizePolicy,
+    QFrame,
 )
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon, QPixmap
@@ -18,8 +19,6 @@ from utils.store_config import (
     get_email,
     get_address,
 )
-from utils.theme import texto_secundario, texto_terciario
-import os
 
 
 class MainWindow(QMainWindow):
@@ -40,14 +39,14 @@ class MainWindow(QMainWindow):
         main_layout = QHBoxLayout()
         central_widget.setLayout(main_layout)
 
-        self.sidebar = self.crear_sidebar()
+        self.sidebar = self._build_sidebar()
         main_layout.addWidget(self.sidebar)
 
         content_area = QWidget()
         content_layout = QVBoxLayout()
         content_area.setLayout(content_layout)
 
-        header = self.crear_header()
+        header = self._build_header()
         content_layout.addWidget(header)
 
         self.content_stack = QStackedWidget()
@@ -55,136 +54,166 @@ class MainWindow(QMainWindow):
 
         main_layout.addWidget(content_area, 1)
 
-    def crear_header(self):
-        """Crea el encabezado con logo, nombre e info de tienda"""
+        self._views = {}
+        self._nav_buttons = {}
+
+    def _build_header(self):
+        from utils.theme import get_colors
+
+        c = get_colors()
         header = QWidget()
-        header.setStyleSheet("background-color: #2c3e50;")
-        header.setMinimumHeight(70)
-        header.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        header.setFixedHeight(70)
+        header.setStyleSheet(
+            f"background-color: {c['bg_card']}; border-bottom: 1px solid {c['border']};"
+        )
+        layout = QHBoxLayout(header)
+        layout.setContentsMargins(24, 0, 24, 0)
 
-        layout = QHBoxLayout()
-        header.setLayout(layout)
-
-        logo_path = get_logo_path()
-        if logo_path and os.path.exists(logo_path):
-            logo_label = QLabel()
-            pixmap = QPixmap(logo_path)
-            if not pixmap.isNull():
-                scaled_pixmap = pixmap.scaled(
-                    60,
-                    60,
-                    Qt.AspectRatioMode.KeepAspectRatio,
-                    Qt.TransformationMode.SmoothTransformation,
-                )
-                logo_label.setPixmap(scaled_pixmap)
-                logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-                layout.addWidget(logo_label, 0)
-
-        store_name = get_store_name()
-        nit = get_nit()
-        phone = get_phone()
-        email = get_email()
-        address = get_address()
+        logo_label = QLabel("🏪")
+        logo_label.setFixedSize(44, 44)
+        logo_label.setStyleSheet(
+            f"border-radius: 22px; background: {c['accent']}; color: white; font-size: 20px;"
+        )
+        logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(logo_label)
 
         info_layout = QVBoxLayout()
         info_layout.setSpacing(2)
+        self.lbl_store_name = QLabel(get_store_name())
+        self.lbl_store_name.setStyleSheet(
+            f"color: {c['text_primary']}; font-size: 16px; font-weight: bold;"
+        )
+        info_layout.addWidget(self.lbl_store_name)
 
-        title_label = QLabel(f"TuCajero POS")
-        title_label.setStyleSheet("color: white; font-size: 20px; font-weight: bold;")
-        info_layout.addWidget(title_label)
+        parts = []
+        if get_nit():
+            parts.append(f"NIT: {get_nit()}")
+        if get_phone():
+            parts.append(f"Tel: {get_phone()}")
+        if get_address():
+            parts.append(get_address())
+        if parts:
+            sub = QLabel("  |  ".join(parts))
+            sub.setStyleSheet(f"color: {c['text_secondary']}; font-size: 11px;")
+            info_layout.addWidget(sub)
 
-        if store_name:
-            store_label = QLabel(store_name)
-            store_label.setWordWrap(True)
-            store_label.setStyleSheet(
-                "color: #3498db; font-size: 13px; font-weight: bold;"
-            )
-            info_layout.addWidget(store_label)
-
-        contact_parts = []
-        if nit:
-            contact_parts.append(f"NIT: {nit}")
-        if phone:
-            contact_parts.append(f"Tel: {phone}")
-        if email:
-            contact_parts.append(email)
-        if contact_parts:
-            contact_label = QLabel("  |  ".join(contact_parts))
-            contact_label.setStyleSheet(f"color: {texto_terciario()}; font-size: 11px;")
-            info_layout.addWidget(contact_label)
-
-        if address:
-            addr_label = QLabel(address)
-            addr_label.setStyleSheet(f"color: {texto_terciario()}; font-size: 11px;")
-            info_layout.addWidget(addr_label)
-
-        layout.addLayout(info_layout, 1)
-
+        layout.addLayout(info_layout)
+        layout.addStretch()
         return header
 
-    def crear_sidebar(self):
-        """Crea el menú lateral"""
+    def _build_sidebar(self):
+        from utils.theme import get_colors
+
+        c = get_colors()
+
         sidebar = QWidget()
-        layout = QVBoxLayout()
-        sidebar.setLayout(layout)
         sidebar.setFixedWidth(200)
-        sidebar.setStyleSheet("background-color: #34495e;")
+        sidebar.setStyleSheet(f"""
+            QWidget {{
+                background-color: {c["bg_sidebar"]};
+                border-right: 1px solid {c["border"]};
+            }}
+        """)
+        layout = QVBoxLayout(sidebar)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
 
-        title = QLabel("TuCajero")
-        title.setStyleSheet(
-            "color: white; font-size: 20px; font-weight: bold; padding: 15px;"
+        header = QWidget()
+        header.setFixedHeight(70)
+        header.setStyleSheet(f"background-color: {c['bg_sidebar']};")
+        h_layout = QHBoxLayout(header)
+        h_layout.setContentsMargins(16, 0, 16, 0)
+        logo_label = QLabel("🏪")
+        logo_label.setStyleSheet("font-size: 24px;")
+        app_name = QLabel("TuCajero")
+        app_name.setStyleSheet(
+            f"color: {c['text_primary']}; font-size: 18px; font-weight: bold;"
         )
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(title)
+        h_layout.addWidget(logo_label)
+        h_layout.addWidget(app_name)
+        h_layout.addStretch()
+        layout.addWidget(header)
 
-        self.btn_ventas = self.crear_boton("Ventas", self.switch_to_ventas)
-        self.btn_productos = self.crear_boton("Productos", self.switch_to_productos)
-        self.btn_clientes = self.crear_boton("Clientes", self.switch_to_clientes)
-        self.btn_inventario = self.crear_boton("Inventario", self.switch_to_inventario)
-        self.btn_cotizaciones = self.crear_boton(
-            "Cotizaciones", self.switch_to_cotizaciones
+        sep = QFrame()
+        sep.setFrameShape(QFrame.Shape.HLine)
+        sep.setStyleSheet(f"color: {c['border']}; background: {c['border']};")
+        layout.addWidget(sep)
+
+        menu_label = QLabel("  MENÚ")
+        menu_label.setStyleSheet(
+            f"color: {c['text_muted']}; font-size: 10px; font-weight: bold; padding: 16px 16px 4px 16px;"
         )
-        self.btn_corte = self.crear_boton("Corte de Caja", self.switch_to_corte)
-        self.btn_historial = self.crear_boton("Historial", self.switch_to_historial)
-        self.btn_config = self.crear_boton("Config", self.switch_to_config)
-        self.btn_proveedores = self.crear_boton(
-            "🏭 Proveedores", self.switch_to_proveedores
-        )
+        layout.addWidget(menu_label)
 
-        layout.addWidget(self.btn_ventas)
-        layout.addWidget(self.btn_productos)
-        layout.addWidget(self.btn_clientes)
-        layout.addWidget(self.btn_inventario)
-        layout.addWidget(self.btn_cotizaciones)
-        layout.addWidget(self.btn_corte)
-        layout.addWidget(self.btn_historial)
-        layout.addWidget(self.btn_config)
-        layout.addWidget(self.btn_proveedores)
+        nav_items = [
+            ("🛒", "Ventas", "ventas"),
+            ("📦", "Productos", "productos"),
+            ("👥", "Clientes", "clientes"),
+            ("📊", "Inventario", "inventario"),
+            ("📋", "Cotizaciones", "cotizaciones"),
+            ("💰", "Corte de Caja", "corte"),
+            ("📈", "Historial", "historial"),
+            ("⚙️", "Config", "config"),
+            ("🏭", "Proveedores", "proveedores"),
+        ]
 
-        self._views = {}
+        self._nav_buttons = {}
+        for icon, label, key in nav_items:
+            btn = QPushButton(f"  {icon}  {label}")
+            btn.setFixedHeight(44)
+            btn.setCheckable(True)
+            btn.setStyleSheet(f"""
+                QPushButton {{
+                    background: transparent;
+                    color: {c["text_secondary"]};
+                    border: none;
+                    border-radius: 0;
+                    text-align: left;
+                    padding-left: 16px;
+                    font-size: 13px;
+                    font-weight: normal;
+                }}
+                QPushButton:hover {{
+                    background-color: {c["bg_card"]};
+                    color: {c["text_primary"]};
+                }}
+                QPushButton:checked {{
+                    background-color: {c["accent"]};
+                    color: white;
+                    font-weight: bold;
+                    border-left: 3px solid white;
+                }}
+            """)
+            btn.clicked.connect(lambda checked, k=key: self.switch_view_by_name(k))
+            self._nav_buttons[key] = btn
+            layout.addWidget(btn)
 
         layout.addStretch()
 
-        self.lbl_cajero = QLabel("")
+        sep2 = QFrame()
+        sep2.setFrameShape(QFrame.Shape.HLine)
+        sep2.setStyleSheet(f"color: {c['border']}; background: {c['border']};")
+        layout.addWidget(sep2)
+
+        self.lbl_cajero = QLabel("👑 Administrador")
         self.lbl_cajero.setStyleSheet(
-            "color: #3498db; font-size: 11px; padding: 5px; text-align: center;"
+            f"color: {c['success']}; font-size: 12px; padding: 8px 16px;"
         )
-        self.lbl_cajero.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.lbl_cajero)
 
-        btn_acerca = QPushButton("Acerca de")
-        btn_acerca.setFixedHeight(40)
+        btn_acerca = QPushButton("  ℹ️  Acerca de")
+        btn_acerca.setFixedHeight(36)
         btn_acerca.setStyleSheet(f"""
             QPushButton {{
-                background-color: #34495e;
-                color: {texto_terciario()};
+                background: transparent;
+                color: {c["text_muted"]};
                 border: none;
-                padding: 8px;
+                text-align: left;
+                padding-left: 16px;
                 font-size: 12px;
             }}
             QPushButton:hover {{
-                background-color: #3498db;
-                color: white;
+                color: {c["text_secondary"]};
             }}
         """)
         btn_acerca.clicked.connect(self.mostrar_acerca)
@@ -192,9 +221,8 @@ class MainWindow(QMainWindow):
 
         copyright_label = QLabel("© Ing. Francisco Llinas P.")
         copyright_label.setStyleSheet(
-            f"color: {texto_secundario()}; font-size: 10px; padding: 10px;"
+            f"color: {c['text_muted']}; font-size: 10px; padding: 4px 16px 12px 16px;"
         )
-        copyright_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(copyright_label)
 
         return sidebar
@@ -206,26 +234,6 @@ class MainWindow(QMainWindow):
         dialog = AboutView(self)
         dialog.exec()
 
-    def crear_boton(self, texto, callback):
-        """Crea un botón del menú"""
-        btn = QPushButton(texto)
-        btn.setFixedHeight(50)
-        btn.setStyleSheet("""
-            QPushButton {
-                background-color: #34495e;
-                color: white;
-                border: none;
-                padding: 10px;
-                font-size: 14px;
-                text-align: left;
-            }
-            QPushButton:hover {
-                background-color: #3498db;
-            }
-        """)
-        btn.clicked.connect(callback)
-        return btn
-
     def add_view(self, widget, name):
         """Agrega una vista al stack"""
         self.content_stack.addWidget(widget)
@@ -233,9 +241,11 @@ class MainWindow(QMainWindow):
         return self.content_stack.count() - 1
 
     def switch_view_by_name(self, name):
-        """Cambia a una vista por nombre"""
+        """Cambia a una vista por nombre y actualiza navegación"""
         if name in self._views:
             self.content_stack.setCurrentWidget(self._views[name])
+        for key, btn in self._nav_buttons.items():
+            btn.setChecked(key == name)
 
     def switch_view(self, index):
         """Cambia a una vista específica"""
@@ -276,22 +286,16 @@ class MainWindow(QMainWindow):
         self.lbl_cajero.setText(f"{icono} {cajero.nombre}")
 
     def actualizar_badge_inventario(self, num_alertas):
-        """Muestra un badge rojo con el número de alertas en el botón Inventario"""
-        if num_alertas > 0:
-            self.btn_inventario.setText(f"Inventario  🔴{num_alertas}")
-            self.btn_inventario.setStyleSheet("""
-                QPushButton {
-                    background-color: #34495e;
-                    color: white;
-                    border: none;
-                    padding: 10px;
-                    font-size: 14px;
-                    text-align: left;
-                }
-                QPushButton:hover { background-color: #3498db; }
-            """)
-        else:
-            self.btn_inventario.setText("Inventario")
+        """Actualiza el botón de Inventario con badge de alertas"""
+        from utils.theme import get_colors
+
+        c = get_colors()
+        btn = self._nav_buttons.get("inventario")
+        if btn:
+            if num_alertas > 0:
+                btn.setText(f"  📊  Inventario  🔴{num_alertas}")
+            else:
+                btn.setText(f"  📊  Inventario")
 
     def closeEvent(self, event):
         """Cierra la aplicación correctamente"""

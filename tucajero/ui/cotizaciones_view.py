@@ -13,7 +13,6 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor
 from utils.formato import fmt_moneda
-from utils.theme import texto_secundario
 
 
 class CotizacionesView(QWidget):
@@ -77,9 +76,7 @@ class CotizacionesView(QWidget):
         info = QLabel(
             "Doble clic o 'Convertir en venta' para facturar una cotización pendiente"
         )
-        info.setStyleSheet(
-            f"color: {texto_secundario()}; font-size: 12px; padding: 4px;"
-        )
+        info.setObjectName("info_label")
         layout.addWidget(info)
 
     def cargar_cotizaciones(self):

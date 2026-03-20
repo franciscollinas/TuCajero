@@ -17,12 +17,6 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 from datetime import datetime
 from utils.formato import fmt_moneda
-from utils.theme import (
-    texto_secundario,
-    texto_terciario,
-    estilo_boton_secundario,
-    estilo_boton_secundario_hover,
-)
 
 
 class CorteView(QWidget):
@@ -309,7 +303,7 @@ class CorteView(QWidget):
         dialog.setLayout(layout)
 
         info = QLabel("El monto será descontado de la ganancia del día.")
-        info.setStyleSheet(f"color: {texto_secundario()}; font-size: 12px;")
+        info.setObjectName("info_label")
         layout.addRow("", info)
 
         concepto_input = QLineEdit()

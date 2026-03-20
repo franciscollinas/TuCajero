@@ -1,84 +1,137 @@
-from PySide6.QtWidgets import QApplication
-from PySide6.QtGui import QPalette, QColor
+import winreg
+from PySide6.QtGui import QColor
 
 
 def get_theme():
-    """Retorna 'dark' si el tema del sistema es oscuro, 'light' si es claro"""
     try:
-        app = QApplication.instance()
-        if app:
-            palette = app.palette()
-            text_color = palette.color(QPalette.ColorRole.WindowText)
-            return "dark" if text_color.lightness() < 128 else "light"
+        key = winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER,
+            r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize",
+        )
+        value, _ = winreg.QueryValueEx(key, "AppsUseLightTheme")
+        winreg.CloseKey(key)
+        return "light" if value == 1 else "dark"
     except:
-        pass
-    return "light"
+        return "dark"
 
 
-def texto_secundario():
-    """Retorna color de texto secundario legible en modo claro y oscuro"""
+def get_colors():
     if get_theme() == "dark":
-        return "#aaaaaa"
+        return {
+            "bg_app": "#1a1d2e",
+            "bg_sidebar": "#16192a",
+            "bg_card": "#222640",
+            "bg_input": "#2a2d45",
+            "text_primary": "#ffffff",
+            "text_secondary": "#8b92b8",
+            "text_muted": "#5a6080",
+            "border": "#2e3250",
+            "accent": "#6c63ff",
+            "accent_hover": "#5a52e0",
+            "success": "#00c48c",
+            "warning": "#ffab2e",
+            "danger": "#ff5b5b",
+            "info": "#00b8d9",
+        }
     else:
-        return "#555555"
+        return {
+            "bg_app": "#f4f6fb",
+            "bg_sidebar": "#ffffff",
+            "bg_card": "#ffffff",
+            "bg_input": "#f0f2f8",
+            "text_primary": "#1a1d2e",
+            "text_secondary": "#5a6080",
+            "text_muted": "#9ba3c4",
+            "border": "#e0e4f0",
+            "accent": "#6c63ff",
+            "accent_hover": "#5a52e0",
+            "success": "#00c48c",
+            "warning": "#ffab2e",
+            "danger": "#ff5b5b",
+            "info": "#00b8d9",
+        }
 
 
-def texto_terciario():
-    """Retorna color de texto terciario legible en modo claro y oscuro"""
-    if get_theme() == "dark":
-        return "#888888"
-    else:
-        return "#777777"
-
-
-def fondo_widget():
-    """Retorna color de fondo para widgets"""
-    if get_theme() == "dark":
-        return "#1e1e1e"
-    else:
-        return "#f5f5f5"
-
-
-def fondo_input():
-    """Retorna color de fondo para inputs"""
-    if get_theme() == "dark":
-        return "#2d2d2d"
-    else:
-        return "#ffffff"
-
-
-def aplicar_label_secundario(label, font_size="12px", padding=""):
-    """Aplica estilo de texto secundario legible a un QLabel"""
-    color = texto_secundario()
-    padding_css = f"padding: {padding};" if padding else ""
-    label.setStyleSheet(f"color: {color}; font-size: {font_size}; {padding_css}")
-
-
-def estilo_input():
-    """Retorna estilo CSS para inputs legible en ambos temas"""
-    bg = fondo_input()
-    text = "#333333" if get_theme() == "light" else "#ffffff"
-    border = "#cccccc" if get_theme() == "light" else "#555555"
-    return f"padding: 8px; font-size: 13px; background-color: {bg}; color: {text}; border: 1px solid {border}; border-radius: 4px;"
-
-
-def estilo_boton_secundario():
-    """Retorna estilo CSS para botones secundarios"""
-    if get_theme() == "dark":
-        return "background-color: #555555; color: white; padding: 8px;"
-    else:
-        return "background-color: #95a5a6; color: white; padding: 8px;"
-
-
-def estilo_boton_secundario_hover():
-    """Retorna color hover para botones secundarios"""
-    if get_theme() == "dark":
-        return "#666666"
-    else:
-        return "#7f8c8d"
-
-
-def set_stylesheet(widget, dark_style, light_style):
-    """Aplica un estilo diferente según el tema"""
-    style = dark_style if get_theme() == "dark" else light_style
-    widget.setStyleSheet(style)
+def get_stylesheet():
+    c = get_colors()
+    return f"""
+        QMainWindow, QWidget {{
+            background-color: {c["bg_app"]};
+            color: {c["text_primary"]};
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 13px;
+        }}
+        QLabel {{
+            color: {c["text_primary"]};
+            background: transparent;
+        }}
+        QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox, QTextEdit {{
+            background-color: {c["bg_input"]};
+            color: {c["text_primary"]};
+            border: 1px solid {c["border"]};
+            border-radius: 6px;
+            padding: 7px 10px;
+            font-size: 13px;
+        }}
+        QLineEdit:focus, QComboBox:focus, QSpinBox:focus, QDoubleSpinBox:focus {{
+            border: 1.5px solid {c["accent"]};
+        }}
+        QTableWidget {{
+            background-color: {c["bg_card"]};
+            color: {c["text_primary"]};
+            gridline-color: {c["border"]};
+            border: 1px solid {c["border"]};
+            border-radius: 8px;
+        }}
+        QTableWidget::item:selected {{
+            background-color: {c["accent"]};
+            color: white;
+        }}
+        QHeaderView::section {{
+            background-color: {c["bg_input"]};
+            color: {c["text_secondary"]};
+            border: none;
+            padding: 8px;
+            font-weight: bold;
+            font-size: 12px;
+        }}
+        QTabWidget::pane {{
+            border: 1px solid {c["border"]};
+            border-radius: 8px;
+            background: {c["bg_card"]};
+        }}
+        QTabBar::tab {{
+            background: {c["bg_input"]};
+            color: {c["text_secondary"]};
+            padding: 8px 20px;
+            border-radius: 6px 6px 0 0;
+        }}
+        QTabBar::tab:selected {{
+            background: {c["accent"]};
+            color: white;
+        }}
+        QScrollBar:vertical {{
+            background: {c["bg_app"]};
+            width: 6px;
+        }}
+        QScrollBar::handle:vertical {{
+            background: {c["border"]};
+            border-radius: 3px;
+        }}
+        QPushButton {{
+            background-color: {c["accent"]};
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: bold;
+        }}
+        QPushButton:hover {{
+            background-color: {c["accent_hover"]};
+        }}
+        QPushButton:disabled {{
+            background-color: {c["border"]};
+            color: {c["text_muted"]};
+        }}
+    """
