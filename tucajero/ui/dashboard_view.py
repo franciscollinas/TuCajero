@@ -180,54 +180,56 @@ class DashboardView(QWidget):
         self._cargar_datos()
 
     def _cargar_datos(self):
+        import logging
+
         try:
-            from models.venta import Venta
-            from models.producto import Producto
+            from models.producto import Venta, Producto
             from models.cliente import Cliente
             from datetime import datetime, date
 
-            hoy = date.today()
-            inicio_hoy = datetime.combine(hoy, datetime.min.time())
-            inicio_mes = datetime.now().replace(
+            hoy_inicio = datetime.combine(date.today(), datetime.min.time())
+            mes_inicio = datetime.now().replace(
                 day=1, hour=0, minute=0, second=0, microsecond=0
             )
 
             ventas_hoy = (
                 self.session.query(Venta)
-                .filter(Venta.fecha >= inicio_hoy, Venta.anulada == False)
+                .filter(Venta.fecha >= hoy_inicio, Venta.anulada == False)
                 .all()
             )
-            total_hoy = sum(v.total for v in ventas_hoy)
-            self.card_ventas_hoy.update_value(fmt_moneda(total_hoy))
+            self.card_ventas_hoy.update_value(
+                fmt_moneda(sum(v.total for v in ventas_hoy))
+            )
+            logging.info(f"Dashboard: ventas hoy = {len(ventas_hoy)}")
 
             ventas_mes = (
                 self.session.query(Venta)
-                .filter(Venta.fecha >= inicio_mes, Venta.anulada == False)
+                .filter(Venta.fecha >= mes_inicio, Venta.anulada == False)
                 .all()
             )
-            total_mes = sum(v.total for v in ventas_mes)
-            self.card_ventas_mes.update_value(fmt_moneda(total_mes))
+            self.card_ventas_mes.update_value(
+                fmt_moneda(sum(v.total for v in ventas_mes))
+            )
 
+            num_clientes = 0
             try:
                 num_clientes = self.session.query(Cliente).count()
-                self.card_clientes.update_value(str(num_clientes))
             except Exception:
-                self.card_clientes.update_value("—")
+                pass
+            self.card_clientes.update_value(str(num_clientes))
 
             try:
-                num_productos = (
+                num_prod = (
                     self.session.query(Producto).filter(Producto.activo == True).count()
                 )
-                self.card_productos.update_value(str(num_productos))
+                self.card_productos.update_value(str(num_prod))
             except Exception:
                 self.card_productos.update_value("—")
 
             self._cargar_top_productos(ventas_mes)
 
         except Exception as e:
-            import logging
-
-            logging.error(f"Dashboard._cargar_datos error: {e}", exc_info=True)
+            logging.error(f"Dashboard._cargar_datos FATAL: {e}", exc_info=True)
 
     def _cargar_top_productos(self, ventas):
         from collections import defaultdict

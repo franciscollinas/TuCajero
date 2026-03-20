@@ -47,7 +47,7 @@ class MainWindow(QMainWindow):
         content_layout = QVBoxLayout()
         content_area.setLayout(content_layout)
 
-        self.header, self.header_user_label = self._build_header()
+        self.header = self._build_header()
         content_layout.addWidget(self.header)
 
         self.content_stack = QStackedWidget()
@@ -72,100 +72,125 @@ class MainWindow(QMainWindow):
         c = get_colors()
 
         header = QWidget()
-        header.setFixedHeight(80)
+        header.setFixedHeight(64)
         header.setStyleSheet(f"""
             QWidget {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 {c["bg_sidebar"]}, stop:1 {c["bg_card"]});
-                border-bottom: 2px solid {c["accent"]};
+                background-color: {c["bg_sidebar"]};
+                border-bottom: 1px solid {c["border"]};
             }}
         """)
         layout = QHBoxLayout(header)
-        layout.setContentsMargins(24, 0, 24, 0)
-        layout.setSpacing(16)
+        layout.setContentsMargins(20, 0, 20, 0)
+        layout.setSpacing(12)
 
-        logo_container = QLabel()
-        logo_container.setFixedSize(52, 52)
+        logo = QLabel()
+        logo.setFixedSize(40, 40)
         logo_path = get_logo_path()
         if logo_path and os.path.exists(logo_path):
             from PySide6.QtGui import QPixmap
 
-            pixmap = QPixmap(logo_path).scaled(
-                52,
-                52,
-                Qt.AspectRatioMode.KeepAspectRatio,
+            pix = QPixmap(logo_path).scaled(
+                40,
+                40,
+                Qt.AspectRatioMode.KeepAspectRatioByExpanding,
                 Qt.TransformationMode.SmoothTransformation,
             )
-            logo_container.setPixmap(pixmap)
-            logo_container.setStyleSheet(
-                "border-radius: 26px; border: 2px solid " + c["accent"] + ";"
-            )
+            logo.setPixmap(pix)
+            logo.setStyleSheet(f"border-radius: 20px; border: 2px solid {c['accent']};")
         else:
-            logo_container.setText("🏪")
-            logo_container.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            logo_container.setStyleSheet(f"""
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+            logo.setText("🏪")
+            logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            logo.setStyleSheet(f"""
+                background: qlineargradient(x1:0,y1:0,x2:1,y2:1,
                     stop:0 {c["accent"]}, stop:1 {c["info"]});
-                border-radius: 26px;
-                font-size: 24px;
+                border-radius: 20px;
+                font-size: 20px;
+                border: none;
             """)
-        layout.addWidget(logo_container)
+        layout.addWidget(logo)
 
-        info_layout = QVBoxLayout()
-        info_layout.setSpacing(3)
-        info_layout.setContentsMargins(0, 0, 0, 0)
+        info = QVBoxLayout()
+        info.setSpacing(1)
+        info.setContentsMargins(0, 0, 0, 0)
 
-        store_name = QLabel(get_store_name())
-        store_name.setStyleSheet(
-            f"color: {c['text_primary']}; font-size: 18px; font-weight: bold;"
-        )
-        info_layout.addWidget(store_name)
+        nombre = QLabel(get_store_name())
+        nombre.setStyleSheet(f"""
+            color: {c["text_primary"]};
+            font-size: 15px;
+            font-weight: bold;
+            background: transparent;
+            border: none;
+        """)
+        info.addWidget(nombre)
 
-        parts = []
+        partes = []
         if get_nit():
-            parts.append(f"NIT: {get_nit()}")
+            partes.append(f"NIT: {get_nit()}")
         if get_phone():
-            parts.append(f"📞 {get_phone()}")
+            partes.append(f"📞 {get_phone()}")
         if get_address():
-            parts.append(f"📍 {get_address()}")
-        if parts:
-            sub = QLabel("   |   ".join(parts))
-            sub.setStyleSheet(f"color: {c['text_secondary']}; font-size: 12px;")
-            info_layout.addWidget(sub)
+            partes.append(f"📍 {get_address()}")
+        if partes:
+            sub = QLabel("  |  ".join(partes))
+            sub.setStyleSheet(f"""
+                color: {c["text_secondary"]};
+                font-size: 11px;
+                background: transparent;
+                border: none;
+            """)
+            info.addWidget(sub)
 
-        layout.addLayout(info_layout)
+        layout.addLayout(info)
         layout.addStretch()
 
-        right_widget = QWidget()
-        right_widget.setStyleSheet(f"""
+        user_widget = QWidget()
+        user_widget.setStyleSheet(f"""
             QWidget {{
                 background-color: {c["bg_input"]};
-                border-radius: 20px;
+                border-radius: 22px;
                 border: 1px solid {c["border"]};
             }}
         """)
-        right_layout = QHBoxLayout(right_widget)
-        right_layout.setContentsMargins(12, 6, 12, 6)
-        right_layout.setSpacing(8)
+        ul = QHBoxLayout(user_widget)
+        ul.setContentsMargins(10, 6, 14, 6)
+        ul.setSpacing(8)
 
         avatar = QLabel("👑")
-        avatar.setStyleSheet("font-size: 16px; background: transparent; border: none;")
-        user_label = QLabel("Administrador")
-        user_label.setObjectName("user_label")
-        user_label.setStyleSheet(
-            f"color: {c['text_primary']}; font-size: 13px; font-weight: bold; background: transparent; border: none;"
-        )
-        version = QLabel("v3.0")
-        version.setStyleSheet(
-            f"color: {c['text_muted']}; font-size: 11px; background: transparent; border: none;"
-        )
+        avatar.setFixedSize(30, 30)
+        avatar.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        avatar.setStyleSheet(f"""
+            background-color: {c["accent"]};
+            border-radius: 15px;
+            font-size: 14px;
+            border: none;
+        """)
+        ul.addWidget(avatar)
 
-        right_layout.addWidget(avatar)
-        right_layout.addWidget(user_label)
-        right_layout.addWidget(version)
-        layout.addWidget(right_widget)
+        user_info = QVBoxLayout()
+        user_info.setSpacing(0)
+        user_info.setContentsMargins(0, 0, 0, 0)
 
-        return header, user_label
+        self.lbl_cajero = QLabel("Administrador")
+        self.lbl_cajero.setStyleSheet(f"""
+            color: {c["text_primary"]};
+            font-size: 12px;
+            font-weight: bold;
+            background: transparent;
+            border: none;
+        """)
+        lbl_rol = QLabel("Administrador")
+        lbl_rol.setStyleSheet(f"""
+            color: {c["text_muted"]};
+            font-size: 10px;
+            background: transparent;
+            border: none;
+        """)
+        user_info.addWidget(self.lbl_cajero)
+        user_info.addWidget(lbl_rol)
+        ul.addLayout(user_info)
+
+        layout.addWidget(user_widget)
+        return header
 
     def _build_sidebar(self):
         from utils.theme import get_colors
@@ -246,7 +271,7 @@ class MainWindow(QMainWindow):
                     border: none;
                     border-radius: 10px;
                     text-align: left;
-                    padding-left: 12px;
+                    padding-left: 16px;
                     font-size: 13px;
                     font-weight: normal;
                     margin: 1px 8px;
@@ -254,13 +279,15 @@ class MainWindow(QMainWindow):
                 QPushButton[navButton="true"]:hover {{
                     background-color: {c["bg_input"]};
                     color: {c["text_primary"]};
+                    border-left: 3px solid {c["border_strong"]};
+                    padding-left: 13px;
                 }}
                 QPushButton[navButton="true"]:checked {{
-                    background-color: {c["accent_light"]};
-                    color: {c["accent"]};
+                    background-color: {c["bg_input"]};
+                    color: {c["text_primary"]};
                     font-weight: bold;
                     border-left: 3px solid {c["accent"]};
-                    padding-left: 9px;
+                    padding-left: 13px;
                 }}
             """)
             btn.clicked.connect(lambda checked, k=key: self.switch_view_by_name(k))
