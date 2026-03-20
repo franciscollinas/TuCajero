@@ -168,15 +168,15 @@ class CorteView(QWidget):
         self.btn_reimprimir.setFixedHeight(32)
         self.btn_reimprimir.setMinimumWidth(160)
         self.btn_reimprimir.setMaximumWidth(280)
-        self.btn_reimprimir.setStyleSheet(f"""
-            QPushButton {{
+        self.btn_reimprimir.setStyleSheet("""
+            QPushButton {
                 background-color: #5a6a7a;
                 color: white;
                 font-size: 13px;
                 font-weight: bold;
                 padding: 6px 12px;
-            }}
-            QPushButton:hover {{ background-color: {estilo_boton_secundario_hover()}; }}
+            }
+            QPushButton:hover { background-color: #5a6080; }
         """)
         self.btn_reimprimir.clicked.connect(self.reimprimir_ultimo)
         fila2.addWidget(self.btn_reimprimir)

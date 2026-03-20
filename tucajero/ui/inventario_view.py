@@ -289,7 +289,9 @@ class MovimientoDialog(QDialog):
         btn_layout.addWidget(btn_aceptar)
 
         btn_cancelar = QPushButton("Cancelar")
-        btn_cancelar.setStyleSheet(estilo_boton_secundario())
+        btn_cancelar.setStyleSheet(
+            "background-color: #5a6080; color: white; padding: 8px; border-radius: 6px;"
+        )
         btn_cancelar.clicked.connect(self.reject)
         btn_layout.addWidget(btn_cancelar)
 
