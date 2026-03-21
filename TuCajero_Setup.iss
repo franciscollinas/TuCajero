@@ -1,15 +1,22 @@
+#define MyAppName "TuCajero POS"
+#define MyAppVersion "3.0"
+#define MyAppPublisher "Droguería CruzMedic"
+#define MyAppURL "mailto:cruzmedicdrogueria@gmail.com"
+#define MyAppExeName "TuCajero.exe"
+
 [Setup]
-AppName=TuCajero POS
-AppVersion=3.0
-AppVerName=TuCajero POS v3.0
-AppPublisher=Droguería CruzMedic
-AppPublisherURL=mailto:cruzmedicdrogueria@gmail.com
-AppSupportURL=mailto:cruzmedicdrogueria@gmail.com
-AppContact=cruzmedicdrogueria@gmail.com
-LicenseFile=Licencia.txt
-UserInfoPage=yes
+; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
+; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
+AppId={{E6A0F1B2-C1D2-4E3F-B4A5-F6G7H8I9J0K1}
+AppName={#MyAppName}
+AppVersion={#MyAppVersion}
+AppVerName={#MyAppName} v{#MyAppVersion}
+AppPublisher={#MyAppPublisher}
+AppPublisherURL={#MyAppURL}
+AppSupportURL={#MyAppURL}
+AppContact={#MyAppURL}
 DefaultDirName={autopf}\TuCajero
-DefaultGroupName=TuCajero POS
+DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 OutputDir=installer
 OutputBaseFilename=TuCajero_Setup_v3.0
@@ -17,13 +24,13 @@ Compression=lzma2/ultra64
 SolidCompression=yes
 PrivilegesRequired=admin
 DisableProgramGroupPage=yes
-UninstallDisplayIcon={app}\TuCajero.exe
-UninstallDisplayName=TuCajero POS v3.0
+UninstallDisplayIcon={app}\{#MyAppExeName}
+UninstallDisplayName={#MyAppName} v{#MyAppVersion}
 VersionInfoVersion=3.0.0.0
-VersionInfoCompany=Droguería CruzMedic
+VersionInfoCompany={#MyAppPublisher}
 VersionInfoDescription=Sistema POS TuCajero
-VersionInfoProductName=TuCajero POS
-VersionInfoProductVersion=3.0
+VersionInfoProductName={#MyAppName}
+VersionInfoProductVersion={#MyAppVersion}
 ArchitecturesInstallIn64BitMode=x64compatible
 
 [Languages]
@@ -37,24 +44,14 @@ Name: "startmenuicon"; Description: "Crear acceso directo en el menú inicio"; G
 Source: "dist\TuCajero.exe"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{group}\TuCajero POS"; Filename: "{app}\TuCajero.exe"; IconFilename: "{app}\TuCajero.exe"
+Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\{#MyAppExeName}"
 Name: "{group}\Desinstalar TuCajero"; Filename: "{uninstallexe}"
-Name: "{commondesktop}\TuCajero POS"; Filename: "{app}\TuCajero.exe"; Tasks: desktopicon
-Name: "{commonstartmenu}\TuCajero POS"; Filename: "{app}\TuCajero.exe"; Tasks: startmenuicon
+Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+Name: "{commonstartmenu}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: startmenuicon
 
 [Run]
-Filename: "{app}\TuCajero.exe"; Description: "Iniciar TuCajero POS ahora"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#MyAppExeName}"; Description: "Iniciar {#MyAppName} ahora"; Flags: nowait postinstall skipifsilent
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{localappdata}\TuCajero"
 Type: filesandordirs; Name: "{app}"
-
-[Code]
-// Función que valida el Número de Serie durante la instalación
-function CheckSerial(Serial: String): Boolean;
-begin
-  // El Código de Serie por defecto para la v3.0
-  // Puedes cambiar este valor según necesites
-  Result := (Serial = 'TUCAJERO-30-OFFICIAL-2026');
-end;
-

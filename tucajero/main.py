@@ -46,10 +46,6 @@ def configurar_logging():
     )
 
 
-def mostrar_activacion():
-    """Muestra la ventana de activación"""
-    dialog = ActivationDialog()
-    return dialog.exec() == QDialog.DialogCode.Accepted and dialog.activation_success
 
 
 def main():
@@ -64,28 +60,21 @@ def main():
     print(f"[INFO] Icono cargado desde: {ICON_PATH}")
     print(f"[INFO] Archivo existe: {os.path.exists(ICON_PATH)}")
 
-    try:
-        crear_license_default()
-    except Exception as e:
-        logging.error(f"Error al crear licencia: {e}")
-
+    # Validar licencia antes de abrir la app
     if not validar_licencia():
         app = QApplication(sys.argv)
         app.setStyle("Fusion")
         app.setStyleSheet(get_stylesheet())
         app.setWindowIcon(QIcon(ICON_PATH))
-
-        while True:
-            result = mostrar_activacion()
-            if not result:
-                QMessageBox.critical(
-                    None,
-                    "Sistema Bloqueado",
-                    "El sistema requiere activación para funcionar.\n\nEl programa se cerrará.",
-                )
-                sys.exit(1)
-            elif validar_licencia():
-                break
+        
+        dialog = ActivationDialog()
+        dialog.exec()
+        if not dialog.activation_success:
+            sys.exit(0)
+        # Reiniciar para cargar con licencia activa
+        import subprocess
+        subprocess.Popen([sys.executable] + sys.argv)
+        sys.exit(0)
     else:
         app = QApplication(sys.argv)
         app.setStyle("Fusion")

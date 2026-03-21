@@ -1,89 +1,57 @@
-import uuid
 import hashlib
+import base64
 import json
 import os
-import sys
 import platform
+import uuid
 
-SECRET = "tito_castilla_pos_secret"
-
+_S = b"dGl0b19jYXN0aWxsYV9wb3Nfc2VjcmV0"
 
 def get_config_dir():
-    """Retorna el directorio de configuracion.
-
-    SIEMPRE usa %LOCALAPPDATA%\TuCajero\config para que el archivo
-    de licencia no se bundlee dentro del ejecutable.
-    """
-    if sys.platform == "win32":
-        base = os.environ.get("LOCALAPPDATA", os.environ.get("APPDATA", ""))
-        return os.path.join(base, "TuCajero", "config")
-    return os.path.join(os.path.expanduser("~"), ".tucajero", "config")
-
+    """Siempre usa %LOCALAPPDATA%\TuCajero\config — nunca ruta relativa"""
+    local_app = os.environ.get('LOCALAPPDATA', os.path.expanduser('~'))
+    config_dir = os.path.join(local_app, 'TuCajero', 'config')
+    os.makedirs(config_dir, exist_ok=True)
+    return config_dir
 
 def get_machine_id():
-    """Obtiene un identificador único robusto de la computadora"""
-    components = [
-        str(uuid.getnode()),
-        platform.node(),
-        platform.processor() or "unknown",
-        platform.machine() or "unknown",
-    ]
-    combined = "|".join(components)
-    return hashlib.sha256(combined.encode()).hexdigest()[:16]
-
+    """Genera un Machine ID único basado en hardware"""
+    try:
+        mac = str(uuid.getnode())
+        pc_name = platform.node()
+        processor = platform.processor()
+        raw = f"{mac}-{pc_name}-{processor}"
+        return hashlib.sha256(raw.encode()).hexdigest()[:16].upper()
+    except Exception:
+        return "UNKNOWN00000000"
 
 def generar_licencia(machine_id):
-    """Genera una licencia basada en el machine_id"""
-    licencia = hashlib.sha256((machine_id + SECRET).encode()).hexdigest()[:16]
-    return licencia.upper()
+    """Genera la licencia correcta para un machine_id dado"""
+    secret = base64.b64decode(_S).decode()
+    combined = f"{machine_id}{secret}"
+    return hashlib.sha256(combined.encode()).hexdigest()[:16].upper()
 
-
-def get_license_path():
-    """Retorna la ruta del archivo de licencia en %LOCALAPPDATA%"""
+def guardar_licencia(licencia):
+    """Guarda la licencia en %LOCALAPPDATA%\TuCajero\config\license.json"""
     config_dir = get_config_dir()
-    os.makedirs(config_dir, exist_ok=True)
-    return os.path.join(config_dir, "license.json")
-
-
-def cargar_licencia():
-    """Carga la configuración de licencia"""
-    license_path = get_license_path()
-    if not os.path.exists(license_path):
-        return {"activated": False, "license_key": ""}
-
-    try:
-        with open(license_path, "r") as f:
-            return json.load(f)
-    except:
-        return {"activated": False, "license_key": ""}
-
-
-def guardar_licencia(license_key):
-    """Guarda la licencia en el archivo"""
-    license_path = get_license_path()
-    data = {"activated": True, "license_key": license_key.upper()}
-    with open(license_path, "w") as f:
-        json.dump(data, f, indent=4)
-    return True
-
+    license_file = os.path.join(config_dir, 'license.json')
+    with open(license_file, 'w') as f:
+        json.dump({"license": licencia, "activated": True}, f)
 
 def validar_licencia():
-    """Valida si la licencia es correcta"""
-    licencia_data = cargar_licencia()
-
-    if not licencia_data.get("activated", False):
+    """Retorna True si la licencia guardada es válida para esta máquina"""
+    try:
+        config_dir = get_config_dir()
+        license_file = os.path.join(config_dir, 'license.json')
+        if not os.path.exists(license_file):
+            return False
+        with open(license_file, 'r') as f:
+            data = json.load(f)
+        if not data.get('activated', False):
+            return False
+        saved = data.get('license', '')
+        machine_id = get_machine_id()
+        expected = generar_licencia(machine_id)
+        return saved.upper() == expected.upper()
+    except Exception:
         return False
-
-    machine_id = get_machine_id()
-    licencia_correcta = generar_licencia(machine_id)
-
-    return licencia_data.get("license_key", "").upper() == licencia_correcta
-
-
-def crear_license_default():
-    """Crea el archivo de licencia por defecto"""
-    license_path = get_license_path()
-    if not os.path.exists(license_path):
-        data = {"activated": False, "license_key": ""}
-        with open(license_path, "w") as f:
-            json.dump(data, f, indent=4)
