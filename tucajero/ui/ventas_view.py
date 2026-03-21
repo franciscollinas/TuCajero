@@ -1060,7 +1060,7 @@ class VentasView(QWidget):
             return
 
         self.btn_cancelar.setVisible(False)
-        self.btn_cotizar.setVisible(False)
+        self.btn_cotizacion.setVisible(False)
         self.btn_cobrar.setVisible(False)
 
         metodos = ["Efectivo", "Nequi", "Daviplata", "Transferencia"]
@@ -1195,7 +1195,7 @@ class VentasView(QWidget):
         if hasattr(self, "cobro_widget"):
             self.cobro_widget.deleteLater()
         self.btn_cancelar.setVisible(True)
-        self.btn_cotizar.setVisible(True)
+        self.btn_cotizacion.setVisible(True)
         self.btn_cobrar.setVisible(True)
 
     def _confirmar_cobro(self):

@@ -31,34 +31,44 @@ class MetricCard(QWidget):
         from PySide6.QtGui import QColor
         c = get_colors()
 
-        self.setMinimumHeight(110)
-        self.setStyleSheet(f"""
+        # Transparent outer wrapper so shadow doesn't get clipped
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.setMinimumHeight(120)
+
+        # The visible card lives inside the outer widget via an inner QWidget
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(8, 8, 8, 12)  # padding for shadow to breathe
+        outer.setSpacing(0)
+
+        inner = QWidget()
+        inner.setStyleSheet(f"""
             QWidget {{
                 background-color: {c['bg_card']};
-                border-radius: 12px;
+                border-radius: 18px;
                 border: none;
             }}
         """)
         shadow = QGraphicsDropShadowEffect()
-        shadow.setBlurRadius(20)
-        shadow.setOffset(0, 4)
-        shadow.setColor(QColor(0, 0, 0, 40))
-        self.setGraphicsEffect(shadow)
+        shadow.setBlurRadius(32)
+        shadow.setOffset(0, 6)
+        shadow.setColor(QColor(0, 0, 0, 55))
+        inner.setGraphicsEffect(shadow)
+        outer.addWidget(inner)
 
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 16, 20, 16)
-        layout.setSpacing(8)
+        layout = QVBoxLayout(inner)
+        layout.setContentsMargins(20, 18, 20, 18)
+        layout.setSpacing(10)
 
         # Fila top: ícono + badge
         top = QHBoxLayout()
         icon_box = QLabel(icon)
-        icon_box.setFixedSize(44, 44)
+        icon_box.setFixedSize(46, 46)
         icon_box.setAlignment(Qt.AlignmentFlag.AlignCenter)
         icon_box.setStyleSheet(f"""
-            background-color: {color}22;
+            background-color: {color}25;
             color: {color};
-            border-radius: 10px;
-            font-size: 20px;
+            border-radius: 14px;
+            font-size: 22px;
             border: none;
         """)
         top.addWidget(icon_box)
@@ -72,7 +82,7 @@ class MetricCard(QWidget):
                 font-weight: bold;
                 background: {c['success_light']};
                 border-radius: 8px;
-                padding: 2px 8px;
+                padding: 3px 9px;
                 border: none;
             """)
             top.addWidget(badge_lbl)
@@ -82,7 +92,7 @@ class MetricCard(QWidget):
         self.value_label = QLabel(value)
         self.value_label.setStyleSheet(f"""
             color: {c['text_primary']};
-            font-size: 26px;
+            font-size: 28px;
             font-weight: bold;
             border: none;
             background: transparent;
@@ -95,7 +105,7 @@ class MetricCard(QWidget):
             color: {c['text_muted']};
             font-size: 10px;
             font-weight: bold;
-            letter-spacing: 0.8px;
+            letter-spacing: 1px;
             border: none;
             background: transparent;
         """)
