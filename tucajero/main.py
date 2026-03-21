@@ -46,8 +46,6 @@ def configurar_logging():
     )
 
 
-
-
 def main():
     """Función principal de la aplicación"""
     crear_carpetas()
@@ -57,29 +55,20 @@ def main():
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     ICON_PATH = os.path.join(BASE_DIR, "assets", "icons", "tucajero.ico")
 
-    print(f"[INFO] Icono cargado desde: {ICON_PATH}")
-    print(f"[INFO] Archivo existe: {os.path.exists(ICON_PATH)}")
+    # Iniciar aplicación Qt
+    app = QApplication(sys.argv)
+    app.setStyle("Fusion")
+    app.setStyleSheet(get_stylesheet())
+    app.setWindowIcon(QIcon(ICON_PATH))
 
     # Validar licencia antes de abrir la app
-    if not validar_licencia():
-        app = QApplication(sys.argv)
-        app.setStyle("Fusion")
-        app.setStyleSheet(get_stylesheet())
-        app.setWindowIcon(QIcon(ICON_PATH))
-        
+    while not validar_licencia():
         dialog = ActivationDialog()
         dialog.exec()
         if not dialog.activation_success:
             sys.exit(0)
-        # Reiniciar para cargar con licencia activa
-        import subprocess
-        subprocess.Popen([sys.executable] + sys.argv)
-        sys.exit(0)
-    else:
-        app = QApplication(sys.argv)
-        app.setStyle("Fusion")
-        app.setStyleSheet(get_stylesheet())
-        app.setWindowIcon(QIcon(ICON_PATH))
+        # Si se activó con éxito, el bucle terminará en la siguiente iteración
+        # ya que validar_licencia() ahora retornará True
 
     if not is_setup_complete():
         setup = SetupDialog()
