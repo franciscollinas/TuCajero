@@ -302,7 +302,7 @@ class MainWindow(QMainWindow):
         self._nav_buttons = {}
         for icon, label, key in nav_items:
             btn = QPushButton(f"  {icon}   {label}")
-            btn.setFixedHeight(38)
+            btn.setFixedHeight(42)
             btn.setCheckable(True)
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
             btn.setProperty("navButton", True)
@@ -313,8 +313,8 @@ class MainWindow(QMainWindow):
                     border: none;
                     border-radius: 6px;
                     text-align: left;
-                    padding: 0px 12px;
-                    font-size: 12px;
+                    padding: 0px 14px;
+                    font-size: 13px;
                     font-weight: normal;
                     margin: 0px 6px;
                 }}

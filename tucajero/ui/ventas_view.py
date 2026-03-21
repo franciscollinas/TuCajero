@@ -365,13 +365,14 @@ class VentasView(QWidget):
         self.btn_eliminar.setFixedHeight(34)
         self.btn_eliminar.setStyleSheet(f"""
             QPushButton {{
-                background-color: {c["danger_light"]};
+                background: transparent;
                 color: {c["danger"]};
                 border: 1px solid {c["danger"]};
-                border-radius: 8px; padding: 4px 12px;
-                font-size: 12px; font-weight: bold;
+                border-radius: 8px;
+                padding: 4px 12px;
+                font-size: 12px;
             }}
-            QPushButton:hover {{ background-color: {c["danger"]}; color: white; }}
+            QPushButton:hover {{ background: {c["danger"]}; color: white; }}
         """)
         self.btn_eliminar.clicked.connect(self.eliminar_item)
 
@@ -379,13 +380,14 @@ class VentasView(QWidget):
         self.btn_descuento.setFixedHeight(34)
         self.btn_descuento.setStyleSheet(f"""
             QPushButton {{
-                background-color: {c["warning_light"]};
-                color: {c["warning"]};
-                border: 1px solid {c["warning"]};
-                border-radius: 8px; padding: 4px 12px;
-                font-size: 12px; font-weight: bold;
+                background: transparent;
+                color: {c["text_secondary"]};
+                border: 1px solid {c["border"]};
+                border-radius: 8px;
+                padding: 4px 12px;
+                font-size: 12px;
             }}
-            QPushButton:hover {{ background-color: {c["warning"]}; color: white; }}
+            QPushButton:hover {{ background: {c["bg_input"]}; color: {c["text_primary"]}; }}
         """)
         self.btn_descuento.clicked.connect(self.aplicar_descuento)
 
@@ -763,27 +765,26 @@ class VentasView(QWidget):
 
     def actualizar_tabla(self):
         """Update cart table"""
-        self.tabla_carrito.setRowCount(len(self.carrito))
-        self.tabla_carrito.setItemDelegateForColumn(2, None)
-
-        subtotal_total = 0
-        iva_total = 0
-
         from utils.theme import get_colors
 
         c = get_colors()
+
+        self.tabla_carrito.setRowCount(0)
+        self.tabla_carrito.setRowCount(len(self.carrito))
+
+        subtotal_total = 0
+        iva_total = 0
 
         for i, item in enumerate(self.carrito):
             cantidad = item["cantidad"]
             precio = item["precio"]
             aplica_iva = item.get("aplica_iva", True)
-
-            subtotal = cantidad * precio
-            iva = round(subtotal * IVA_RATE, 2) if aplica_iva else 0
-            total_item = subtotal + iva
-
-            subtotal_total += subtotal
+            iva = round(precio * cantidad * 0.19, 2) if aplica_iva else 0
             iva_total += iva
+            total_item = precio * cantidad + iva
+            subtotal_total += precio * cantidad
+
+            from PySide6.QtWidgets import QTableWidgetItem
 
             self.tabla_carrito.setItem(i, 0, QTableWidgetItem(item["codigo"]))
             self.tabla_carrito.setItem(i, 1, QTableWidgetItem(item["nombre"]))
@@ -803,17 +804,84 @@ class VentasView(QWidget):
             lbl_subtotal.setFlags(lbl_subtotal.flags() & ~Qt.ItemFlag.ItemIsEditable)
             self.tabla_carrito.setItem(i, 5, lbl_subtotal)
 
-        subtotal_bruto = subtotal_total + iva_total
-        if self.descuento["total"] > 0:
-            self.lbl_descuento_val.setText(f"-{fmt_moneda(self.descuento['total'])}")
-            total_final = max(0, subtotal_bruto - self.descuento["total"])
-        else:
-            self.lbl_descuento_val.setText("")
-            total_final = subtotal_bruto
+        self._actualizar_resumen(subtotal_total, iva_total)
+        self.tabla_carrito.scrollToBottom()
 
-        self.lbl_subtotal.setText(fmt_moneda(subtotal_total))
-        self.lbl_iva.setText(fmt_moneda(iva_total))
-        self.lbl_total.setText(fmt_moneda(total_final))
+    def _crear_widget_cantidad(self, row, cantidad):
+        from utils.theme import get_colors
+        from PySide6.QtWidgets import QWidget, QHBoxLayout, QPushButton, QLabel
+
+        c = get_colors()
+
+        qty_widget = QWidget()
+        qty_widget.setStyleSheet("background: transparent;")
+        qty_layout = QHBoxLayout(qty_widget)
+        qty_layout.setContentsMargins(4, 2, 4, 2)
+        qty_layout.setSpacing(4)
+
+        btn_m = QPushButton("−")
+        btn_m.setFixedSize(24, 24)
+        btn_m.setStyleSheet(f"""
+            QPushButton {{
+                background: {c["danger"]};
+                color: white; border-radius: 12px;
+                font-size: 14px; font-weight: bold; border: none; padding: 0;
+            }}
+        """)
+
+        lbl_qty = QLabel(str(cantidad))
+        lbl_qty.setFixedWidth(28)
+        lbl_qty.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        lbl_qty.setStyleSheet(
+            f"color: {c['text_primary']}; font-weight: bold; font-size: 13px;"
+        )
+
+        btn_p = QPushButton("+")
+        btn_p.setFixedSize(24, 24)
+        btn_p.setStyleSheet(f"""
+            QPushButton {{
+                background: {c["success"]};
+                color: white; border-radius: 12px;
+                font-size: 14px; font-weight: bold; border: none; padding: 0;
+            }}
+        """)
+
+        btn_m.clicked.connect(lambda _, r=row: self._cambiar_cantidad(r, -1))
+        btn_p.clicked.connect(lambda _, r=row: self._cambiar_cantidad(r, +1))
+
+        qty_layout.addWidget(btn_m)
+        qty_layout.addWidget(lbl_qty)
+        qty_layout.addWidget(btn_p)
+        return qty_widget
+
+    def _cambiar_cantidad(self, row, delta):
+        if 0 <= row < len(self.carrito):
+            nueva = self.carrito[row]["cantidad"] + delta
+            if nueva <= 0:
+                self.carrito.pop(row)
+            else:
+                self.carrito[row]["cantidad"] = nueva
+            self.actualizar_tabla()
+
+    def _actualizar_resumen(self, subtotal, iva):
+        from utils.formato import fmt_moneda
+
+        descuento_val = (
+            self.descuento.get("total", 0)
+            if hasattr(self, "descuento") and self.descuento
+            else 0
+        )
+        total = max(0, subtotal + iva - descuento_val)
+
+        self.lbl_subtotal.setText(fmt_moneda(subtotal))
+        self.lbl_iva.setText(fmt_moneda(iva))
+        self.lbl_total.setText(fmt_moneda(total))
+
+        if hasattr(self, "lbl_descuento_val"):
+            if descuento_val > 0:
+                self.lbl_descuento_val.setText(f"- {fmt_moneda(descuento_val)}")
+            else:
+                self.lbl_descuento_val.setText("")
 
     def aumentar_cantidad(self):
         """Increase quantity of selected product"""
