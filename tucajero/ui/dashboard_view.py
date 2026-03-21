@@ -31,83 +31,90 @@ class MetricCard(QWidget):
         from PySide6.QtGui import QColor
         c = get_colors()
 
-        # Transparent outer wrapper so shadow doesn't get clipped
-        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.setMinimumHeight(120)
+        # Outer wrapper: transparent, only provides padding so shadow is not clipped
+        self.setStyleSheet("background: transparent; border: none;")
+        self.setMinimumHeight(124)
 
-        # The visible card lives inside the outer widget via an inner QWidget
         outer = QVBoxLayout(self)
-        outer.setContentsMargins(8, 8, 8, 12)  # padding for shadow to breathe
+        outer.setContentsMargins(6, 6, 6, 14)
         outer.setSpacing(0)
 
+        # Inner card with scoped object-name so global QWidget { background } can't win
         inner = QWidget()
+        inner.setObjectName("metricCard")
         inner.setStyleSheet(f"""
-            QWidget {{
+            QWidget#metricCard {{
                 background-color: {c['bg_card']};
-                border-radius: 18px;
+                border-radius: 20px;
+                border: none;
+            }}
+            QWidget#metricCard * {{
+                background: transparent;
                 border: none;
             }}
         """)
         shadow = QGraphicsDropShadowEffect()
-        shadow.setBlurRadius(32)
-        shadow.setOffset(0, 6)
-        shadow.setColor(QColor(0, 0, 0, 55))
+        shadow.setBlurRadius(36)
+        shadow.setOffset(0, 8)
+        shadow.setColor(QColor(0, 0, 0, 60))
         inner.setGraphicsEffect(shadow)
         outer.addWidget(inner)
 
         layout = QVBoxLayout(inner)
-        layout.setContentsMargins(20, 18, 20, 18)
+        layout.setContentsMargins(22, 20, 22, 20)
         layout.setSpacing(10)
 
-        # Fila top: ícono + badge
+        # ── Top: icon pill + badge ─────────────────────────────────────
         top = QHBoxLayout()
-        icon_box = QLabel(icon)
-        icon_box.setFixedSize(46, 46)
-        icon_box.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        icon_box.setStyleSheet(f"""
-            background-color: {color}25;
-            color: {color};
-            border-radius: 14px;
-            font-size: 22px;
-            border: none;
+        top.setSpacing(8)
+
+        icon_pill = QLabel(icon)
+        icon_pill.setFixedSize(48, 48)
+        icon_pill.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        icon_pill.setObjectName("iconPill")
+        icon_pill.setStyleSheet(f"""
+            QLabel#iconPill {{
+                background-color: {color}28 !important;
+                color: {color};
+                border-radius: 14px;
+                font-size: 22px;
+            }}
         """)
-        top.addWidget(icon_box)
+        top.addWidget(icon_pill)
         top.addStretch()
 
         if badge:
             badge_lbl = QLabel(badge)
+            badge_lbl.setObjectName("badgeLbl")
             badge_lbl.setStyleSheet(f"""
-                color: {c['success']};
-                font-size: 11px;
-                font-weight: bold;
-                background: {c['success_light']};
-                border-radius: 8px;
-                padding: 3px 9px;
-                border: none;
+                QLabel#badgeLbl {{
+                    color: {c['success']};
+                    font-size: 11px;
+                    font-weight: bold;
+                    background-color: {c['success_light']} !important;
+                    border-radius: 9px;
+                    padding: 3px 10px;
+                }}
             """)
             top.addWidget(badge_lbl)
         layout.addLayout(top)
 
-        # Valor principal
+        # ── Value ───────────────────────────────────────────────────────
         self.value_label = QLabel(value)
         self.value_label.setStyleSheet(f"""
             color: {c['text_primary']};
             font-size: 28px;
             font-weight: bold;
-            border: none;
-            background: transparent;
         """)
         layout.addWidget(self.value_label)
 
-        # Título
+        # ── Title ───────────────────────────────────────────────────────
         title_lbl = QLabel(title.upper())
         title_lbl.setStyleSheet(f"""
             color: {c['text_muted']};
             font-size: 10px;
             font-weight: bold;
             letter-spacing: 1px;
-            border: none;
-            background: transparent;
         """)
         layout.addWidget(title_lbl)
 

@@ -225,12 +225,14 @@ class VentasView(QWidget):
 
         # ── Card: Header de venta ──────────────
         hdr_card = QWidget()
+        hdr_card.setObjectName("hdrCard")
         hdr_card.setStyleSheet(f"""
-            QWidget {{
+            QWidget#hdrCard {{
                 background-color: {c['bg_card']};
                 border-radius: 12px;
                 border: none;
             }}
+            QWidget#hdrCard * {{ background: transparent; border: none; }}
         """)
         self._apply_shadow(hdr_card)
         hdr_l = QHBoxLayout(hdr_card)
@@ -271,12 +273,14 @@ class VentasView(QWidget):
 
         # ── Card: Búsqueda ──────────────────────
         search_card = QWidget()
+        search_card.setObjectName("searchCard")
         search_card.setStyleSheet(f"""
-            QWidget {{
+            QWidget#searchCard {{
                 background-color: {c['bg_card']};
                 border-radius: 12px;
                 border: none;
             }}
+            QWidget#searchCard * {{ background: transparent; border: none; }}
         """)
         self._apply_shadow(search_card)
         search_l = QHBoxLayout(search_card)
@@ -320,8 +324,9 @@ class VentasView(QWidget):
 
         # ── Card: Tabla del carrito ─────────────
         cart_card = QWidget()
+        cart_card.setObjectName("cartCard")
         cart_card.setStyleSheet(f"""
-            QWidget {{
+            QWidget#cartCard {{
                 background-color: {c['bg_card']};
                 border-radius: 12px;
                 border: none;
@@ -371,48 +376,31 @@ class VentasView(QWidget):
         """)
         cart_l.addWidget(self.tabla_carrito)
 
-        # Barra de acciones debajo de la tabla
+        # Barra de acciones (Descuento + Eliminar — sin botones ± redundantes)
         actions_bar = QWidget()
-        actions_bar.setStyleSheet(f"background: {c['bg_input']}; border-radius: 0 0 12px 12px; border-top: 1px solid {c['border']};")
+        actions_bar.setStyleSheet(
+            f"background: {c['bg_input']}; border-radius: 0 0 12px 12px; "
+            f"border-top: 1px solid {c['border']};"
+        )
         actions_l = QHBoxLayout(actions_bar)
         actions_l.setContentsMargins(12, 8, 12, 8)
         actions_l.setSpacing(8)
 
-        self.btn_menos = QPushButton("−")
-        self.btn_menos.setFixedSize(32, 32)
-        self.btn_menos.setStyleSheet(f"""
+        self.btn_descuento = QPushButton("% Descuento")
+        self.btn_descuento.setFixedHeight(32)
+        self.btn_descuento.setStyleSheet(f"""
             QPushButton {{
-                background: {c['danger']};
-                color: white;
-                border-radius: 16px;
-                font-size: 18px;
+                background: transparent;
+                color: {c['warning']};
+                border: 1px solid {c['warning']};
+                border-radius: 8px;
+                padding: 4px 14px;
+                font-size: 12px;
                 font-weight: bold;
-                border: none;
-                padding: 0;
             }}
-            QPushButton:hover {{ background: #dc2626; }}
+            QPushButton:hover {{ background: {c['warning']}; color: white; }}
         """)
-        self.btn_menos.clicked.connect(self.disminuir_cantidad)
-
-        self.btn_mas = QPushButton("+")
-        self.btn_mas.setFixedSize(32, 32)
-        self.btn_mas.setStyleSheet(f"""
-            QPushButton {{
-                background: {c['success']};
-                color: white;
-                border-radius: 16px;
-                font-size: 18px;
-                font-weight: bold;
-                border: none;
-                padding: 0;
-            }}
-            QPushButton:hover {{ background: #059669; }}
-        """)
-        self.btn_mas.clicked.connect(self.aumentar_cantidad)
-
-        actions_l.addWidget(self.btn_menos)
-        actions_l.addWidget(self.btn_mas)
-        actions_l.addStretch()
+        self.btn_descuento.clicked.connect(self.aplicar_descuento)
 
         self.btn_eliminar = QPushButton("🗑  Eliminar")
         self.btn_eliminar.setFixedHeight(32)
@@ -429,22 +417,8 @@ class VentasView(QWidget):
         """)
         self.btn_eliminar.clicked.connect(self.eliminar_item)
 
-        self.btn_descuento = QPushButton("%  Descuento")
-        self.btn_descuento.setFixedHeight(32)
-        self.btn_descuento.setStyleSheet(f"""
-            QPushButton {{
-                background: transparent;
-                color: {c['text_secondary']};
-                border: 1px solid {c['border']};
-                border-radius: 8px;
-                padding: 4px 14px;
-                font-size: 12px;
-            }}
-            QPushButton:hover {{ background: {c['bg_card']}; color: {c['text_primary']}; }}
-        """)
-        self.btn_descuento.clicked.connect(self.aplicar_descuento)
-
         actions_l.addWidget(self.btn_descuento)
+        actions_l.addStretch()
         actions_l.addWidget(self.btn_eliminar)
         cart_l.addWidget(actions_bar)
         left_l.addWidget(cart_card)
@@ -463,12 +437,14 @@ class VentasView(QWidget):
 
         # ── Card: Resumen de pago ───────────────
         resumen_card = QWidget()
+        resumen_card.setObjectName("resumenCard")
         resumen_card.setStyleSheet(f"""
-            QWidget {{
+            QWidget#resumenCard {{
                 background-color: {c['bg_card']};
                 border-radius: 12px;
                 border: none;
             }}
+            QWidget#resumenCard * {{ background: transparent; border: none; }}
         """)
         self._apply_shadow(resumen_card)
         res_l = QVBoxLayout(resumen_card)
@@ -523,12 +499,14 @@ class VentasView(QWidget):
 
         # ── Card: Método de pago ────────────────
         metodo_card = QWidget()
+        metodo_card.setObjectName("metodoCard")
         metodo_card.setStyleSheet(f"""
-            QWidget {{
+            QWidget#metodoCard {{
                 background-color: {c['bg_card']};
                 border-radius: 12px;
                 border: none;
             }}
+            QWidget#metodoCard * {{ background: transparent; }}
         """)
         self._apply_shadow(metodo_card)
         met_l = QVBoxLayout(metodo_card)
