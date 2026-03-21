@@ -23,7 +23,7 @@ from ui.dashboard_view import DashboardView
 from ui.proveedores_view import ProveedoresView
 from models.cliente import Cliente
 from ui.activate_view import ActivationDialog
-from security.license_manager import validar_licencia, crear_license_default
+from security.license_manager import validar_licencia
 from utils.store_config import load_store_config, is_setup_complete
 from ui.setup_view import SetupDialog
 from utils.theme import get_stylesheet
