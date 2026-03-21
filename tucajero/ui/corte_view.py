@@ -46,8 +46,9 @@ class CorteView(QWidget):
         from utils.theme import card_style
 
         self.info_widget = QWidget()
+        self.info_widget.setObjectName("infoCard")
         self.info_widget.setStyleSheet(f"""
-            QWidget {{
+            QWidget#infoCard {{
                 background-color: {c["bg_card"]};
                 border-radius: 16px;
                 border: 1.5px solid {c["border"]};

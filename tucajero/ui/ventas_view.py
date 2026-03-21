@@ -341,6 +341,11 @@ class VentasView(QWidget):
         self.tabla_carrito.setColumnCount(6)
         self.tabla_carrito.setHorizontalHeaderLabels(["Código", "Producto", "Cant.", "Precio", "IVA", "Subtotal"])
         self.tabla_carrito.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        self.tabla_carrito.setColumnWidth(0, 100) # Código
+        self.tabla_carrito.setColumnWidth(2, 160) # Cant.
+        self.tabla_carrito.setColumnWidth(3, 110) # Precio
+        self.tabla_carrito.setColumnWidth(4, 90)  # IVA
+        self.tabla_carrito.setColumnWidth(5, 120) # Subtotal
         self.tabla_carrito.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.tabla_carrito.setAlternatingRowColors(False)
         self.tabla_carrito.verticalHeader().setVisible(False)
@@ -355,7 +360,7 @@ class VentasView(QWidget):
                 color: {c['text_primary']};
             }}
             QTableWidget::item {{
-                padding: 8px 8px;
+                padding: 2px 8px;
                 border-bottom: 1px solid {c['border']};
             }}
             QTableWidget::item:selected {{
@@ -565,7 +570,7 @@ class VentasView(QWidget):
             QPushButton {{
                 background-color: #0f172a;
                 color: white;
-                border: none;
+                border: 1.5px solid white;
                 border-radius: 12px;
                 font-size: 15px;
                 font-weight: bold;
@@ -851,8 +856,8 @@ class VentasView(QWidget):
             lbl_subtotal.setFlags(lbl_subtotal.flags() & ~Qt.ItemFlag.ItemIsEditable)
             self.tabla_carrito.setItem(i, 5, lbl_subtotal)
 
-            # Row height +15% original + 5% extra = 49px so the qty widget is visible
-            self.tabla_carrito.setRowHeight(i, 49)
+            # Aumentado mucho más para evitar clipping en cualquier resolución
+            self.tabla_carrito.setRowHeight(i, 65)
 
         self._actualizar_resumen(subtotal_total, iva_total)
         self.tabla_carrito.scrollToBottom()
@@ -865,10 +870,12 @@ class VentasView(QWidget):
         c = get_colors()
 
         qty_widget = QWidget()
+        qty_widget.setFixedHeight(50)
         qty_widget.setStyleSheet("background: transparent;")
         qty_layout = QHBoxLayout(qty_widget)
-        qty_layout.setContentsMargins(6, 4, 6, 4)
-        qty_layout.setSpacing(6)
+        qty_layout.setContentsMargins(6, 2, 6, 2)
+        qty_layout.setSpacing(8)
+        qty_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         btn_m = QPushButton("−")
         btn_m.setFixedSize(25, 25)
@@ -882,12 +889,14 @@ class VentasView(QWidget):
         """)
 
         lbl_qty = QLineEdit(str(cantidad))
-        lbl_qty.setValidator(QIntValidator(1, 9999))
-        lbl_qty.setFixedWidth(32)
+        lbl_qty.setValidator(QIntValidator(1, 99999)) # Hasta 5 cifras
+        lbl_qty.setFixedWidth(70)
         lbl_qty.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lbl_qty.setStyleSheet(
-            f"color: {c['text_primary']}; font-weight: bold; font-size: 14px; background: transparent; border: none;"
+            f"color: {c['text_primary']}; font-weight: bold; font-size: 14px; "
+            "background: transparent; border: none; padding: 0px; margin: 0px;"
         )
+        lbl_qty.setFixedHeight(30)
         
         def update_qty():
             text = lbl_qty.text()

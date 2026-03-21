@@ -1,7 +1,7 @@
 [Setup]
 AppName=TuCajero POS
-AppVersion=1.2
-AppVerName=TuCajero POS v1.2
+AppVersion=3.0
+AppVerName=TuCajero POS v3.0
 AppPublisher=Droguería CruzMedic
 AppPublisherURL=mailto:cruzmedicdrogueria@gmail.com
 AppSupportURL=mailto:cruzmedicdrogueria@gmail.com
@@ -10,18 +10,18 @@ DefaultDirName={autopf}\TuCajero
 DefaultGroupName=TuCajero POS
 AllowNoIcons=yes
 OutputDir=installer
-OutputBaseFilename=TuCajero_Setup_v1.2
+OutputBaseFilename=TuCajero_Setup_v3.0
 Compression=lzma2/ultra64
 SolidCompression=yes
 PrivilegesRequired=admin
 DisableProgramGroupPage=yes
 UninstallDisplayIcon={app}\TuCajero.exe
-UninstallDisplayName=TuCajero POS v1.2
-VersionInfoVersion=1.2.0.0
+UninstallDisplayName=TuCajero POS v3.0
+VersionInfoVersion=3.0.0.0
 VersionInfoCompany=Droguería CruzMedic
 VersionInfoDescription=Sistema POS TuCajero
 VersionInfoProductName=TuCajero POS
-VersionInfoProductVersion=1.2
+VersionInfoProductVersion=3.0
 ArchitecturesInstallIn64BitMode=x64compatible
 
 [Languages]

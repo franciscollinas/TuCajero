@@ -1,3 +1,3 @@
 APP_NAME = "TuCajero"
-VERSION = "1.2"
+VERSION = "3.0"
 AUTHOR = "TuCajero"
