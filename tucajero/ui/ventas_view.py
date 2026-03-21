@@ -518,7 +518,7 @@ class VentasView(QWidget):
         met_l.addWidget(met_title)
 
         self.metodo_grupo = QButtonGroup(self)
-        metodos = [("💵", "EFECTIVO"), ("📱", "NEQUI"), ("📱", "DAVIPLATA"), ("🏦", "TRANSF.")]
+        metodos = [("💵", "EFECTIVO"), ("📱", "NEQUI"), ("📱", "DAVIPLATA"), ("🏦", "TRANSF."), ("💳", "MIXTO")]
         grid = QGridLayout()
         grid.setSpacing(8)
 
@@ -548,7 +548,10 @@ class VentasView(QWidget):
             if i == 0:
                 btn.setChecked(True)
             self.metodo_grupo.addButton(btn, i)
-            grid.addWidget(btn, i // 2, i % 2)
+            if i == 4:
+                grid.addWidget(btn, i // 2, 0, 1, 2)
+            else:
+                grid.addWidget(btn, i // 2, i % 2)
 
         met_l.addLayout(grid)
         self.right_layout.addWidget(metodo_card)
@@ -1046,7 +1049,7 @@ class VentasView(QWidget):
         self.btn_cotizacion.setVisible(False)
         self.btn_cobrar.setVisible(False)
 
-        metodos = ["Efectivo", "Nequi", "Daviplata", "Transferencia"]
+        metodos = ["Efectivo", "Nequi", "Daviplata", "Transferencia", "Mixto"]
         metodo_id = self.metodo_grupo.checkedId()
         self._metodo_seleccionado = metodos[metodo_id] if metodo_id >= 0 else "Efectivo"
 
@@ -1075,32 +1078,38 @@ class VentasView(QWidget):
         self.lbl_total_cobro.setAlignment(Qt.AlignmentFlag.AlignCenter)
         cobro_layout.addWidget(self.lbl_total_cobro)
 
-        recibido_lbl = QLabel("Monto recibido:")
-        recibido_lbl.setStyleSheet(f"color: {c['text_primary']}; font-size: 13px;")
-        cobro_layout.addWidget(recibido_lbl)
-
-        self.txt_recibido = QLineEdit()
-        self.txt_recibido.setPlaceholderText("$0.00")
-        self.txt_recibido.setStyleSheet(f"""
-            QLineEdit {{
-                background: {c["bg_input"]};
-                color: {c["text_primary"]};
-                border: 1.5px solid {c["accent"]};
-                border-radius: 8px;
-                padding: 10px;
-                font-size: 20px;
-                font-weight: bold;
-            }}
-        """)
-        self.txt_recibido.textChanged.connect(self._calcular_cambio_inline)
-        cobro_layout.addWidget(self.txt_recibido)
-
-        self.lbl_cambio_inline = QLabel("Cambio: $0.00")
-        self.lbl_cambio_inline.setStyleSheet(
-            f"color: {c['info']}; font-size: 14px; font-weight: bold;"
-        )
-        self.lbl_cambio_inline.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        cobro_layout.addWidget(self.lbl_cambio_inline)
+        if self._metodo_seleccionado in ["Efectivo", "Mixto"]:
+            texto_lbl = "Monto en Efectivo:" if self._metodo_seleccionado == "Mixto" else "Monto recibido:"
+            recibido_lbl = QLabel(texto_lbl)
+            recibido_lbl.setStyleSheet(f"color: {c['text_primary']}; font-size: 13px;")
+            cobro_layout.addWidget(recibido_lbl)
+    
+            self.txt_recibido = QLineEdit()
+            self.txt_recibido.setPlaceholderText("$0.00")
+            self.txt_recibido.setStyleSheet(f"""
+                QLineEdit {{
+                    background: {c["bg_input"]};
+                    color: {c["text_primary"]};
+                    border: 1.5px solid {c["accent"]};
+                    border-radius: 8px;
+                    padding: 10px;
+                    font-size: 20px;
+                    font-weight: bold;
+                }}
+            """)
+            self.txt_recibido.textChanged.connect(self._calcular_cambio_inline)
+            cobro_layout.addWidget(self.txt_recibido)
+    
+            texto_cambio = "Restante Electrónico: $0.00" if self._metodo_seleccionado == "Mixto" else "Cambio: $0.00"
+            self.lbl_cambio_inline = QLabel(texto_cambio)
+            self.lbl_cambio_inline.setStyleSheet(
+                f"color: {c['info']}; font-size: 14px; font-weight: bold;"
+            )
+            self.lbl_cambio_inline.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            cobro_layout.addWidget(self.lbl_cambio_inline)
+        else:
+            self.txt_recibido = None
+            self.lbl_cambio_inline = None
 
         btns = QHBoxLayout()
 
@@ -1136,28 +1145,46 @@ class VentasView(QWidget):
 
         insert_pos = self.right_layout.count() - 1
         self.right_layout.insertWidget(insert_pos, self.cobro_widget)
-        self.txt_recibido.setFocus()
+        if hasattr(self, 'txt_recibido') and self.txt_recibido:
+            self.txt_recibido.setFocus()
 
     def _calcular_cambio_inline(self):
+        if hasattr(self, 'txt_recibido') and self.txt_recibido is None:
+            return
         try:
+            if hasattr(self, 'txt_recibido') and self.txt_recibido:
+                recibido_txt = self.txt_recibido.text()
+            else:
+                return
+            
             recibido = float(
-                self.txt_recibido.text().replace("$", "").replace(",", "") or 0
+                recibido_txt.replace("$", "").replace(",", "") or 0
             )
             total = self._get_total_float()
             cambio = recibido - total
             from utils.theme import get_colors
 
             c = get_colors()
-            if cambio >= 0:
-                self.lbl_cambio_inline.setText(f"Cambio: {fmt_moneda(cambio)}")
-                self.lbl_cambio_inline.setStyleSheet(
-                    f"color: {c['success']}; font-size: 14px; font-weight: bold;"
-                )
+            
+            if self._metodo_seleccionado == "Mixto":
+                restante = total - recibido
+                if restante > 0:
+                    self.lbl_cambio_inline.setText(f"Restante Electrónico: {fmt_moneda(restante)}")
+                    self.lbl_cambio_inline.setStyleSheet(f"color: {c['warning']}; font-size: 14px; font-weight: bold;")
+                else:
+                    self.lbl_cambio_inline.setText(f"Pago Completo (Cambio: {fmt_moneda(abs(restante))})")
+                    self.lbl_cambio_inline.setStyleSheet(f"color: {c['success']}; font-size: 14px; font-weight: bold;")
             else:
-                self.lbl_cambio_inline.setText(f"Faltan: {fmt_moneda(abs(cambio))}")
-                self.lbl_cambio_inline.setStyleSheet(
-                    f"color: {c['danger']}; font-size: 14px; font-weight: bold;"
-                )
+                if cambio >= 0:
+                    self.lbl_cambio_inline.setText(f"Cambio: {fmt_moneda(cambio)}")
+                    self.lbl_cambio_inline.setStyleSheet(
+                        f"color: {c['success']}; font-size: 14px; font-weight: bold;"
+                    )
+                else:
+                    self.lbl_cambio_inline.setText(f"Faltan: {fmt_moneda(abs(cambio))}")
+                    self.lbl_cambio_inline.setStyleSheet(
+                        f"color: {c['danger']}; font-size: 14px; font-weight: bold;"
+                    )
         except:
             pass
 
@@ -1184,9 +1211,12 @@ class VentasView(QWidget):
     def _confirmar_cobro(self):
         metodo = getattr(self, "_metodo_seleccionado", "Efectivo")
         try:
-            monto_recibido = float(
-                self.txt_recibido.text().replace("$", "").replace(",", "") or 0
-            )
+            if hasattr(self, 'txt_recibido') and self.txt_recibido:
+                monto_recibido = float(
+                    self.txt_recibido.text().replace("$", "").replace(",", "") or 0
+                )
+            else:
+                monto_recibido = self._get_total_float()
         except:
             monto_recibido = self._get_total_float()
 
