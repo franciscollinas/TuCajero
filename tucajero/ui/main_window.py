@@ -200,11 +200,11 @@ class MainWindow(QMainWindow):
         c = get_colors()
 
         sidebar = QWidget()
-        sidebar.setFixedWidth(200)
+        sidebar.setFixedWidth(185)
         sidebar.setStyleSheet(f"""
             QWidget {{
                 background-color: {c["bg_sidebar"]};
-                border-right: 1px solid {c["border"]};
+                border-right: 1px solid rgba(255,255,255,0.05);
             }}
         """)
         layout = QVBoxLayout(sidebar)
@@ -212,13 +212,13 @@ class MainWindow(QMainWindow):
         layout.setSpacing(0)
 
         header = QWidget()
-        header.setFixedHeight(70)
+        header.setFixedHeight(56)
         header.setStyleSheet(f"background-color: {c['bg_sidebar']};")
         h_layout = QHBoxLayout(header)
-        h_layout.setContentsMargins(16, 0, 16, 0)
+        h_layout.setContentsMargins(12, 0, 12, 0)
 
         logo_container = QLabel()
-        logo_container.setFixedSize(38, 38)
+        logo_container.setFixedSize(32, 32)
         logo_container.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         app_icon_path = os.path.join(
@@ -230,27 +230,27 @@ class MainWindow(QMainWindow):
             from PySide6.QtGui import QPixmap
 
             pix = QPixmap(app_icon_path).scaled(
-                34,
-                34,
+                28,
+                28,
                 Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation,
             )
             logo_container.setPixmap(pix)
             logo_container.setStyleSheet(
-                "border-radius: 8px; border: none; background: transparent;"
+                "border-radius: 6px; border: none; background: transparent;"
             )
         elif store_logo and os.path.exists(store_logo):
             from PySide6.QtGui import QPixmap
 
             pix = QPixmap(store_logo).scaled(
-                34,
-                34,
+                28,
+                28,
                 Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation,
             )
             logo_container.setPixmap(pix)
             logo_container.setStyleSheet(
-                "border-radius: 8px; border: none; background: transparent;"
+                "border-radius: 6px; border: none; background: transparent;"
             )
         else:
             logo_container.setText("TC")
@@ -258,29 +258,32 @@ class MainWindow(QMainWindow):
                 background-color: {c["accent"]};
                 color: white;
                 border-radius: 8px;
-                font-size: 13px;
+                font-size: 12px;
                 font-weight: bold;
                 border: none;
             """)
 
         app_name = QLabel("TuCajero")
-        app_name.setStyleSheet(
-            f"color: {c['text_primary']}; font-size: 18px; font-weight: bold;"
-        )
+        app_name.setStyleSheet(f"""
+            color: white;
+            font-size: 15px;
+            font-weight: bold;
+            background: transparent;
+        """)
         h_layout.addWidget(logo_container)
         h_layout.addWidget(app_name)
         h_layout.addStretch()
         layout.addWidget(header)
 
-        sep = QFrame()
-        sep.setFrameShape(QFrame.Shape.HLine)
-        sep.setStyleSheet(f"color: {c['border']}; background: {c['border']};")
-        layout.addWidget(sep)
-
-        menu_label = QLabel("  MENÚ")
-        menu_label.setStyleSheet(
-            f"color: {c['text_muted']}; font-size: 10px; font-weight: bold; padding: 16px 16px 4px 16px;"
-        )
+        menu_label = QLabel("MENÚ")
+        menu_label.setStyleSheet(f"""
+            color: rgba(255,255,255,0.25);
+            font-size: 9px;
+            font-weight: bold;
+            letter-spacing: 1.5px;
+            padding: 16px 14px 6px 14px;
+            background: transparent;
+        """)
         layout.addWidget(menu_label)
 
         nav_items = [
@@ -299,34 +302,30 @@ class MainWindow(QMainWindow):
         self._nav_buttons = {}
         for icon, label, key in nav_items:
             btn = QPushButton(f"  {icon}   {label}")
-            btn.setFixedHeight(42)
+            btn.setFixedHeight(38)
             btn.setCheckable(True)
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
             btn.setProperty("navButton", True)
             btn.setStyleSheet(f"""
                 QPushButton[navButton="true"] {{
                     background: transparent;
-                    color: {c["text_secondary"]};
+                    color: {c["text_muted"]};
                     border: none;
-                    border-radius: 10px;
+                    border-radius: 6px;
                     text-align: left;
-                    padding-left: 16px;
-                    font-size: 13px;
+                    padding: 0px 12px;
+                    font-size: 12px;
                     font-weight: normal;
-                    margin: 1px 8px;
+                    margin: 0px 6px;
                 }}
                 QPushButton[navButton="true"]:hover {{
-                    background-color: {c["bg_input"]};
+                    background-color: rgba(255,255,255,0.06);
                     color: {c["text_primary"]};
-                    border-left: 3px solid {c["border_strong"]};
-                    padding-left: 13px;
                 }}
                 QPushButton[navButton="true"]:checked {{
-                    background-color: {c["bg_input"]};
-                    color: {c["text_primary"]};
+                    background-color: rgba(108,99,255,0.15);
+                    color: {c["accent"]};
                     font-weight: bold;
-                    border-left: 3px solid {c["accent"]};
-                    padding-left: 13px;
                 }}
             """)
             btn.clicked.connect(lambda checked, k=key: self.switch_view_by_name(k))
@@ -337,37 +336,45 @@ class MainWindow(QMainWindow):
 
         sep2 = QFrame()
         sep2.setFrameShape(QFrame.Shape.HLine)
-        sep2.setStyleSheet(f"color: {c['border']}; background: {c['border']};")
+        sep2.setStyleSheet(
+            f"color: rgba(255,255,255,0.05); background: rgba(255,255,255,0.05);"
+        )
         layout.addWidget(sep2)
 
         self.lbl_cajero = QLabel("👑 Administrador")
-        self.lbl_cajero.setStyleSheet(
-            f"color: {c['success']}; font-size: 12px; padding: 8px 16px;"
-        )
+        self.lbl_cajero.setStyleSheet(f"""
+            color: {c["success"]};
+            font-size: 11px;
+            padding: 6px 14px;
+            background: transparent;
+        """)
         layout.addWidget(self.lbl_cajero)
 
         btn_acerca = QPushButton("  ℹ️  Acerca de")
-        btn_acerca.setFixedHeight(36)
+        btn_acerca.setFixedHeight(30)
         btn_acerca.setStyleSheet(f"""
             QPushButton {{
                 background: transparent;
-                color: {c["text_muted"]};
+                color: rgba(255,255,255,0.3);
                 border: none;
                 text-align: left;
-                padding-left: 16px;
-                font-size: 12px;
+                padding: 0px 14px;
+                font-size: 11px;
             }}
             QPushButton:hover {{
-                color: {c["text_secondary"]};
+                color: rgba(255,255,255,0.5);
             }}
         """)
         btn_acerca.clicked.connect(self.mostrar_acerca)
         layout.addWidget(btn_acerca)
 
         copyright_label = QLabel("© Ing. Francisco Llinas P.")
-        copyright_label.setStyleSheet(
-            f"color: {c['text_muted']}; font-size: 10px; padding: 4px 16px 12px 16px;"
-        )
+        copyright_label.setStyleSheet(f"""
+            color: rgba(255,255,255,0.2);
+            font-size: 9px;
+            padding: 2px 14px 10px 14px;
+            background: transparent;
+        """)
         layout.addWidget(copyright_label)
 
         return sidebar

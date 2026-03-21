@@ -694,7 +694,7 @@ class VentasView(QWidget):
             if item["producto_id"] == producto.id:
                 item["cantidad"] += 1
                 self.actualizar_tabla()
-                self.mostrar_feedback(f"{producto.nombre} x{item['cantidad']}")
+                self.mostrar_feedback(f"✓ {producto.nombre} x{item['cantidad']}")
                 return
 
         self.carrito.append(
@@ -708,7 +708,35 @@ class VentasView(QWidget):
             }
         )
         self.actualizar_tabla()
-        self.mostrar_feedback(f"{producto.nombre} agregado")
+        self.tabla_carrito.scrollToBottom()
+        self._highlight_ultima_fila()
+        self.mostrar_feedback(f"✓ {producto.nombre} agregado")
+
+    def _highlight_ultima_fila(self):
+        from utils.theme import get_colors
+        from PySide6.QtGui import QColor, QBrush
+        from PySide6.QtCore import QTimer
+
+        c = get_colors()
+
+        last_row = self.tabla_carrito.rowCount() - 1
+        if last_row < 0:
+            return
+
+        for col in range(self.tabla_carrito.columnCount()):
+            item = self.tabla_carrito.item(last_row, col)
+            if item:
+                item.setBackground(QBrush(QColor(c["success"] + "44")))
+
+        def quitar_highlight():
+            if last_row < self.tabla_carrito.rowCount():
+                for col in range(self.tabla_carrito.columnCount()):
+                    cell = self.tabla_carrito.cellWidget(last_row, col)
+                    item = self.tabla_carrito.item(last_row, col)
+                    if item:
+                        item.setBackground(QBrush(QColor("transparent")))
+
+        QTimer.singleShot(1500, quitar_highlight)
 
     def mostrar_feedback(self, mensaje, tipo="success"):
         from utils.theme import get_colors
@@ -716,21 +744,22 @@ class VentasView(QWidget):
         c = get_colors()
         color = c["success"] if tipo == "success" else c["danger"]
 
-        notif = QLabel(f"✓  {mensaje}", self)
-        notif.setStyleSheet(f"""
+        toast = QLabel(mensaje, self)
+        toast.setStyleSheet(f"""
             background-color: {color};
             color: white;
             border-radius: 8px;
-            padding: 10px 20px;
+            padding: 10px 16px;
             font-size: 13px;
             font-weight: bold;
         """)
-        notif.adjustSize()
-        notif.move(
-            (self.width() - notif.width()) // 2, self.height() - notif.height() - 80
-        )
-        notif.show()
-        QTimer.singleShot(2000, notif.deleteLater)
+        toast.adjustSize()
+        toast.setFixedWidth(280)
+        x = self.width() - toast.width() - 20
+        toast.move(x, 80)
+        toast.show()
+        toast.raise_()
+        QTimer.singleShot(2000, toast.deleteLater)
 
     def actualizar_tabla(self):
         """Update cart table"""
