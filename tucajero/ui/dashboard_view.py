@@ -24,75 +24,82 @@ def add_shadow(widget, blur=20, offset_y=4, opacity=80):
 
 
 class MetricCard(QWidget):
-    def __init__(self, icon, title, value, color, parent=None):
+    def __init__(self, icon, title, value, color, badge=None, parent=None):
         super().__init__(parent)
+        from utils.theme import get_colors
+        from PySide6.QtWidgets import QGraphicsDropShadowEffect
+        from PySide6.QtGui import QColor
         c = get_colors()
-        self.setMinimumHeight(120)
+
+        self.setMinimumHeight(110)
         self.setStyleSheet(f"""
             QWidget {{
-                background-color: {c["bg_card"]};
-                border-radius: 16px;
-                border: 1.5px solid {c["border_strong"]};
+                background-color: {c['bg_card']};
+                border-radius: 12px;
+                border: none;
             }}
         """)
         shadow = QGraphicsDropShadowEffect()
         shadow.setBlurRadius(20)
         shadow.setOffset(0, 4)
-        shadow.setColor(QColor(0, 0, 0, 80))
+        shadow.setColor(QColor(0, 0, 0, 40))
         self.setGraphicsEffect(shadow)
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 18, 20, 18)
-        layout.setSpacing(10)
+        layout.setContentsMargins(20, 16, 20, 16)
+        layout.setSpacing(8)
 
+        # Fila top: ícono + badge
         top = QHBoxLayout()
-        top.setSpacing(16)
-
         icon_box = QLabel(icon)
-        icon_box.setFixedSize(52, 52)
+        icon_box.setFixedSize(44, 44)
         icon_box.setAlignment(Qt.AlignmentFlag.AlignCenter)
         icon_box.setStyleSheet(f"""
-            background-color: {color}33;
+            background-color: {color}22;
             color: {color};
-            border-radius: 14px;
-            font-size: 24px;
+            border-radius: 10px;
+            font-size: 20px;
             border: none;
         """)
         top.addWidget(icon_box)
+        top.addStretch()
 
-        val_layout = QVBoxLayout()
-        val_layout.setSpacing(2)
+        if badge:
+            badge_lbl = QLabel(badge)
+            badge_lbl.setStyleSheet(f"""
+                color: {c['success']};
+                font-size: 11px;
+                font-weight: bold;
+                background: {c['success_light']};
+                border-radius: 8px;
+                padding: 2px 8px;
+                border: none;
+            """)
+            top.addWidget(badge_lbl)
+        layout.addLayout(top)
+
+        # Valor principal
         self.value_label = QLabel(value)
         self.value_label.setStyleSheet(f"""
-            color: {c["text_primary"]};
-            font-size: 28px;
+            color: {c['text_primary']};
+            font-size: 26px;
             font-weight: bold;
             border: none;
             background: transparent;
         """)
-        val_layout.addWidget(self.value_label)
+        layout.addWidget(self.value_label)
 
-        self.title_label = QLabel(title)
-        self.title_label.setStyleSheet(f"""
-            color: {c["text_secondary"]};
-            font-size: 12px;
+        # Título
+        title_lbl = QLabel(title.upper())
+        title_lbl.setStyleSheet(f"""
+            color: {c['text_muted']};
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: 0.8px;
             border: none;
             background: transparent;
         """)
-        val_layout.addWidget(self.title_label)
-        top.addLayout(val_layout)
-        top.addStretch()
-        layout.addLayout(top)
-
-        line = QFrame()
-        line.setFixedHeight(3)
-        line.setStyleSheet(f"""
-            background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                stop:0 {color}, stop:1 {color}44);
-            border-radius: 2px;
-            border: none;
-        """)
-        layout.addWidget(line)
+        layout.addWidget(title_lbl)
 
     def update_value(self, value):
         self.value_label.setText(value)
@@ -127,14 +134,10 @@ class DashboardView(QWidget):
         grid = QHBoxLayout()
         grid.setSpacing(16)
 
-        self.card_ventas_hoy = MetricCard(
-            "🛒", "Ventas hoy", fmt_moneda(0), c["accent"]
-        )
-        self.card_ventas_mes = MetricCard(
-            "📈", "Ventas del mes", fmt_moneda(0), c["success"]
-        )
-        self.card_clientes = MetricCard("👥", "Clientes", "0", c["info"])
-        self.card_productos = MetricCard("📦", "Productos activos", "0", c["warning"])
+        self.card_ventas_hoy  = MetricCard("📈", "Ventas hoy",        fmt_moneda(0), c['accent'],   badge="+12%")
+        self.card_ventas_mes  = MetricCard("📅", "Ventas del mes",    fmt_moneda(0), c['info'],    badge="+5.2%")
+        self.card_clientes    = MetricCard("👥", "Clientes",          "0",           c['success'])
+        self.card_productos   = MetricCard("📦", "Productos activos", "0",           c['warning'])
 
         for card in [
             self.card_ventas_hoy,
