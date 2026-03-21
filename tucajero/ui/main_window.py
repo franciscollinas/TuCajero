@@ -8,6 +8,7 @@ from PySide6.QtWidgets import (
     QLabel,
     QSizePolicy,
     QFrame,
+    QButtonGroup,
 )
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon, QPixmap
@@ -215,6 +216,8 @@ class MainWindow(QMainWindow):
         ]
 
         self._nav_buttons = {}
+        self._nav_group = QButtonGroup(self)
+        self._nav_group.setExclusive(True)
         for icon, label, key in nav_items:
             btn = QPushButton(f"  {icon}   {label}")
             btn.setFixedHeight(40)
@@ -244,6 +247,7 @@ class MainWindow(QMainWindow):
             """)
             btn.clicked.connect(lambda checked, k=key: self.switch_view_by_name(k))
             self._nav_buttons[key] = btn
+            self._nav_group.addButton(btn)
             layout.addWidget(btn)
 
         layout.addStretch()

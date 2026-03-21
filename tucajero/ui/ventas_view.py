@@ -848,6 +848,9 @@ class VentasView(QWidget):
             lbl_subtotal.setFlags(lbl_subtotal.flags() & ~Qt.ItemFlag.ItemIsEditable)
             self.tabla_carrito.setItem(i, 5, lbl_subtotal)
 
+            # Row height +15% (default ~30 → 46px so the qty widget is visible)
+            self.tabla_carrito.setRowHeight(i, 46)
+
         self._actualizar_resumen(subtotal_total, iva_total)
         self.tabla_carrito.scrollToBottom()
 
@@ -860,34 +863,36 @@ class VentasView(QWidget):
         qty_widget = QWidget()
         qty_widget.setStyleSheet("background: transparent;")
         qty_layout = QHBoxLayout(qty_widget)
-        qty_layout.setContentsMargins(4, 2, 4, 2)
-        qty_layout.setSpacing(4)
+        qty_layout.setContentsMargins(6, 4, 6, 4)
+        qty_layout.setSpacing(6)
 
         btn_m = QPushButton("−")
-        btn_m.setFixedSize(24, 24)
+        btn_m.setFixedSize(28, 28)
         btn_m.setStyleSheet(f"""
             QPushButton {{
                 background: {c["danger"]};
-                color: white; border-radius: 12px;
-                font-size: 14px; font-weight: bold; border: none; padding: 0;
+                color: white; border-radius: 14px;
+                font-size: 15px; font-weight: bold; border: none; padding: 0;
             }}
+            QPushButton:hover {{ background: #dc2626; }}
         """)
 
         lbl_qty = QLabel(str(cantidad))
-        lbl_qty.setFixedWidth(28)
+        lbl_qty.setFixedWidth(32)
         lbl_qty.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lbl_qty.setStyleSheet(
-            f"color: {c['text_primary']}; font-weight: bold; font-size: 13px;"
+            f"color: {c['text_primary']}; font-weight: bold; font-size: 14px; background: transparent;"
         )
 
         btn_p = QPushButton("+")
-        btn_p.setFixedSize(24, 24)
+        btn_p.setFixedSize(28, 28)
         btn_p.setStyleSheet(f"""
             QPushButton {{
                 background: {c["success"]};
-                color: white; border-radius: 12px;
-                font-size: 14px; font-weight: bold; border: none; padding: 0;
+                color: white; border-radius: 14px;
+                font-size: 15px; font-weight: bold; border: none; padding: 0;
             }}
+            QPushButton:hover {{ background: #059669; }}
         """)
 
         btn_m.clicked.connect(lambda _, r=row: self._cambiar_cantidad(r, -1))
