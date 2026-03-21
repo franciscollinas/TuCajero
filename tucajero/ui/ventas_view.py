@@ -859,7 +859,8 @@ class VentasView(QWidget):
 
     def _crear_widget_cantidad(self, row, cantidad):
         from utils.theme import get_colors
-        from PySide6.QtWidgets import QWidget, QHBoxLayout, QPushButton, QLabel
+        from PySide6.QtWidgets import QWidget, QHBoxLayout, QPushButton, QLineEdit
+        from PySide6.QtGui import QIntValidator
 
         c = get_colors()
 
@@ -880,12 +881,21 @@ class VentasView(QWidget):
             QPushButton:hover {{ background: #dc2626; }}
         """)
 
-        lbl_qty = QLabel(str(cantidad))
+        lbl_qty = QLineEdit(str(cantidad))
+        lbl_qty.setValidator(QIntValidator(1, 9999))
         lbl_qty.setFixedWidth(32)
         lbl_qty.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lbl_qty.setStyleSheet(
-            f"color: {c['text_primary']}; font-weight: bold; font-size: 14px; background: transparent;"
+            f"color: {c['text_primary']}; font-weight: bold; font-size: 14px; background: transparent; border: none;"
         )
+        
+        def update_qty():
+            text = lbl_qty.text()
+            if text.isdigit() and int(text) > 0:
+                self.carrito[row]["cantidad"] = int(text)
+            self.actualizar_tabla()
+        
+        lbl_qty.editingFinished.connect(update_qty)
 
         btn_p = QPushButton("+")
         btn_p.setFixedSize(25, 25)
