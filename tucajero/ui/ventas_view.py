@@ -355,7 +355,7 @@ class VentasView(QWidget):
                 color: {c['text_primary']};
             }}
             QTableWidget::item {{
-                padding: 12px 8px;
+                padding: 8px 8px;
                 border-bottom: 1px solid {c['border']};
             }}
             QTableWidget::item:selected {{
