@@ -392,7 +392,7 @@ class VentasView(QWidget):
             }}
             QPushButton:hover {{ background: #dc2626; }}
         """)
-        self.btn_menos.clicked.connect(self.decrementar_cantidad)
+        self.btn_menos.clicked.connect(self.disminuir_cantidad)
 
         self.btn_mas = QPushButton("+")
         self.btn_mas.setFixedSize(32, 32)
@@ -408,7 +408,7 @@ class VentasView(QWidget):
             }}
             QPushButton:hover {{ background: #059669; }}
         """)
-        self.btn_mas.clicked.connect(self.incrementar_cantidad)
+        self.btn_mas.clicked.connect(self.aumentar_cantidad)
 
         actions_l.addWidget(self.btn_menos)
         actions_l.addWidget(self.btn_mas)
