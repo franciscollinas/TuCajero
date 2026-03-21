@@ -6,6 +6,8 @@ AppPublisher=Droguería CruzMedic
 AppPublisherURL=mailto:cruzmedicdrogueria@gmail.com
 AppSupportURL=mailto:cruzmedicdrogueria@gmail.com
 AppContact=cruzmedicdrogueria@gmail.com
+LicenseFile=Licencia.txt
+UserInfoPage=yes
 DefaultDirName={autopf}\TuCajero
 DefaultGroupName=TuCajero POS
 AllowNoIcons=yes
@@ -44,4 +46,15 @@ Name: "{commonstartmenu}\TuCajero POS"; Filename: "{app}\TuCajero.exe"; Tasks: s
 Filename: "{app}\TuCajero.exe"; Description: "Iniciar TuCajero POS ahora"; Flags: nowait postinstall skipifsilent
 
 [UninstallDelete]
+Type: filesandordirs; Name: "{localappdata}\TuCajero"
 Type: filesandordirs; Name: "{app}"
+
+[Code]
+// Función que valida el Número de Serie durante la instalación
+function CheckSerial(Serial: String): Boolean;
+begin
+  // El Código de Serie por defecto para la v3.0
+  // Puedes cambiar este valor según necesites
+  Result := (Serial = 'TUCAJERO-30-OFFICIAL-2026');
+end;
+

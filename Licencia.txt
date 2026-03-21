@@ -1,0 +1,9 @@
+TERMINOS Y CONDICIONES DE LICENCIA - TUCAJERO POS
+
+1. LICENCIA: TuCajero POS es un software comercial. El uso de este sistema requiere una licencia de activación (Código de Serie) generada exclusivamente para su computadora.
+
+2. ACTIVACIÓN: El usuario recibirá un código de activación único basado en el identificador de su máquina (Machine ID). Este código solo funciona en la PC autorizada.
+
+3. USO: Queda prohibida la redistribución, ingeniería inversa o modificación no autorizada del software. No nos hacemos responsables por el mal uso de la herramienta o pérdida de datos por falta de backups.
+
+Al instalar y activar este software, usted acepta estos términos.
