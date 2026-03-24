@@ -123,6 +123,79 @@ class ConfigNegocioDialog(QDialog):
 
         layout.addStretch()
 
+        # ── Sección Backup ────────────────────────
+        from utils.theme import get_colors
+        from PySide6.QtWidgets import QGroupBox, QHBoxLayout, QLabel
+
+        c = get_colors()
+
+        backup_group = QGroupBox("💾  Backup de Datos")
+        backup_group.setStyleSheet(f"""
+            QGroupBox {{
+                color: {c['text_secondary']};
+                font-size: 12px;
+                font-weight: bold;
+                border: 1.5px solid {c['border']};
+                border-radius: 10px;
+                margin-top: 12px;
+                padding: 12px;
+            }}
+            QGroupBox::title {{
+                subcontrol-origin: margin;
+                left: 12px;
+                padding: 0 6px;
+            }}
+        """)
+        backup_layout = QVBoxLayout(backup_group)
+        backup_layout.setSpacing(8)
+
+        backup_desc = QLabel("Exporta todos tus datos (productos, ventas, clientes, historial) para hacer una copia de seguridad o migrar a una nueva versión.")
+        backup_desc.setWordWrap(True)
+        backup_desc.setStyleSheet(f"color: {c['text_muted']}; font-size: 11px; background: transparent;")
+        backup_layout.addWidget(backup_desc)
+
+        btns_backup = QHBoxLayout()
+        btns_backup.setSpacing(8)
+
+        btn_exportar = QPushButton("📤  Exportar datos")
+        btn_exportar.setFixedHeight(36)
+        btn_exportar.setStyleSheet(f"""
+            QPushButton {{
+                background: {c['accent_light']};
+                color: {c['accent']};
+                border: 1.5px solid {c['accent']};
+                border-radius: 8px;
+                padding: 4px 16px;
+                font-size: 13px;
+                font-weight: bold;
+            }}
+            QPushButton:hover {{ background: {c['accent']}; color: white; }}
+        """)
+        btn_exportar.clicked.connect(self._exportar_datos)
+
+        btn_importar = QPushButton("📥  Importar datos")
+        btn_importar.setFixedHeight(36)
+        btn_importar.setStyleSheet(f"""
+            QPushButton {{
+                background: {c['warning_light']};
+                color: {c['warning']};
+                border: 1.5px solid {c['warning']};
+                border-radius: 8px;
+                padding: 4px 16px;
+                font-size: 13px;
+                font-weight: bold;
+            }}
+            QPushButton:hover {{ background: {c['warning']}; color: white; }}
+        """)
+        btn_importar.clicked.connect(self._importar_datos)
+
+        btns_backup.addWidget(btn_exportar)
+        btns_backup.addWidget(btn_importar)
+        btns_backup.addStretch()
+        backup_layout.addLayout(btns_backup)
+
+        layout.addWidget(backup_group)
+
         btn_layout = QHBoxLayout()
         btn_guardar = QPushButton(
             "GUARDAR Y CONTINUAR" if self.primera_vez else "GUARDAR"
@@ -242,3 +315,82 @@ class ConfigNegocioDialog(QDialog):
             self.accept()
         else:
             QMessageBox.critical(self, "Error", "No se pudo guardar la configuración.")
+
+    def _exportar_datos(self):
+        from PySide6.QtWidgets import QFileDialog, QMessageBox
+        from utils.data_manager import exportar_datos
+        from datetime import datetime
+
+        nombre_sugerido = f"TuCajero_backup_{datetime.now().strftime('%Y%m%d')}.tucajero"
+        ruta, _ = QFileDialog.getSaveFileName(
+            self,
+            "Guardar backup de datos",
+            nombre_sugerido,
+            "Backup TuCajero (*.tucajero);;Todos los archivos (*)"
+        )
+
+        if not ruta:
+            return
+
+        if not ruta.endswith('.tucajero'):
+            ruta += '.tucajero'
+
+        resultado = exportar_datos(ruta)
+
+        if resultado["ok"]:
+            QMessageBox.information(
+                self,
+                "✅ Exportación exitosa",
+                f"Datos exportados correctamente.\n\nArchivo guardado en:\n{ruta}\n\nGuarda este archivo en un lugar seguro (USB, Google Drive, etc.)"
+            )
+        else:
+            QMessageBox.critical(
+                self,
+                "❌ Error al exportar",
+                f"No se pudieron exportar los datos:\n{resultado['error']}"
+            )
+
+    def _importar_datos(self):
+        from PySide6.QtWidgets import QFileDialog, QMessageBox
+        from utils.data_manager import importar_datos
+
+        # Advertencia antes de importar
+        confirm = QMessageBox.warning(
+            self,
+            "⚠️ Importar datos",
+            "Esta acción reemplazará TODOS los datos actuales con los del backup.\n\n"
+            "Se creará un backup automático de los datos actuales antes de continuar.\n\n"
+            "¿Deseas continuar?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
+        )
+
+        if confirm != QMessageBox.StandardButton.Yes:
+            return
+
+        ruta, _ = QFileDialog.getOpenFileName(
+            self,
+            "Seleccionar backup de TuCajero",
+            "",
+            "Backup TuCajero (*.tucajero);;Todos los archivos (*)"
+        )
+
+        if not ruta:
+            return
+
+        resultado = importar_datos(ruta)
+
+        if resultado["ok"]:
+            QMessageBox.information(
+                self,
+                "✅ Importación exitosa",
+                f"Datos restaurados correctamente.\n\n"
+                f"Backup importado: versión {resultado.get('version','?')} del {resultado.get('fecha','?')}\n\n"
+                f"Cierra y vuelve a abrir TuCajero para ver los cambios."
+            )
+        else:
+            QMessageBox.critical(
+                self,
+                "❌ Error al importar",
+                f"No se pudieron importar los datos:\n{resultado['error']}"
+            )

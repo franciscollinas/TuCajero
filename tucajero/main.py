@@ -40,7 +40,7 @@ def configurar_logging():
 
     logging.basicConfig(
         handlers=[handler],
-        level=logging.ERROR,
+        level=logging.DEBUG,
         format="%(asctime)s - %(levelname)s - %(message)s",
         force=True,
     )
@@ -96,7 +96,8 @@ def main():
     from ui.login_cajero import LoginCajeroDialog
 
     login = LoginCajeroDialog(session)
-    if login.exec() != QDialog.DialogCode.Accepted:
+    result = login.exec()
+    if result != QDialog.DialogCode.Accepted:
         sys.exit(0)
     cajero_activo = login.cajero_seleccionado
 
@@ -106,8 +107,11 @@ def main():
     except Exception as e:
         logging.error(f"Error al abrir caja: {e}")
 
+    logging.info("Creando MainWindow...")
     window = MainWindow()
+    logging.info("MainWindow creado, configurando iconos...")
     window.setWindowIcon(QIcon(ICON_PATH))
+    logging.info("Iconos configurados")
 
     try:
         ventas_view = VentasView(session, cajero_activo=cajero_activo)
@@ -196,7 +200,23 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        logging.error(f"Error crítico no manejado: {e}")
+        import traceback
+
+        err_msg = f"Error crítico: {e}\n{traceback.format_exc()}"
+        # Write to both log file and debug file
+        try:
+            logging.error(err_msg)
+        except:
+            pass
+        try:
+            debug_file = os.path.join(
+                os.environ.get("LOCALAPPDATA", "."), "TuCajero", "debug_error.txt"
+            )
+            os.makedirs(os.path.dirname(debug_file), exist_ok=True)
+            with open(debug_file, "w") as f:
+                f.write(err_msg)
+        except:
+            pass
         try:
             from PySide6.QtWidgets import QApplication, QMessageBox
 
