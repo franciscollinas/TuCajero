@@ -220,28 +220,36 @@ class SetupDialog(QDialog):
 
     def guardar(self):
         """Guarda la configuración."""
-        nombre = self.nombre_input.text().strip()
-        if not nombre:
-            QMessageBox.warning(
-                self, "Campo requerido", "El nombre del negocio es requerido"
-            )
-            self.nombre_input.setFocus()
-            return
+        import logging
 
-        config_data = {
-            "store_name": nombre,
-            "nit": self.nit_input.text().strip(),
-            "phone": self.telefono_input.text().strip(),
-            "email": self.email_input.text().strip(),
-            "address": self.direccion_input.text().strip(),
-            "logo_path": self.logo_path,
-            "setup_complete": True,
-        }
+        try:
+            nombre = self.nombre_input.text().strip()
+            if not nombre:
+                QMessageBox.warning(
+                    self, "Campo requerido", "El nombre del negocio es requerido"
+                )
+                self.nombre_input.setFocus()
+                return
 
-        if save_store_config(config_data):
-            self.accept()
-        else:
-            QMessageBox.critical(self, "Error", "No se pudo guardar la configuración")
+            config_data = {
+                "store_name": nombre,
+                "nit": self.nit_input.text().strip(),
+                "phone": self.telefono_input.text().strip(),
+                "email": self.email_input.text().strip(),
+                "address": self.direccion_input.text().strip(),
+                "logo_path": self.logo_path,
+                "setup_complete": True,
+            }
+
+            if save_store_config(config_data):
+                self.accept()
+            else:
+                QMessageBox.critical(
+                    self, "Error", "No se pudo guardar la configuración"
+                )
+        except Exception as e:
+            logging.error(f"Error al guardar configuración: {e}", exc_info=True)
+            QMessageBox.critical(self, "Error", f"Ocurrió un error:\n{str(e)}")
 
 
 class SetupView(QWidget):
@@ -478,32 +486,40 @@ class SetupView(QWidget):
             self.btn_logo.setText(f"📁  {os.path.basename(file_path)}")
 
     def guardar(self):
-        nombre = self.nombre_input.text().strip()
-        if not nombre:
-            QMessageBox.warning(
-                self, "Campo requerido", "El nombre del negocio es requerido"
-            )
-            self.nombre_input.setFocus()
-            return
+        import logging
 
-        config_data = {
-            "store_name": nombre,
-            "nit": self.nit_input.text().strip(),
-            "phone": self.telefono_input.text().strip(),
-            "email": self.email_input.text().strip(),
-            "address": self.direccion_input.text().strip(),
-            "logo_path": self.logo_path,
-            "setup_complete": True,
-            "impresora": self._build_printer_config(),
-        }
+        try:
+            nombre = self.nombre_input.text().strip()
+            if not nombre:
+                QMessageBox.warning(
+                    self, "Campo requerido", "El nombre del negocio es requerido"
+                )
+                self.nombre_input.setFocus()
+                return
 
-        if save_store_config(config_data):
-            self.config_saved.emit()
-            QMessageBox.information(
-                self, "Éxito", "Configuración guardada correctamente"
-            )
-        else:
-            QMessageBox.critical(self, "Error", "No se pudo guardar la configuración")
+            config_data = {
+                "store_name": nombre,
+                "nit": self.nit_input.text().strip(),
+                "phone": self.telefono_input.text().strip(),
+                "email": self.email_input.text().strip(),
+                "address": self.direccion_input.text().strip(),
+                "logo_path": self.logo_path,
+                "setup_complete": True,
+                "impresora": self._build_printer_config(),
+            }
+
+            if save_store_config(config_data):
+                self.config_saved.emit()
+                QMessageBox.information(
+                    self, "Éxito", "Configuración guardada correctamente"
+                )
+            else:
+                QMessageBox.critical(
+                    self, "Error", "No se pudo guardar la configuración"
+                )
+        except Exception as e:
+            logging.error(f"Error al guardar configuración: {e}", exc_info=True)
+            QMessageBox.critical(self, "Error", f"Ocurrió un error:\n{str(e)}")
 
     def on_impresora_toggled(self, checked):
         self.tipo_impresora.setEnabled(checked)

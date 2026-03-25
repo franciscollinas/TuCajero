@@ -37,8 +37,10 @@ def exportar_historial_excel(
         ws1.append(
             [
                 c.id,
-                c.fecha_apertura.strftime("%d/%m/%Y %H:%M") if c.fecha_apertura else "",
-                c.fecha_cierre.strftime("%d/%m/%Y %H:%M") if c.fecha_cierre else "",
+                c.fecha_apertura.strftime("%d/%m/%Y %I:%M %p")
+                if c.fecha_apertura
+                else "",
+                c.fecha_cierre.strftime("%d/%m/%Y %I:%M %p") if c.fecha_cierre else "",
                 round(c.total_ventas or 0, 2),
                 round(c.total_iva or 0, 2),
                 round(c.total_efectivo or 0, 2),
@@ -91,7 +93,7 @@ def exportar_historial_excel(
                 [
                     corte_id,
                     v.id,
-                    v.fecha.strftime("%d/%m/%Y %H:%M:%S"),
+                    v.fecha.strftime("%d/%m/%Y %I:%M:%S %p"),
                     subtotal,
                     iva,
                     round(v.total, 2),

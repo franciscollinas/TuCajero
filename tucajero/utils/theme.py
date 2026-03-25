@@ -17,70 +17,70 @@ def get_theme():
 def get_colors():
     if get_theme() == "dark":
         return {
-            "bg_app":         "#0f172a",
-            "bg_sidebar":     "#1e293b",
-            "bg_card":        "#1e293b",
-            "bg_card_hover":  "#263548",
-            "bg_input":       "#263548",
-            "bg_elevated":    "#263548",
-            "text_primary":   "#f1f5f9",
+            "bg_app": "#0f172a",
+            "bg_sidebar": "#1e293b",
+            "bg_card": "#1e293b",
+            "bg_card_hover": "#263548",
+            "bg_input": "#263548",
+            "bg_elevated": "#263548",
+            "text_primary": "#f1f5f9",
             "text_secondary": "#94a3b8",
-            "text_muted":     "#475569",
-            "text_inverse":   "#0f172a",
-            "border":         "#334155",
-            "border_strong":  "#475569",
-            "accent":         "#3b82f6",
-            "accent_hover":   "#2563eb",
-            "accent_light":   "#3b82f620",
-            "success":        "#10b981",
-            "success_light":  "#10b98120",
-            "warning":        "#f59e0b",
-            "warning_light":  "#f59e0b20",
-            "danger":         "#ef4444",
-            "danger_light":   "#ef444420",
-            "info":           "#06b6d4",
-            "info_light":     "#06b6d420",
-            "purple":         "#8b5cf6",
-            "purple_light":   "#8b5cf620",
-            "shadow_sm":      "0px 1px 3px rgba(0,0,0,0.3)",
-            "shadow_md":      "0px 4px 6px rgba(0,0,0,0.4)",
-            "shadow_lg":      "0px 10px 15px rgba(0,0,0,0.5)",
+            "text_muted": "#475569",
+            "text_inverse": "#0f172a",
+            "border": "#334155",
+            "border_strong": "#475569",
+            "accent": "#3b82f6",
+            "accent_hover": "#2563eb",
+            "accent_light": "#3b82f620",
+            "success": "#10b981",
+            "success_light": "#10b98120",
+            "warning": "#f59e0b",
+            "warning_light": "#f59e0b20",
+            "danger": "#ef4444",
+            "danger_light": "#ef444420",
+            "info": "#06b6d4",
+            "info_light": "#06b6d420",
+            "purple": "#8b5cf6",
+            "purple_light": "#8b5cf620",
+            "shadow_sm": "0px 1px 3px rgba(0,0,0,0.3)",
+            "shadow_md": "0px 4px 6px rgba(0,0,0,0.4)",
+            "shadow_lg": "0px 10px 15px rgba(0,0,0,0.5)",
         }
     else:
         return {
             # Fondos
-            "bg_app":         "#f1f5f9",
-            "bg_sidebar":     "#1e293b",
-            "bg_card":        "#ffffff",
-            "bg_card_hover":  "#f8fafc",
-            "bg_input":       "#f1f5f9",
-            "bg_elevated":    "#ffffff",
+            "bg_app": "#f1f5f9",
+            "bg_sidebar": "#1e293b",
+            "bg_card": "#ffffff",
+            "bg_card_hover": "#f8fafc",
+            "bg_input": "#f1f5f9",
+            "bg_elevated": "#ffffff",
             # Texto
-            "text_primary":   "#0f172a",
+            "text_primary": "#0f172a",
             "text_secondary": "#475569",
-            "text_muted":     "#94a3b8",
-            "text_inverse":   "#ffffff",
+            "text_muted": "#94a3b8",
+            "text_inverse": "#ffffff",
             # Bordes
-            "border":         "#e2e8f0",
-            "border_strong":  "#cbd5e1",
+            "border": "#e2e8f0",
+            "border_strong": "#cbd5e1",
             # Colores semánticos
-            "accent":         "#3b82f6",
-            "accent_hover":   "#2563eb",
-            "accent_light":   "#3b82f618",
-            "success":        "#10b981",
-            "success_light":  "#10b98118",
-            "warning":        "#f59e0b",
-            "warning_light":  "#f59e0b18",
-            "danger":         "#ef4444",
-            "danger_light":   "#ef444418",
-            "info":           "#06b6d4",
-            "info_light":     "#06b6d418",
-            "purple":         "#8b5cf6",
-            "purple_light":   "#8b5cf618",
+            "accent": "#3b82f6",
+            "accent_hover": "#2563eb",
+            "accent_light": "#3b82f618",
+            "success": "#10b981",
+            "success_light": "#10b98118",
+            "warning": "#f59e0b",
+            "warning_light": "#f59e0b18",
+            "danger": "#ef4444",
+            "danger_light": "#ef444418",
+            "info": "#06b6d4",
+            "info_light": "#06b6d418",
+            "purple": "#8b5cf6",
+            "purple_light": "#8b5cf618",
             # Sombras pronunciadas estilo Sovereign
-            "shadow_sm":      "0px 1px 3px rgba(0,0,0,0.08), 0px 1px 2px rgba(0,0,0,0.06)",
-            "shadow_md":      "0px 4px 6px rgba(0,0,0,0.07), 0px 2px 4px rgba(0,0,0,0.06)",
-            "shadow_lg":      "0px 10px 15px rgba(0,0,0,0.08), 0px 4px 6px rgba(0,0,0,0.05)",
+            "shadow_sm": "0px 1px 3px rgba(0,0,0,0.08), 0px 1px 2px rgba(0,0,0,0.06)",
+            "shadow_md": "0px 4px 6px rgba(0,0,0,0.07), 0px 2px 4px rgba(0,0,0,0.06)",
+            "shadow_lg": "0px 10px 15px rgba(0,0,0,0.08), 0px 4px 6px rgba(0,0,0,0.05)",
         }
 
 
@@ -339,6 +339,109 @@ def btn_style(color_key="accent", size="md"):
         QPushButton:hover {{ background-color: {color}cc; }}
         QPushButton:pressed {{ background-color: {color}aa; }}
         QPushButton:disabled {{ background-color: {c["border"]}; color: {c["text_muted"]}; }}
+    """
+
+
+def btn_primary():
+    c = get_colors()
+    return f"""
+        QPushButton {{
+            background-color: {c["accent"]};
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: bold;
+            min-height: 32px;
+        }}
+        QPushButton:hover {{
+            background-color: {c["accent_hover"]};
+        }}
+        QPushButton:pressed {{
+            background-color: {c["accent"]};
+        }}
+        QPushButton:disabled {{
+            background-color: {c["border"]};
+            color: {c["text_muted"]};
+        }}
+    """
+
+
+def btn_secondary():
+    c = get_colors()
+    return f"""
+        QPushButton {{
+            background-color: {c["bg_input"]};
+            color: {c["text_primary"]};
+            border: 1.5px solid {c["border"]};
+            border-radius: 6px;
+            padding: 8px 14px;
+            font-size: 13px;
+            min-height: 32px;
+        }}
+        QPushButton:hover {{
+            background-color: {c["bg_card_hover"]};
+        }}
+        QPushButton:pressed {{
+            background-color: {c["border"]};
+        }}
+        QPushButton:disabled {{
+            background-color: {c["bg_input"]};
+            color: {c["text_muted"]};
+        }}
+    """
+
+
+def btn_danger():
+    c = get_colors()
+    return f"""
+        QPushButton {{
+            background-color: {c["danger"]};
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: bold;
+            min-height: 32px;
+        }}
+        QPushButton:hover {{
+            background-color: #dc2626;
+        }}
+        QPushButton:pressed {{
+            background-color: {c["danger"]};
+        }}
+        QPushButton:disabled {{
+            background-color: {c["border"]};
+            color: {c["text_muted"]};
+        }}
+    """
+
+
+def btn_success():
+    c = get_colors()
+    return f"""
+        QPushButton {{
+            background-color: {c["success"]};
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: bold;
+            min-height: 32px;
+        }}
+        QPushButton:hover {{
+            background-color: #059669;
+        }}
+        QPushButton:pressed {{
+            background-color: {c["success"]};
+        }}
+        QPushButton:disabled {{
+            background-color: {c["border"]};
+            color: {c["text_muted"]};
+        }}
     """
 
 

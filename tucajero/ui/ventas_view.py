@@ -198,7 +198,11 @@ class VentasView(QWidget):
         self.carrito = []
         self.productos = []
         self.descuento = {"tipo": None, "valor": 0, "total": 0}
+        self._initialized = False
+        self._loading = False
+        self._procesando_pago = False
         self.init_ui()
+        self._initialized = True
         self.cargar_productos()
         self.txt_codigo.setFocus()
 
@@ -694,6 +698,9 @@ class VentasView(QWidget):
 
     def buscar_producto(self):
         """Search product by code or name"""
+        if not self._initialized:
+            return
+
         from services.producto_service import ProductoService
 
         texto = self.txt_codigo.text().strip()
@@ -782,6 +789,7 @@ class VentasView(QWidget):
             self.lbl_cliente.setStyleSheet(
                 f"color: {c['accent']}; font-size: 12px; font-weight: bold;"
             )
+            self.btn_quitar_cliente.setVisible(True)
 
     def quitar_cliente(self):
         from utils.theme import get_colors
@@ -792,6 +800,7 @@ class VentasView(QWidget):
         self.lbl_cliente.setStyleSheet(
             f"color: {c['text_secondary']}; font-size: 12px;"
         )
+        self.btn_quitar_cliente.setVisible(False)
 
     def mostrar_buscador_productos(self, productos):
         """Show custom product list when multiple matches"""
@@ -1157,12 +1166,21 @@ class VentasView(QWidget):
 
     def cobrar(self):
         """Show inline payment panel"""
+        if not self._initialized:
+            return
+
+        if getattr(self, "_procesando_pago", False):
+            return
+
         from utils.theme import get_colors
 
         c = get_colors()
 
         if not self.carrito:
             return
+
+        self._procesando_pago = True
+        self.btn_cobrar.setEnabled(False)
 
         self.btn_cancelar.setVisible(False)
         self.btn_cotizacion.setVisible(False)

@@ -388,7 +388,7 @@ class HistorialClienteDialog(QDialog):
         total = 0
         for i, v in enumerate(ventas):
             tabla.setItem(i, 0, QTableWidgetItem(str(v.id)))
-            tabla.setItem(i, 1, QTableWidgetItem(v.fecha.strftime("%d/%m/%Y %H:%M")))
+            tabla.setItem(i, 1, QTableWidgetItem(v.fecha.strftime("%d/%m/%Y %I:%M %p")))
             tabla.setItem(i, 2, QTableWidgetItem(fmt_moneda(v.total)))
             metodo = v.metodo_pago or "Efectivo"
             if v.es_credito:

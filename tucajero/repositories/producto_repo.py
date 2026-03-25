@@ -1,5 +1,6 @@
 from models.producto import Producto
 from sqlalchemy import and_
+import logging
 
 
 class ProductoRepository:
@@ -53,8 +54,13 @@ class ProductoRepository:
             categoria_id=categoria_id,
             stock_minimo=stock_minimo,
         )
-        self.session.add(producto)
-        self.session.commit()
+        try:
+            self.session.add(producto)
+            self.session.commit()
+        except Exception as e:
+            self.session.rollback()
+            logging.error(f"Error creando producto: {e}", exc_info=True)
+            raise
         return producto
 
     def update(self, producto_id, **kwargs):
@@ -66,7 +72,12 @@ class ProductoRepository:
                     setattr(producto, key, None)
                 elif value is not None:
                     setattr(producto, key, value)
-            self.session.commit()
+            try:
+                self.session.commit()
+            except Exception as e:
+                self.session.rollback()
+                logging.error(f"Error actualizando producto: {e}", exc_info=True)
+                raise
         return producto
 
     def delete(self, producto_id):
@@ -74,7 +85,12 @@ class ProductoRepository:
         producto = self.get_by_id(producto_id)
         if producto:
             producto.activo = False
-            self.session.commit()
+            try:
+                self.session.commit()
+            except Exception as e:
+                self.session.rollback()
+                logging.error(f"Error eliminando producto: {e}", exc_info=True)
+                raise
         return producto
 
     def update_stock(self, producto_id, cantidad):
@@ -82,7 +98,12 @@ class ProductoRepository:
         producto = self.get_by_id(producto_id)
         if producto:
             producto.stock += cantidad
-            self.session.commit()
+            try:
+                self.session.commit()
+            except Exception as e:
+                self.session.rollback()
+                logging.error(f"Error actualizando stock: {e}", exc_info=True)
+                raise
         return producto
 
     def search(self, query):

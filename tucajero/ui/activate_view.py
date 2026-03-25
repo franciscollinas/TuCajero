@@ -90,31 +90,37 @@ class ActivateView(QWidget):
 
     def activar(self):
         """Activa el sistema con la licencia"""
-        licencia = self.licencia_input.text().strip().upper()
+        import logging
 
-        if not licencia:
-            QMessageBox.warning(self, "Error", "Ingrese una licencia")
-            return
+        try:
+            licencia = self.licencia_input.text().strip().upper()
 
-        machine_id = get_machine_id()
-        licencia_correcta = generar_licencia(machine_id)
+            if not licencia:
+                QMessageBox.warning(self, "Error", "Ingrese una licencia")
+                return
 
-        if licencia == licencia_correcta:
-            guardar_licencia(licencia)
-            QMessageBox.information(
-                self,
-                "Sistema Activado",
-                f"{get_store_name()} ha sido activado correctamente.\n\nEl sistema se cerrará. Vuelve a abrirlo.",
-            )
-            self.activation_success = True
-            self.close()
-        else:
-            QMessageBox.critical(
-                self,
-                "Licencia Inválida",
-                "La licencia ingresada no es válida para esta computadora.",
-            )
-            self.licencia_input.clear()
+            machine_id = get_machine_id()
+            licencia_correcta = generar_licencia(machine_id)
+
+            if licencia == licencia_correcta:
+                guardar_licencia(licencia)
+                QMessageBox.information(
+                    self,
+                    "Sistema Activado",
+                    f"{get_store_name()} ha sido activado correctamente.\n\nEl sistema se cerrará. Vuelve a abrirlo.",
+                )
+                self.activation_success = True
+                self.close()
+            else:
+                QMessageBox.critical(
+                    self,
+                    "Licencia Inválida",
+                    "La licencia ingresada no es válida para esta computadora.",
+                )
+                self.licencia_input.clear()
+        except Exception as e:
+            logging.error(f"Error al activar licencia: {e}", exc_info=True)
+            QMessageBox.critical(self, "Error", f"Ocurrió un error:\n{str(e)}")
 
 
 class ActivationDialog(QDialog):
@@ -236,32 +242,40 @@ class ActivationDialog(QDialog):
 
     def activar(self):
         """Activa el sistema"""
-        licencia = self.licencia_input.text().strip().upper()
+        import logging
 
-        if not licencia:
-            QMessageBox.warning(self, "Error", "Ingrese una licencia")
-            return
+        try:
+            licencia = self.licencia_input.text().strip().upper()
 
-        if len(licencia) != 16:
-            QMessageBox.warning(self, "Error", "La licencia debe tener 16 caracteres")
-            return
+            if not licencia:
+                QMessageBox.warning(self, "Error", "Ingrese una licencia")
+                return
 
-        machine_id = get_machine_id()
-        licencia_correcta = generar_licencia(machine_id)
+            if len(licencia) != 16:
+                QMessageBox.warning(
+                    self, "Error", "La licencia debe tener 16 caracteres"
+                )
+                return
 
-        if licencia == licencia_correcta:
-            guardar_licencia(licencia)
-            QMessageBox.information(
-                self,
-                "Sistema Activado",
-                f"{get_store_name()} ha sido activado correctamente.\n\nEl sistema se cerrará. Vuélvelo a abrir.",
-            )
-            self.activation_success = True
-            self.accept()
-        else:
-            QMessageBox.critical(
-                self,
-                "Licencia Inválida",
-                "La licencia ingresada no es válida para esta computadora.",
-            )
-            self.licencia_input.clear()
+            machine_id = get_machine_id()
+            licencia_correcta = generar_licencia(machine_id)
+
+            if licencia == licencia_correcta:
+                guardar_licencia(licencia)
+                QMessageBox.information(
+                    self,
+                    "Sistema Activado",
+                    f"{get_store_name()} ha sido activado correctamente.\n\nEl sistema se cerrará. Vuélvelo a abrir.",
+                )
+                self.activation_success = True
+                self.accept()
+            else:
+                QMessageBox.critical(
+                    self,
+                    "Licencia Inválida",
+                    "La licencia ingresada no es válida para esta computadora.",
+                )
+                self.licencia_input.clear()
+        except Exception as e:
+            logging.error(f"Error al activar licencia: {e}", exc_info=True)
+            QMessageBox.critical(self, "Error", f"Ocurrió un error:\n{str(e)}")

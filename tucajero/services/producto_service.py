@@ -74,6 +74,10 @@ class ProductoService:
         """Stock = 0 o negativo"""
         return [p for p in self.repo.get_all() if p.stock <= 0]
 
+    def get_productos_bajo_stock_limite(self, limite=5):
+        """Retorna productos con stock menor o igual al límite"""
+        return [p for p in self.repo.get_all() if p.stock <= limite and p.stock > 0]
+
 
 class CategoriaService:
     """Servicio para gestión de categorías"""

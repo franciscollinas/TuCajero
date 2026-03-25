@@ -83,18 +83,6 @@ class ProductosView(QWidget):
         btn_importar.clicked.connect(self.importar_productos)
         btn_layout.addWidget(btn_importar)
 
-        btn_plantilla = QPushButton("⬇ Descargar plantilla Excel")
-        btn_plantilla.setStyleSheet(
-            f"background-color: #5a6a7a; color: white; padding: 10px;"
-        )
-        btn_plantilla.setToolTip(
-            "Descarga una plantilla Excel con el formato correcto\n"
-            "para cargar tus productos masivamente.\n"
-            "Llena la plantilla y usa 'Importar Excel/CSV' para cargarla."
-        )
-        btn_plantilla.clicked.connect(self.descargar_plantilla)
-        btn_layout.addWidget(btn_plantilla)
-
         layout.addLayout(btn_layout)
 
         self.tabla = QTableWidget()
@@ -209,46 +197,6 @@ class ProductosView(QWidget):
                 self.cargar_productos()
         except Exception as e:
             QMessageBox.critical(self, "Error", f"No se pudo leer:\n{e}")
-
-    def descargar_plantilla(self):
-        import openpyxl
-        from PySide6.QtWidgets import QFileDialog
-
-        QMessageBox.information(
-            self,
-            "¿Cómo usar la plantilla?",
-            "Se descargará una plantilla Excel con el formato correcto.\n\n"
-            "Instrucciones:\n"
-            "1. Abre el archivo en Excel o Google Sheets\n"
-            "2. Llena los datos de tus productos\n"
-            "   • codigo y nombre son obligatorios\n"
-            "   • categoria: si no existe, se crea automáticamente\n"
-            "   • aplica_iva: escribe SI o NO\n"
-            "3. Guarda el archivo como .xlsx\n"
-            "4. Usa el botón 'Importar Excel/CSV' para cargarlo",
-        )
-
-        filepath, _ = QFileDialog.getSaveFileName(
-            self,
-            "Guardar plantilla",
-            os.path.join(os.path.expanduser("~"), "TuCajero_Plantilla_Productos.xlsx"),
-            "Excel (*.xlsx)",
-        )
-        if not filepath:
-            return
-        wb = openpyxl.Workbook()
-        ws = wb.active
-        ws.title = "Productos"
-        ws.append(
-            ["codigo", "nombre", "precio", "costo", "stock", "categoria", "aplica_iva"]
-        )
-        ws.append(["001", "Acetaminofen 500mg", 2500, 1200, 50, "Analgesicos", "SI"])
-        ws.append(["002", "Gaseosa", 3000, 1500, 20, "Refrescos", "NO"])
-        ws.append(["003", "Amoxicilina 500mg", 8500, 4000, 30, "Antibioticos", "SI"])
-        for col in ws.columns:
-            ws.column_dimensions[col[0].column_letter].width = 18
-        wb.save(filepath)
-        QMessageBox.information(self, "Listo", f"Plantilla guardada:\n{filepath}")
 
 
 class ProductoDialog(QDialog):

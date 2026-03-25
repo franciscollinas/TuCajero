@@ -31,6 +31,9 @@ class MainWindow(QMainWindow):
         store_name = get_store_name()
         self.setWindowTitle(f"TuCajero POS - {store_name}")
         self.setMinimumSize(1024, 768)
+        self.session = None
+        self.cajero_activo = None
+        self._stock_alert_mostrada = False
         self.setup_ui()
 
     def setup_ui(self):
@@ -61,16 +64,23 @@ class MainWindow(QMainWindow):
 
     def _build_header(self):
         from utils.theme import get_colors
-        from utils.store_config import get_store_name, get_nit, get_phone, get_address, get_logo_path
+        from utils.store_config import (
+            get_store_name,
+            get_nit,
+            get_phone,
+            get_address,
+            get_logo_path,
+        )
         import os
+
         c = get_colors()
 
         header = QWidget()
         header.setFixedHeight(60)
         header.setStyleSheet(f"""
             QWidget {{
-                background-color: {c['bg_card']};
-                border-bottom: 1px solid {c['border']};
+                background-color: {c["bg_card"]};
+                border-bottom: 1px solid {c["border"]};
             }}
         """)
         layout = QHBoxLayout(header)
@@ -84,12 +94,20 @@ class MainWindow(QMainWindow):
         logo_path = get_logo_path()
         if logo_path and os.path.exists(logo_path):
             from PySide6.QtGui import QPixmap
-            pix = QPixmap(logo_path).scaled(36, 36, Qt.AspectRatioMode.KeepAspectRatioByExpanding, Qt.TransformationMode.SmoothTransformation)
+
+            pix = QPixmap(logo_path).scaled(
+                36,
+                36,
+                Qt.AspectRatioMode.KeepAspectRatioByExpanding,
+                Qt.TransformationMode.SmoothTransformation,
+            )
             logo.setPixmap(pix)
             logo.setStyleSheet(f"border-radius: 19px; border: 2px solid {c['border']};")
         else:
             logo.setText("🏪")
-            logo.setStyleSheet(f"background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 {c['accent']}, stop:1 {c['info']}); border-radius: 19px; font-size: 18px; border: none;")
+            logo.setStyleSheet(
+                f"background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 {c['accent']}, stop:1 {c['info']}); border-radius: 19px; font-size: 18px; border: none;"
+            )
         layout.addWidget(logo)
 
         # Info del negocio
@@ -98,16 +116,23 @@ class MainWindow(QMainWindow):
         info_col.setContentsMargins(0, 0, 0, 0)
 
         store_lbl = QLabel(get_store_name())
-        store_lbl.setStyleSheet(f"color: {c['text_primary']}; font-size: 15px; font-weight: bold; background: transparent; border: none;")
+        store_lbl.setStyleSheet(
+            f"color: {c['text_primary']}; font-size: 15px; font-weight: bold; background: transparent; border: none;"
+        )
         info_col.addWidget(store_lbl)
 
         parts = []
-        if get_nit(): parts.append(f"NIT: {get_nit()}")
-        if get_phone(): parts.append(f"📞 {get_phone()}")
-        if get_address(): parts.append(f"📍 {get_address()}")
+        if get_nit():
+            parts.append(f"NIT: {get_nit()}")
+        if get_phone():
+            parts.append(f"📞 {get_phone()}")
+        if get_address():
+            parts.append(f"📍 {get_address()}")
         if parts:
             sub = QLabel("  |  ".join(parts))
-            sub.setStyleSheet(f"color: {c['text_muted']}; font-size: 11px; background: transparent; border: none;")
+            sub.setStyleSheet(
+                f"color: {c['text_muted']}; font-size: 11px; background: transparent; border: none;"
+            )
             info_col.addWidget(sub)
 
         layout.addLayout(info_col)
@@ -117,9 +142,9 @@ class MainWindow(QMainWindow):
         user_w = QWidget()
         user_w.setStyleSheet(f"""
             QWidget {{
-                background-color: {c['bg_input']};
+                background-color: {c["bg_input"]};
                 border-radius: 20px;
-                border: 1px solid {c['border']};
+                border: 1px solid {c["border"]};
             }}
         """)
         ul = QHBoxLayout(user_w)
@@ -129,16 +154,22 @@ class MainWindow(QMainWindow):
         av = QLabel("👑")
         av.setFixedSize(28, 28)
         av.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        av.setStyleSheet(f"background: {c['accent']}; border-radius: 14px; font-size: 13px; border: none;")
+        av.setStyleSheet(
+            f"background: {c['accent']}; border-radius: 14px; font-size: 13px; border: none;"
+        )
         ul.addWidget(av)
 
         u_info = QVBoxLayout()
         u_info.setSpacing(0)
         u_info.setContentsMargins(0, 0, 0, 0)
         self.lbl_cajero = QLabel("Administrador")
-        self.lbl_cajero.setStyleSheet(f"color: {c['text_primary']}; font-size: 12px; font-weight: bold; background: transparent; border: none;")
+        self.lbl_cajero.setStyleSheet(
+            f"color: {c['text_primary']}; font-size: 12px; font-weight: bold; background: transparent; border: none;"
+        )
         lbl_rol = QLabel("EXECUTIVE LEVEL")
-        lbl_rol.setStyleSheet(f"color: {c['text_muted']}; font-size: 9px; letter-spacing: 0.5px; background: transparent; border: none;")
+        lbl_rol.setStyleSheet(
+            f"color: {c['text_muted']}; font-size: 9px; letter-spacing: 0.5px; background: transparent; border: none;"
+        )
         u_info.addWidget(self.lbl_cajero)
         u_info.addWidget(lbl_rol)
         ul.addLayout(u_info)
@@ -150,6 +181,7 @@ class MainWindow(QMainWindow):
         from utils.theme import get_colors
         from utils.store_config import get_logo_path
         import os
+
         c = get_colors()
 
         sidebar = QWidget()
@@ -163,7 +195,9 @@ class MainWindow(QMainWindow):
         # ── Header del sidebar ──────────────────────────────────
         header = QWidget()
         header.setFixedHeight(64)
-        header.setStyleSheet("background-color: #1e293b; border-bottom: 1px solid #334155;")
+        header.setStyleSheet(
+            "background-color: #1e293b; border-bottom: 1px solid #334155;"
+        )
         h_layout = QHBoxLayout(header)
         h_layout.setContentsMargins(16, 0, 16, 0)
         h_layout.setSpacing(10)
@@ -172,24 +206,46 @@ class MainWindow(QMainWindow):
         logo = QLabel()
         logo.setFixedSize(34, 34)
         logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        app_icon = os.path.join(os.path.dirname(__file__), '..', 'assets', 'icons', 'tucajero.ico')
+        app_icon = os.path.join(
+            os.path.dirname(__file__), "..", "assets", "icons", "tucajero.ico"
+        )
         store_logo = get_logo_path()
         if os.path.exists(app_icon):
             from PySide6.QtGui import QPixmap
-            pix = QPixmap(app_icon).scaled(30, 30, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+
+            pix = QPixmap(app_icon).scaled(
+                30,
+                30,
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation,
+            )
             logo.setPixmap(pix)
-            logo.setStyleSheet("border-radius: 6px; background: transparent; border: none;")
+            logo.setStyleSheet(
+                "border-radius: 6px; background: transparent; border: none;"
+            )
         elif store_logo and os.path.exists(store_logo):
             from PySide6.QtGui import QPixmap
-            pix = QPixmap(store_logo).scaled(30, 30, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+
+            pix = QPixmap(store_logo).scaled(
+                30,
+                30,
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation,
+            )
             logo.setPixmap(pix)
-            logo.setStyleSheet("border-radius: 6px; background: transparent; border: none;")
+            logo.setStyleSheet(
+                "border-radius: 6px; background: transparent; border: none;"
+            )
         else:
             logo.setText("TC")
-            logo.setStyleSheet("background-color: #3b82f6; color: white; border-radius: 8px; font-size: 12px; font-weight: bold; border: none;")
+            logo.setStyleSheet(
+                "background-color: #3b82f6; color: white; border-radius: 8px; font-size: 12px; font-weight: bold; border: none;"
+            )
 
         app_name = QLabel("TuCajero")
-        app_name.setStyleSheet("color: #f1f5f9; font-size: 16px; font-weight: bold; background: transparent; border: none;")
+        app_name.setStyleSheet(
+            "color: #f1f5f9; font-size: 16px; font-weight: bold; background: transparent; border: none;"
+        )
 
         h_layout.addWidget(logo)
         h_layout.addWidget(app_name)
@@ -198,21 +254,23 @@ class MainWindow(QMainWindow):
 
         # ── Label MENÚ ─────────────────────────────────────────
         menu_label = QLabel("MENÚ")
-        menu_label.setStyleSheet("color: #475569; font-size: 10px; font-weight: bold; letter-spacing: 1px; padding: 20px 20px 6px 20px; background: transparent;")
+        menu_label.setStyleSheet(
+            "color: #475569; font-size: 10px; font-weight: bold; letter-spacing: 1px; padding: 20px 20px 6px 20px; background: transparent;"
+        )
         layout.addWidget(menu_label)
 
         # ── Botones de navegación ──────────────────────────────
         nav_items = [
-            ("🖥", "Escritorio",    "dashboard"),
-            ("🛒", "Ventas",        "ventas"),
-            ("📦", "Productos",     "productos"),
-            ("👥", "Clientes",      "clientes"),
-            ("📊", "Inventario",    "inventario"),
-            ("📋", "Cotizaciones",  "cotizaciones"),
+            ("🖥", "Escritorio", "dashboard"),
+            ("🛒", "Ventas", "ventas"),
+            ("📦", "Productos", "productos"),
+            ("👥", "Clientes", "clientes"),
+            ("📊", "Inventario", "inventario"),
+            ("📋", "Cotizaciones", "cotizaciones"),
             ("💰", "Corte de Caja", "corte"),
-            ("📈", "Historial",     "historial"),
-            ("⚙", "Config",        "config"),
-            ("🏭", "Proveedores",   "proveedores"),
+            ("📈", "Historial", "historial"),
+            ("⚙", "Config", "config"),
+            ("🏭", "Proveedores", "proveedores"),
         ]
 
         self._nav_buttons = {}
@@ -260,11 +318,15 @@ class MainWindow(QMainWindow):
 
         # ── Footer ─────────────────────────────────────────────
         self.lbl_cajero = QLabel("👑  Administrador")
-        self.lbl_cajero.setStyleSheet("color: #10b981; font-size: 12px; padding: 10px 16px 4px 16px; background: transparent;")
+        self.lbl_cajero.setStyleSheet(
+            "color: #10b981; font-size: 12px; padding: 10px 16px 4px 16px; background: transparent;"
+        )
         layout.addWidget(self.lbl_cajero)
 
         copyright_label = QLabel("© Ing. Francisco Llinas P.")
-        copyright_label.setStyleSheet("color: #334155; font-size: 10px; padding: 2px 16px 14px 16px; background: transparent;")
+        copyright_label.setStyleSheet(
+            "color: #334155; font-size: 10px; padding: 2px 16px 14px 16px; background: transparent;"
+        )
         copyright_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
         layout.addWidget(copyright_label)
 
@@ -285,12 +347,73 @@ class MainWindow(QMainWindow):
 
     def switch_view_by_name(self, name):
         """Cambia a una vista por nombre y actualiza navegación"""
-        if name in self._views:
-            self.content_stack.setCurrentWidget(self._views[name])
+        widget = self._get_or_create_view(name)
+        self.content_stack.setCurrentWidget(widget)
         for key, btn in self._nav_buttons.items():
             btn.blockSignals(True)
             btn.setChecked(key == name)
             btn.blockSignals(False)
+
+    def _get_or_create_view(self, name):
+        """Crea la vista solo cuando se necesita (lazy loading)"""
+        if name in self._views:
+            return self._views[name]
+
+        view = None
+        if name == "ventas":
+            from ui.ventas_view import VentasView
+
+            view = VentasView(
+                self.session, parent=self, cajero_activo=self.cajero_activo
+            )
+        elif name == "productos":
+            from ui.productos_view import ProductosView
+
+            view = ProductosView(self.session, parent=self)
+        elif name == "inventario":
+            from ui.inventario_view import InventarioView
+
+            view = InventarioView(self.session, parent=self)
+        elif name == "corte":
+            from ui.corte_view import CorteView
+
+            view = CorteView(
+                self.session, cajero_activo=self.cajero_activo, parent=self
+            )
+        elif name == "historial":
+            from ui.historial_view import HistorialView
+
+            view = HistorialView(self.session, parent=self)
+        elif name == "clientes":
+            from ui.clientes_view import ClientesView
+
+            view = ClientesView(self.session, parent=self)
+        elif name == "cotizaciones":
+            from ui.cotizaciones_view import CotizacionesView
+
+            view = CotizacionesView(self.session, parent=self)
+        elif name == "dashboard":
+            from ui.dashboard_view import DashboardView
+
+            view = DashboardView(self.session, parent=self)
+        elif name == "proveedores":
+            from ui.proveedores_view import ProveedoresView
+
+            view = ProveedoresView(self.session, parent=self)
+        elif name == "cajeros":
+            from ui.cajeros_view import CajerosView
+
+            view = CajerosView(self.session, parent=self)
+        elif name == "config":
+            from ui.setup_view import SetupView
+
+            view = SetupView(self.session, parent=self)
+
+        if view:
+            self.content_stack.addWidget(view)
+            self._views[name] = view
+
+        return view
 
     def switch_view(self, index):
         """Cambia a una vista específica"""
@@ -327,10 +450,61 @@ class MainWindow(QMainWindow):
         self.switch_view_by_name("proveedores")
 
     def set_cajero_activo(self, cajero):
+        self.cajero_activo = cajero
         icono = "👑" if cajero.rol == "admin" else "👤"
         self.lbl_cajero.setText(f"{icono} {cajero.nombre}")
         if hasattr(self, "header_user_label") and self.header_user_label:
             self.header_user_label.setText(cajero.nombre)
+        from PySide6.QtCore import QTimer
+
+        QTimer.singleShot(1500, self._mostrar_alerta_stock)
+
+    def _mostrar_alerta_stock(self):
+        """Muestra popup de productos con stock bajo al iniciar"""
+        if self._stock_alert_mostrada:
+            return
+        self._stock_alert_mostrada = True
+
+        if not self.session:
+            return
+
+        try:
+            from services.producto_service import ProductoService
+
+            ps = ProductoService(self.session)
+            criticos = ps.get_productos_stock_critico()
+            bajos = ps.get_productos_bajo_stock_limite(5)
+            total_alertas = len(criticos) + len(bajos)
+
+            if total_alertas == 0:
+                return
+
+            from PySide6.QtWidgets import QMessageBox
+
+            mensaje = "⚠️ Productos con stock bajo:\n\n"
+
+            if criticos:
+                mensaje += f"❌ Sin stock ({len(criticos)}):\n"
+                for p in criticos[:5]:
+                    mensaje += f"   • {p.nombre}\n"
+                if len(criticos) > 5:
+                    mensaje += f"   ... y {len(criticos) - 5} más\n"
+
+            if bajos:
+                mensaje += f"\n⚠️ Stock bajo ≤5 unidades ({len(bajos)}):\n"
+                for p in bajos[:5]:
+                    mensaje += f"   • {p.nombre} (Stock: {p.stock})\n"
+                if len(bajos) > 5:
+                    mensaje += f"   ... y {len(bajos) - 5} más\n"
+
+            mensaje += "\nRevisa el módulo de Inventario para reponer."
+
+            QMessageBox.warning(self, "📦 Stock bajo", mensaje)
+
+        except Exception as e:
+            from utils.theme import get_colors
+
+            pass
 
     def actualizar_badge_inventario(self, num_alertas):
         """Actualiza el botón de Inventario con badge de alertas"""

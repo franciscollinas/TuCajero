@@ -63,7 +63,7 @@ def agregar_ticket_a_pdf_diario(venta, items):
 
     ticket_data = {
         "venta_id": venta.id,
-        "fecha": venta.fecha.strftime("%d/%m/%Y %H:%M:%S"),
+        "fecha": venta.fecha.strftime("%d/%m/%Y %I:%M:%S %p"),
         "total": venta.total,
         "metodo_pago": getattr(venta, "metodo_pago", "efectivo") or "efectivo",
         "items": [
@@ -99,6 +99,20 @@ def agregar_ticket_a_pdf_diario(venta, items):
 
 def _generar_pdf_diario(pdf_path, tickets, store_name, address, phone, email, nit):
     """Genera el PDF con todos los tickets del día"""
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.units import cm
+    from reportlab.lib import colors
+    from reportlab.platypus import (
+        SimpleDocTemplate,
+        Paragraph,
+        Spacer,
+        Table,
+        TableStyle,
+        HRFlowable,
+    )
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+
     doc = SimpleDocTemplate(
         pdf_path,
         pagesize=A4,

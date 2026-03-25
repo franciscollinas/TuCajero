@@ -560,7 +560,7 @@ class DetalleOrdenDialog(QDialog):
 
         info = QLabel(
             f"<b>Proveedor:</b> {orden.proveedor.nombre}  |  "
-            f"<b>Fecha:</b> {orden.fecha.strftime('%d/%m/%Y %H:%M')}  |  "
+            f"<b>Fecha:</b> {orden.fecha.strftime('%d/%m/%Y %I:%M %p')}  |  "
             f"<b>Estado:</b> {orden.estado.capitalize()}  |  "
             f"<b>Total:</b> {fmt_moneda(orden.total)}"
         )

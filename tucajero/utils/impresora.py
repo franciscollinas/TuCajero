@@ -88,7 +88,7 @@ class ImpresoraTermica:
             p.set(bold=True)
             p.text(f"Ticket #{venta.id}\n")
             p.set(bold=False)
-            p.text(f"{venta.fecha.strftime('%d/%m/%Y %H:%M:%S')}\n")
+            p.text(f"{venta.fecha.strftime('%d/%m/%Y %I:%M:%S %p')}\n")
             if hasattr(venta, "metodo_pago") and venta.metodo_pago:
                 p.text(f"Metodo: {venta.metodo_pago}\n")
             p.text(self._linea("=") + "\n")

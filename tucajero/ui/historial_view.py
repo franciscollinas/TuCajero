@@ -202,12 +202,14 @@ class HistorialView(QWidget):
         for i, corte in enumerate(cierres):
             self.tabla_cierres.setItem(i, 0, QTableWidgetItem(str(corte.id)))
             self.tabla_cierres.setItem(
-                i, 1, QTableWidgetItem(corte.fecha_apertura.strftime("%d/%m/%Y %H:%M"))
+                i,
+                1,
+                QTableWidgetItem(corte.fecha_apertura.strftime("%d/%m/%Y %I:%M %p")),
             )
             self.tabla_cierres.setItem(
                 i,
                 2,
-                QTableWidgetItem(corte.fecha_cierre.strftime("%d/%m/%Y %H:%M"))
+                QTableWidgetItem(corte.fecha_cierre.strftime("%d/%m/%Y %I:%M %p"))
                 if corte.fecha_cierre
                 else QTableWidgetItem("—"),
             )

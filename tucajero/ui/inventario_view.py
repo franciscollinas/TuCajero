@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
     QFormLayout,
     QSpinBox,
     QHeaderView,
+    QLineEdit,
 )
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
@@ -23,6 +24,7 @@ class InventarioView(QWidget):
     def __init__(self, session, parent=None):
         super().__init__(parent)
         self.session = session
+        self.productos = []
         self.init_ui()
         self.cargar_inventario()
 
@@ -71,6 +73,14 @@ class InventarioView(QWidget):
 
         layout.addWidget(self.banner_stock)
 
+        self.input_busqueda = QLineEdit()
+        self.input_busqueda.setPlaceholderText(
+            "🔍 Buscar producto por código o nombre..."
+        )
+        self.input_busqueda.setStyleSheet("padding: 10px; font-size: 14px;")
+        self.input_busqueda.textChanged.connect(self.filtrar_productos)
+        layout.addWidget(self.input_busqueda)
+
         self.tabla = QTableWidget()
         self.tabla.setColumnCount(4)
         self.tabla.setHorizontalHeaderLabels(["Código", "Producto", "Stock", "Precio"])
@@ -80,6 +90,8 @@ class InventarioView(QWidget):
         self.tabla.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.tabla.setStyleSheet("font-size: 14px;")
         self.tabla.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.tabla.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.tabla.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         layout.addWidget(self.tabla)
 
         btn_layout = QHBoxLayout()
@@ -125,6 +137,7 @@ class InventarioView(QWidget):
 
         service = InventarioService(self.session)
         productos = service.get_all_productos()
+        self.productos = productos
 
         service_check = ProductoService(self.session)
         bajos = service_check.get_productos_stock_bajo()
@@ -147,6 +160,10 @@ class InventarioView(QWidget):
         else:
             self.banner_stock.setVisible(False)
 
+        self._mostrar_productos(productos)
+
+    def _mostrar_productos(self, productos):
+        """Muestra la lista de productos en la tabla"""
         self.tabla.setRowCount(len(productos))
 
         for i, p in enumerate(productos):
@@ -167,8 +184,21 @@ class InventarioView(QWidget):
                 stock_item.setForeground(QColor("white"))
 
             self.tabla.setItem(i, 2, stock_item)
-
             self.tabla.setItem(i, 3, QTableWidgetItem(fmt_moneda(p.precio)))
+
+    def filtrar_productos(self, texto):
+        """Filtra productos por código o nombre"""
+        if not texto:
+            self._mostrar_productos(self.productos)
+            return
+
+        texto_lower = texto.lower()
+        filtrados = [
+            p
+            for p in self.productos
+            if texto_lower in p.codigo.lower() or texto_lower in p.nombre.lower()
+        ]
+        self._mostrar_productos(filtrados)
 
     def recargar_inventario(self):
         """Recarga el inventario (para auto-actualizacion despues de venta)"""

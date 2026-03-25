@@ -49,3 +49,74 @@ def cleanup_old_backups(keep_days=7):
                     os.remove(filepath)
                 except:
                     pass
+
+
+def backup_semanal():
+    """Crea backup automático semanal (solo lunes) y mantiene 4 backups"""
+    from config.database import get_db_path
+
+    db_path = get_db_path()
+
+    if not os.path.exists(db_path):
+        return None
+
+    hoy = datetime.datetime.now()
+
+    if hoy.weekday() != 0:
+        return None
+
+    backup_dir = get_backups_dir()
+    nombre = f"backup_semanal_{hoy.strftime('%Y%m%d')}.db"
+    destino = os.path.join(backup_dir, nombre)
+
+    try:
+        if not os.path.exists(destino):
+            shutil.copy2(db_path, destino)
+    except Exception as e:
+        print(f"Error en backup semanal: {e}")
+
+    limpiar_backups(4)
+    return destino
+
+
+def limpiar_backups(max_backups=4):
+    """Mantiene solo los últimos N backups"""
+    backup_dir = get_backups_dir()
+
+    if not os.path.exists(backup_dir):
+        return
+
+    archivos = sorted([f for f in os.listdir(backup_dir) if f.endswith(".db")])
+
+    while len(archivos) > max_backups:
+        try:
+            os.remove(os.path.join(backup_dir, archivos[0]))
+            archivos.pop(0)
+        except Exception as e:
+            print(f"Error al eliminar backup: {e}")
+            break
+
+
+def restaurar_backup(ruta_backup):
+    """Restaura un backup, reemplazando la DB actual (hace backup de seguridad primero)"""
+    from config.database import get_db_path, close_db
+
+    db_path = get_db_path()
+
+    if not os.path.exists(ruta_backup):
+        raise Exception("Backup no encontrado")
+
+    close_db()
+
+    respaldo_actual = db_path + ".old"
+    try:
+        if os.path.exists(db_path):
+            shutil.copy2(db_path, respaldo_actual)
+    except Exception as e:
+        print(f"Warning: No se pudo crear respaldo de seguridad: {e}")
+
+    try:
+        shutil.copy2(ruta_backup, db_path)
+        return True
+    except Exception as e:
+        raise Exception(f"Error al restaurar backup: {e}")

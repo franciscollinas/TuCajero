@@ -181,20 +181,31 @@ class LoginCajeroDialog(QDialog):
                     self.confirmar_login()
 
     def confirmar_login(self):
+        import logging
+
         if not self.cajero_seleccionado:
             self.lbl_error.setText("⚠ Selecciona un cajero primero")
             return
         if len(self.pin_ingresado) != 4:
             self.lbl_error.setText("⚠ El PIN debe tener 4 dígitos")
             return
-        from services.cajero_service import CajeroService
 
-        ok = CajeroService(self.session).verificar_login(
-            self.cajero_seleccionado.id, self.pin_ingresado
-        )
-        if ok:
-            self.accept()
-        else:
-            self.lbl_error.setText("❌ PIN incorrecto. Intenta de nuevo.")
-            self.pin_ingresado = ""
-            self.pin_display.clear()
+        try:
+            from services.cajero_service import CajeroService
+            from PySide6.QtWidgets import QMessageBox
+
+            ok = CajeroService(self.session).verificar_login(
+                self.cajero_seleccionado.id, self.pin_ingresado
+            )
+            if ok:
+                self.accept()
+            else:
+                self.lbl_error.setText("❌ PIN incorrecto. Intenta de nuevo.")
+                self.pin_ingresado = ""
+                self.pin_display.clear()
+        except Exception as e:
+            logging.error(f"Error en login de cajero: {e}", exc_info=True)
+            self.lbl_error.setText("❌ Error al iniciar sesión")
+            QMessageBox.critical(
+                self, "Error", f"Ocurrió un error al iniciar sesión:\n{str(e)}"
+            )

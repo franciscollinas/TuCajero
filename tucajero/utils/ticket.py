@@ -37,7 +37,7 @@ class GeneradorTicket:
         if nit:
             lines.append(f"NIT: {nit}")
         lines.append("=" * self.WIDTH)
-        lines.append(f"Fecha: {venta.fecha.strftime('%d/%m/%Y %H:%M')}")
+        lines.append(f"Fecha: {venta.fecha.strftime('%d/%m/%Y %I:%M %p')}")
         lines.append(f"Ticket #: {venta.id}")
         if getattr(venta, "metodo_pago", None):
             lines.append(f"Método: {venta.metodo_pago}")
@@ -200,7 +200,7 @@ class GeneradorTicket:
         {f'<div class="nit">NIT: {nit}</div>' if nit else ""}
     </div>
     <div class="info">
-        Fecha: {venta.fecha.strftime("%d/%m/%Y %H:%M")}&nbsp;&nbsp;
+        Fecha: {venta.fecha.strftime("%d/%m/%Y %I:%M %p")}&nbsp;&nbsp;
         Ticket #: {venta.id}
         {f"<br>Método: {metodo_pago}" if metodo_pago else ""}
     </div>

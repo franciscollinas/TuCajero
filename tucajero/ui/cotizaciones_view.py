@@ -98,7 +98,7 @@ class CotizacionesView(QWidget):
         for i, c in enumerate(self.cotizaciones):
             self.tabla.setItem(i, 0, QTableWidgetItem(str(c.id)))
             self.tabla.setItem(
-                i, 1, QTableWidgetItem(c.fecha.strftime("%d/%m/%Y %H:%M"))
+                i, 1, QTableWidgetItem(c.fecha.strftime("%d/%m/%Y %I:%M %p"))
             )
 
             cliente_nombre = "Sin cliente"

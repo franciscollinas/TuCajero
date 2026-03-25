@@ -71,13 +71,18 @@ def get_engine():
         _engine = create_engine(
             f"sqlite:///{db_path}",
             echo=False,
-            connect_args={"check_same_thread": False},
+            connect_args={
+                "check_same_thread": False,
+                "timeout": 30,
+            },
+            pool_pre_ping=True,
         )
 
         with _engine.connect() as conn:
             conn.execute(text("PRAGMA journal_mode=WAL"))
             conn.execute(text("PRAGMA synchronous=NORMAL"))
             conn.execute(text("PRAGMA foreign_keys=ON"))
+            conn.commit()
 
     return _engine
 
@@ -85,7 +90,11 @@ def get_engine():
 def get_session():
     """Creates and returns a database session"""
     engine = get_engine()
-    Session = sessionmaker(bind=engine)
+    Session = sessionmaker(
+        bind=engine,
+        autoflush=False,
+        autocommit=False,
+    )
     return Session()
 
 
@@ -149,6 +158,7 @@ def close_db():
         if _engine:
             with _engine.connect() as conn:
                 conn.execute(text("PRAGMA wal_checkpoint(TRUNCATE)"))
+                conn.commit()
     except Exception as e:
         logging.error(f"WAL checkpoint error: {e}")
     finally:
@@ -158,3 +168,23 @@ def close_db():
                 _engine = None
         except Exception as e:
             logging.error(f"Engine dispose error: {e}")
+
+
+def db_retry(func):
+    """Decorador para retry en operaciones de BD"""
+    import time
+    from functools import wraps
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        for i in range(3):
+            try:
+                return func(*args, **kwargs)
+            except Exception as e:
+                if "database is locked" in str(e).lower() and i < 2:
+                    time.sleep(0.5)
+                    continue
+                raise
+        raise Exception("DB bloqueada después de múltiples intentos")
+
+    return wrapper

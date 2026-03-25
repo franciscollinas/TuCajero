@@ -5,3 +5,4 @@ python-dateutil
 pyinstaller
 openpyxl>=3.1.0
 python-escpos>=3.0.0
+matplotlib>=3.7.0

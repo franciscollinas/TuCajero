@@ -278,7 +278,7 @@ class CorteView(QWidget):
         for i, venta in enumerate(ventas):
             self.tabla_ventas.setItem(i, 0, QTableWidgetItem(str(venta.id)))
             self.tabla_ventas.setItem(
-                i, 1, QTableWidgetItem(venta.fecha.strftime("%H:%M:%S"))
+                i, 1, QTableWidgetItem(venta.fecha.strftime("%I:%M:%S %p"))
             )
             self.tabla_ventas.setItem(i, 2, QTableWidgetItem(fmt_moneda(venta.total)))
 
@@ -287,7 +287,7 @@ class CorteView(QWidget):
 
         for i, gasto in enumerate(gastos):
             self.tabla_gastos.setItem(
-                i, 0, QTableWidgetItem(gasto.fecha.strftime("%H:%M"))
+                i, 0, QTableWidgetItem(gasto.fecha.strftime("%I:%M %p"))
             )
             self.tabla_gastos.setItem(i, 1, QTableWidgetItem(gasto.concepto))
             self.tabla_gastos.setItem(i, 2, QTableWidgetItem(fmt_moneda(gasto.monto)))
