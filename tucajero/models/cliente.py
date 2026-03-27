@@ -1,10 +1,16 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime
+from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, Index
+from sqlalchemy.orm import relationship
 from config.database import Base
 from datetime import datetime
 
 
 class Cliente(Base):
     __tablename__ = "clientes"
+    __table_args__ = (
+        Index("idx_cliente_documento", "documento"),
+        Index("idx_cliente_nombre", "nombre"),
+        Index("idx_cliente_activo", "activo"),
+    )
 
     id = Column(Integer, primary_key=True)
     nombre = Column(String(100), nullable=False)
@@ -15,6 +21,8 @@ class Cliente(Base):
     saldo_credito = Column(Float, default=0)
     activo = Column(Boolean, default=True)
     fecha_registro = Column(DateTime, default=datetime.now)
+
+    ventas = relationship("Venta", back_populates="cliente")
 
     def __repr__(self):
         return f"<Cliente {self.nombre}>"

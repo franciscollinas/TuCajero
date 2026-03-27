@@ -31,8 +31,9 @@ TuCajeroPOS/
 │   ├── ui/                      # Vistas/Interfaces (PySide6)
 │   │   ├── main_window.py       # Ventana principal con sidebar
 │   │   ├── ventas_view.py      # Vista de ventas (POS)
-│   │   ├── productos_view.py    # CRUD de productos
-│   │   ├── inventario_view.py   # Entrada/salida de inventario
+│   │   ├── productos_view.py    # CRUD productos + inventario
+│   │   ├── escritorio_view.py  # Vista simple (sin gráficos)
+│   │   ├── dashboard_view.py   # Dashboard con gráficos
 │   │   ├── corte_view.py       # Corte de caja
 │   │   ├── clientes_view.py    # Gestión de clientes
 │   │   ├── proveedores_view.py # Gestión de proveedores
@@ -322,8 +323,7 @@ matplotlib>=3.7.0
 
 ### Módulos principales:
 - **Ventas**: POS con búsqueda, carrito, múltiples métodos de pago, descuentos
-- **Productos**: CRUD completo con categorías, códigos de barras, stock mínimo
-- **Inventario**: Entradas/salidas, alertas de stock bajo
+- **Productos**: CRUD completo con categorías, códigos de barras, stock mínimo + inventario (entrada/salida/desempacar)
 - **Clientes**: Registro, historial de compras, crédito/fiado
 - **Proveedores**: Órdenes de compra, recepción
 - **Corte de Caja**: Apertura/cierre, estadísticas, backup automático
@@ -352,14 +352,14 @@ matplotlib>=3.7.0
 ## Características
 
 1. **Ventas**: POS con búsqueda, carrito, múltiples métodos de pago
-2. **Productos**: CRUD completo con categorías, códigos de barras
-3. **Inventario**: Entradas/salidas, stock mínimo, alertas
-4. **Clientes**: Registro, historial de compras, crédito/fiado
-5. **Proveedores**: Órdenes de compra, recepción
-6. **Corte de Caja**: Apertura/cierre, estadísticas, backup
-7. **Cotizaciones**: Crear y convertir en ventas
-8. **Historial**: Búsqueda, filtros, exportación Excel
-9. **Dashboard**: Estadísticas en tiempo real
+2. **Productos**: CRUD + inventario unificado (entrada/salida/desempacar)
+3. **Clientes**: Registro, historial de compras, crédito/fiado
+4. **Proveedores**: Órdenes de compra, recepción
+5. **Corte de Caja**: Apertura/cierre, estadísticas, backup
+6. **Cotizaciones**: Crear y convertir en ventas
+7. **Historial**: Búsqueda, filtros, exportación Excel
+8. **Dashboard**: Gráficos de ventas, métricas en tiempo real
+9. **Escritorio**: Vista simple sin gráficos
 10. **Impresión**: Tickets ESC/POS (USB, red, serial)
 11. **Licencias**: Sistema de activación por machine ID
 

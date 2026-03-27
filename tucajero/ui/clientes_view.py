@@ -16,6 +16,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
 from utils.formato import fmt_moneda
+from utils.theme import btn_primary, btn_danger, btn_secondary
 
 
 class ClientesView(QWidget):
@@ -26,11 +27,15 @@ class ClientesView(QWidget):
         self.cargar_clientes()
 
     def init_ui(self):
+        from utils.theme import get_colors
+        c = get_colors()
+        self.setStyleSheet(f"background-color: {c['bg_app']};")
+        
         layout = QVBoxLayout()
         self.setLayout(layout)
 
         titulo = QLabel("Clientes")
-        titulo.setStyleSheet("font-size: 24px; font-weight: bold;")
+        titulo.setStyleSheet(f"font-size: 24px; font-weight: bold; color: {c['text_primary']};")
         layout.addWidget(titulo)
 
         busq_layout = QHBoxLayout()
@@ -47,37 +52,27 @@ class ClientesView(QWidget):
         btn_layout.addStretch()
 
         btn_nuevo = QPushButton("+ Nuevo Cliente")
-        btn_nuevo.setStyleSheet(
-            "background-color: #27ae60; color: white; padding: 10px;"
-        )
+        btn_nuevo.setStyleSheet(btn_primary())
         btn_nuevo.clicked.connect(self.nuevo_cliente)
         btn_layout.addWidget(btn_nuevo)
 
         btn_editar = QPushButton("Editar")
-        btn_editar.setStyleSheet(
-            "background-color: #3498db; color: white; padding: 10px;"
-        )
+        btn_editar.setStyleSheet(btn_primary())
         btn_editar.clicked.connect(self.editar_cliente)
         btn_layout.addWidget(btn_editar)
 
         btn_abonar = QPushButton("💰 Abonar")
-        btn_abonar.setStyleSheet(
-            "background-color: #e67e22; color: white; padding: 10px; font-weight: bold;"
-        )
+        btn_abonar.setStyleSheet(btn_primary())
         btn_abonar.clicked.connect(self.abonar_cliente)
         btn_layout.addWidget(btn_abonar)
 
         btn_historial = QPushButton("📋 Ver compras")
-        btn_historial.setStyleSheet(
-            "background-color: #8e44ad; color: white; padding: 10px;"
-        )
+        btn_historial.setStyleSheet(btn_primary())
         btn_historial.clicked.connect(self.ver_historial)
         btn_layout.addWidget(btn_historial)
 
         btn_eliminar = QPushButton("Eliminar")
-        btn_eliminar.setStyleSheet(
-            "background-color: #e74c3c; color: white; padding: 10px;"
-        )
+        btn_eliminar.setStyleSheet(btn_danger())
         btn_eliminar.clicked.connect(self.eliminar_cliente)
         btn_layout.addWidget(btn_eliminar)
 
@@ -213,10 +208,23 @@ class ClientesView(QWidget):
 class ClienteDialog(QDialog):
     def __init__(self, session, parent=None, cliente_id=None):
         super().__init__(parent)
+        from utils.theme import get_colors
+        c = get_colors()
         self.session = session
         self.cliente_id = cliente_id
         self.setWindowTitle("Nuevo Cliente" if not cliente_id else "Editar Cliente")
         self.setMinimumWidth(420)
+        self.setStyleSheet(f"""
+            QDialog {{ background-color: {c['bg_app']}; }}
+            QLabel {{ color: {c['text_primary']}; }}
+            QLineEdit {{ 
+                background-color: {c['bg_input']}; 
+                color: {c['text_primary']};
+                border: 1px solid {c['border']};
+                padding: 8px;
+                font-size: 14px;
+            }}
+        """)
         layout = QFormLayout()
         self.setLayout(layout)
 
@@ -225,12 +233,6 @@ class ClienteDialog(QDialog):
         self.telefono = QLineEdit()
         self.email = QLineEdit()
         self.direccion = QLineEdit()
-
-        self.nombre.setStyleSheet("padding: 8px; font-size: 14px;")
-        self.documento.setStyleSheet("padding: 8px; font-size: 14px;")
-        self.telefono.setStyleSheet("padding: 8px; font-size: 14px;")
-        self.email.setStyleSheet("padding: 8px; font-size: 14px;")
-        self.direccion.setStyleSheet("padding: 8px; font-size: 14px;")
 
         layout.addRow("Nombre *:", self.nombre)
         layout.addRow("Documento:", self.documento)
@@ -251,10 +253,11 @@ class ClienteDialog(QDialog):
 
         btns = QHBoxLayout()
         btn_guardar = QPushButton("Guardar")
-        btn_guardar.setStyleSheet("background:#27ae60;color:white;padding:10px;")
+        btn_guardar.setStyleSheet(btn_primary())
         btn_guardar.clicked.connect(self.guardar)
         btns.addWidget(btn_guardar)
         btn_cancel = QPushButton("Cancelar")
+        btn_cancel.setStyleSheet(btn_secondary())
         btn_cancel.clicked.connect(self.reject)
         btns.addWidget(btn_cancel)
         layout.addRow("", btns)
@@ -293,15 +296,18 @@ class ClienteDialog(QDialog):
 class AbonoDialog(QDialog):
     def __init__(self, session, cliente, parent=None):
         super().__init__(parent)
+        from utils.theme import get_colors
+        c = get_colors()
         self.session = session
         self.cliente = cliente
         self.setWindowTitle(f"Registrar Abono — {cliente.nombre}")
         self.setMinimumWidth(380)
+        self.setStyleSheet(f"QDialog {{ background-color: {c['bg_app']}; }} QLabel {{ color: {c['text_primary']}; }}")
         layout = QVBoxLayout()
         self.setLayout(layout)
 
         info = QWidget()
-        info.setStyleSheet("background:#ffeaa7;padding:12px;border-radius:6px;")
+        info.setStyleSheet(f"background:{c['bg_card']};padding:12px;border-radius:6px; border: 1px solid {c['border']};")
         info_l = QVBoxLayout()
         info.setLayout(info_l)
         info_l.addWidget(QLabel(f"<b>Cliente:</b> {cliente.nombre}"))
@@ -315,7 +321,7 @@ class AbonoDialog(QDialog):
         self.monto_input.setRange(0.01, cliente.saldo_credito)
         self.monto_input.setDecimals(2)
         self.monto_input.setValue(cliente.saldo_credito)
-        self.monto_input.setStyleSheet("font-size: 16px; padding: 8px;")
+        self.monto_input.setStyleSheet(f"background-color: {c['bg_input']}; color: {c['text_primary']}; border: 1px solid {c['border']}; font-size: 16px; padding: 8px;")
         self.monto_input.valueChanged.connect(self.actualizar_preview)
         form.addRow("Monto a abonar:", self.monto_input)
         layout.addLayout(form)
@@ -327,12 +333,11 @@ class AbonoDialog(QDialog):
 
         btns = QHBoxLayout()
         btn_ok = QPushButton("✓ REGISTRAR ABONO")
-        btn_ok.setStyleSheet(
-            "background:#27ae60;color:white;padding:12px;font-weight:bold;"
-        )
+        btn_ok.setStyleSheet(btn_primary())
         btn_ok.clicked.connect(self.confirmar)
         btns.addWidget(btn_ok)
         btn_cancel = QPushButton("Cancelar")
+        btn_cancel.setStyleSheet(btn_secondary())
         btn_cancel.clicked.connect(self.reject)
         btns.addWidget(btn_cancel)
         layout.addLayout(btns)
@@ -363,8 +368,11 @@ class AbonoDialog(QDialog):
 class HistorialClienteDialog(QDialog):
     def __init__(self, cliente, ventas, parent=None):
         super().__init__(parent)
+        from utils.theme import get_colors
+        c = get_colors()
         self.setWindowTitle(f"Historial — {cliente.nombre}")
         self.setMinimumSize(600, 450)
+        self.setStyleSheet(f"QDialog {{ background-color: {c['bg_app']}; }} QLabel {{ color: {c['text_primary']}; }}")
         layout = QVBoxLayout()
         self.setLayout(layout)
 
@@ -375,7 +383,7 @@ class HistorialClienteDialog(QDialog):
             f"Saldo: {fmt_moneda(cliente.saldo_credito)}"
         )
         info.setStyleSheet(
-            "font-size:13px;padding:8px;background:#ecf0f1;border-radius:4px;"
+            f"font-size:13px;padding:8px;background:{c['bg_card']};color:{c['text_primary']};border-radius:4px; border: 1px solid {c['border']};"
         )
         layout.addWidget(info)
 
@@ -404,5 +412,6 @@ class HistorialClienteDialog(QDialog):
         layout.addWidget(resumen)
 
         btn_cerrar = QPushButton("Cerrar")
+        btn_cerrar.setStyleSheet(btn_secondary())
         btn_cerrar.clicked.connect(self.accept)
         layout.addWidget(btn_cerrar)

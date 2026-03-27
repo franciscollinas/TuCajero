@@ -15,6 +15,41 @@ class ProductoService:
         if self.repo.existe_codigo(codigo, exclude_id):
             raise ValueError(f"El código '{codigo}' ya está en uso")
 
+    def validar_fecha_vencimiento(self, fecha_vencimiento):
+        """Valida que la fecha de vencimiento no esté en el pasado"""
+        if not fecha_vencimiento:
+            return True
+        
+        from datetime import datetime, date
+        
+        if isinstance(fecha_vencimiento, datetime):
+            fecha_venc = fecha_vencimiento.date()
+        elif isinstance(fecha_vencimiento, date):
+            fecha_venc = fecha_vencimiento
+        else:
+            raise ValueError("Formato de fecha no válido")
+        
+        if fecha_venc < date.today():
+            raise ValueError(
+                "La fecha de vencimiento no puede estar en el pasado"
+            )
+        return True
+
+    def validar_producto_fraccion(self, producto_id, fraccion_id):
+        """Evita ciclos en relaciones de fraccionamiento"""
+        if not fraccion_id:
+            return True
+            
+        if producto_id == fraccion_id:
+            raise ValueError("Un producto no puede ser fracción de sí mismo")
+        
+        # Verificar ciclo: si fraccion_id ya apunta a producto_id
+        fraccion = self.repo.get_by_id(fraccion_id)
+        if fraccion and fraccion.producto_fraccion_id == producto_id:
+            raise ValueError("Ciclo detectado: estos productos ya están relacionados")
+        
+        return True
+
     def get_all_productos(self):
         """Retorna todos los productos"""
         return self.repo.get_all()
@@ -41,17 +76,46 @@ class ProductoService:
         aplica_iva=True,
         categoria_id=None,
         stock_minimo=0,
+        fecha_vencimiento=None,
+        producto_fraccion_id=None,
     ):
         """Crea un nuevo producto"""
         self.validar_codigo(codigo)
+
+        # Validar fecha de vencimiento no esté en el pasado
+        if fecha_vencimiento:
+            self.validar_fecha_vencimiento(fecha_vencimiento)
+
+        # Validar relación de fraccionamiento para evitar ciclos
+        if producto_fraccion_id:
+            self.validar_producto_fraccion(None, producto_fraccion_id)
+
         return self.repo.create(
-            codigo, nombre, precio, costo, stock, aplica_iva, categoria_id, stock_minimo
+            codigo,
+            nombre,
+            precio,
+            costo,
+            stock,
+            aplica_iva,
+            categoria_id,
+            stock_minimo,
+            fecha_vencimiento,
+            producto_fraccion_id,
         )
 
     def update_producto(self, producto_id, **kwargs):
         """Actualiza un producto"""
         if "codigo" in kwargs:
             self.validar_codigo(kwargs["codigo"], exclude_id=producto_id)
+
+        # Validar fecha de vencimiento no esté en el pasado
+        if 'fecha_vencimiento' in kwargs and kwargs['fecha_vencimiento']:
+            self.validar_fecha_vencimiento(kwargs['fecha_vencimiento'])
+
+        # Validar relación de fraccionamiento para evitar ciclos
+        if 'producto_fraccion_id' in kwargs and kwargs['producto_fraccion_id']:
+            self.validar_producto_fraccion(producto_id, kwargs['producto_fraccion_id'])
+
         return self.repo.update(producto_id, **kwargs)
 
     def delete_producto(self, producto_id):
@@ -77,6 +141,19 @@ class ProductoService:
     def get_productos_bajo_stock_limite(self, limite=5):
         """Retorna productos con stock menor o igual al límite"""
         return [p for p in self.repo.get_all() if p.stock <= limite and p.stock > 0]
+
+    def get_productos_proximos_vencimiento(self, dias=30):
+        """Retorna productos próximos a vencer (dentro de X días)"""
+        from datetime import datetime, timedelta
+
+        fecha_limite = datetime.now() + timedelta(days=dias)
+        return [
+            p
+            for p in self.repo.get_all()
+            if p.fecha_vencimiento
+            and p.fecha_vencimiento <= fecha_limite
+            and p.fecha_vencimiento >= datetime.now()
+        ]
 
 
 class CategoriaService:
@@ -152,6 +229,7 @@ class VentaService:
         descuento_tipo=None,
         descuento_valor=0,
         descuento_total=0,
+        comprobante=None,
     ):
         """Registra una venta y descuenta inventario"""
         if not self.corte_service.esta_caja_abierta():
@@ -179,6 +257,7 @@ class VentaService:
             descuento_tipo=descuento_tipo,
             descuento_valor=descuento_valor,
             descuento_total=descuento_total,
+            comprobante=comprobante,
         )
 
         if es_credito and cliente_id:

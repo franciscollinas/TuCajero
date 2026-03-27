@@ -33,7 +33,7 @@ sys.excepthook = global_exception_handler
 from config.database import init_db, get_session, crear_carpetas
 from services.corte_service import CorteCajaService
 from ui.main_window import MainWindow
-from ui.dashboard_view import DashboardViewWithCharts as DashboardView
+from ui.dashboard_view import DashboardView
 from ui.ventas_view import VentasView
 from models.cliente import Cliente
 from ui.activate_view import ActivationDialog
@@ -88,9 +88,11 @@ def main():
     try:
         init_db()
     except Exception as e:
-        logging.error(f"Error al inicializar base de datos: {e}")
+        import traceback
+        error_detail = traceback.format_exc()
+        logging.error(f"Error al inicializar base de datos: {e}\n{error_detail}")
         QMessageBox.critical(
-            None, "Error", f"Error al inicializar la base de datos:\n{str(e)}"
+            None, "Error", f"Error al inicializar la base de datos:\n{str(e)}\n\n{error_detail}"
         )
         sys.exit(1)
 
@@ -134,7 +136,7 @@ def main():
         from ui.setup_view import SetupView
 
         config_view = SetupView(session, parent=window)
-        window.add_view(config_view, "config")
+        window.add_view(config_view, "setup")
     except Exception as e:
         logging.error(f"Error al crear vista de config: {e}")
 

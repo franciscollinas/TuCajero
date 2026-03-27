@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap
+from utils.theme import get_colors, btn_primary, btn_secondary
 
 
 class ConfigNegocioDialog(QDialog):
@@ -32,25 +33,28 @@ class ConfigNegocioDialog(QDialog):
 
     def init_ui(self):
         layout = QVBoxLayout()
+        from utils.theme import get_colors
+        c = get_colors()
+        self.setStyleSheet(f"QDialog {{ background-color: {c['bg_app']}; }}")
         self.setLayout(layout)
 
         header = QWidget()
         header.setStyleSheet(
-            "background-color: #1a252f; border-radius: 8px; padding: 16px;"
+            f"background-color: {c['bg_sidebar'] if c['is_dark'] else '#1a252f'}; border-radius: 8px; padding: 16px;"
         )
         header_layout = QVBoxLayout()
         header.setLayout(header_layout)
 
         if self.primera_vez:
             titulo = QLabel("¡Bienvenido a TuCajero!")
-            titulo.setStyleSheet("color: white; font-size: 20px; font-weight: bold;")
+            titulo.setStyleSheet(f"color: {c['text_primary']}; font-size: 20px; font-weight: bold;")
             subtitulo = QLabel("Configura los datos de tu negocio antes de comenzar.")
-            subtitulo.setStyleSheet("color: #a0b0c0; font-size: 13px;")
+            subtitulo.setStyleSheet(f"color: {c['text_secondary']}; font-size: 13px;")
             header_layout.addWidget(titulo)
             header_layout.addWidget(subtitulo)
         else:
             titulo = QLabel("Configuración del Negocio")
-            titulo.setStyleSheet("color: white; font-size: 18px; font-weight: bold;")
+            titulo.setStyleSheet(f"color: {c['text_primary']}; font-size: 18px; font-weight: bold;")
             header_layout.addWidget(titulo)
 
         layout.addWidget(header)
@@ -93,7 +97,7 @@ class ConfigNegocioDialog(QDialog):
         self.logo_preview = QLabel()
         self.logo_preview.setFixedSize(80, 80)
         self.logo_preview.setStyleSheet(
-            "border: 2px dashed #bdc3c7; border-radius: 8px;background: #f8f9fa;"
+            f"border: 2px dashed {c['border']}; border-radius: 8px; background: {c['bg_input']}; color: {c['text_muted']};"
         )
         self.logo_preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.logo_preview.setText("Sin logo")
@@ -101,14 +105,12 @@ class ConfigNegocioDialog(QDialog):
 
         logo_btn_layout = QVBoxLayout()
         btn_seleccionar_logo = QPushButton("Seleccionar logo...")
-        btn_seleccionar_logo.setStyleSheet(
-            "background-color: #3498db; color: white; padding: 8px 16px;"
-        )
+        btn_seleccionar_logo.setStyleSheet(btn_secondary())
         btn_seleccionar_logo.clicked.connect(self.seleccionar_logo)
         logo_btn_layout.addWidget(btn_seleccionar_logo)
 
         self.lbl_logo_path = QLabel("Ningún archivo seleccionado")
-        self.lbl_logo_path.setStyleSheet("")
+        self.lbl_logo_path.setStyleSheet(f"color: {c['text_secondary']};")
         self.lbl_logo_path.setWordWrap(True)
         logo_btn_layout.addWidget(self.lbl_logo_path)
         logo_btn_layout.addStretch()
@@ -118,7 +120,7 @@ class ConfigNegocioDialog(QDialog):
         layout.addWidget(form_widget)
 
         nota = QLabel("* Campo obligatorio")
-        nota.setStyleSheet("color: #e74c3c; font-size: 11px;")
+        nota.setStyleSheet(f"color: {c['danger']}; font-size: 11px;")
         layout.addWidget(nota)
 
         layout.addStretch()
@@ -132,10 +134,10 @@ class ConfigNegocioDialog(QDialog):
         backup_group = QGroupBox("💾  Backup de Datos")
         backup_group.setStyleSheet(f"""
             QGroupBox {{
-                color: {c['text_secondary']};
+                color: {c["text_secondary"]};
                 font-size: 12px;
                 font-weight: bold;
-                border: 1.5px solid {c['border']};
+                border: 1.5px solid {c["border"]};
                 border-radius: 10px;
                 margin-top: 12px;
                 padding: 12px;
@@ -149,9 +151,13 @@ class ConfigNegocioDialog(QDialog):
         backup_layout = QVBoxLayout(backup_group)
         backup_layout.setSpacing(8)
 
-        backup_desc = QLabel("Exporta todos tus datos (productos, ventas, clientes, historial) para hacer una copia de seguridad o migrar a una nueva versión.")
+        backup_desc = QLabel(
+            "Exporta todos tus datos (productos, ventas, clientes, historial) para hacer una copia de seguridad o migrar a una nueva versión."
+        )
         backup_desc.setWordWrap(True)
-        backup_desc.setStyleSheet(f"color: {c['text_muted']}; font-size: 11px; background: transparent;")
+        backup_desc.setStyleSheet(
+            f"color: {c['text_muted']}; font-size: 11px; background: transparent;"
+        )
         backup_layout.addWidget(backup_desc)
 
         btns_backup = QHBoxLayout()
@@ -159,34 +165,12 @@ class ConfigNegocioDialog(QDialog):
 
         btn_exportar = QPushButton("📤  Exportar datos")
         btn_exportar.setFixedHeight(36)
-        btn_exportar.setStyleSheet(f"""
-            QPushButton {{
-                background: {c['accent_light']};
-                color: {c['accent']};
-                border: 1.5px solid {c['accent']};
-                border-radius: 8px;
-                padding: 4px 16px;
-                font-size: 13px;
-                font-weight: bold;
-            }}
-            QPushButton:hover {{ background: {c['accent']}; color: white; }}
-        """)
+        btn_exportar.setStyleSheet(btn_primary())
         btn_exportar.clicked.connect(self._exportar_datos)
 
         btn_importar = QPushButton("📥  Importar datos")
         btn_importar.setFixedHeight(36)
-        btn_importar.setStyleSheet(f"""
-            QPushButton {{
-                background: {c['warning_light']};
-                color: {c['warning']};
-                border: 1.5px solid {c['warning']};
-                border-radius: 8px;
-                padding: 4px 16px;
-                font-size: 13px;
-                font-weight: bold;
-            }}
-            QPushButton:hover {{ background: {c['warning']}; color: white; }}
-        """)
+        btn_importar.setStyleSheet(btn_secondary())
         btn_importar.clicked.connect(self._importar_datos)
 
         btns_backup.addWidget(btn_exportar)
@@ -200,22 +184,13 @@ class ConfigNegocioDialog(QDialog):
         btn_guardar = QPushButton(
             "GUARDAR Y CONTINUAR" if self.primera_vez else "GUARDAR"
         )
-        btn_guardar.setStyleSheet("""
-            QPushButton {
-                background-color: #27ae60;
-                color: white;
-                font-size: 15px;
-                font-weight: bold;
-                padding: 12px 24px;
-            }
-            QPushButton:hover { background-color: #2ecc71; }
-        """)
+        btn_guardar.setStyleSheet(btn_primary())
         btn_guardar.clicked.connect(self.guardar)
         btn_layout.addWidget(btn_guardar)
 
         if not self.primera_vez:
             btn_cancelar = QPushButton("Cancelar")
-            btn_cancelar.setObjectName("btn_cancelar")
+            btn_cancelar.setStyleSheet(btn_secondary())
             btn_cancelar.clicked.connect(self.reject)
             btn_layout.addWidget(btn_cancelar)
 
@@ -321,19 +296,21 @@ class ConfigNegocioDialog(QDialog):
         from utils.data_manager import exportar_datos
         from datetime import datetime
 
-        nombre_sugerido = f"TuCajero_backup_{datetime.now().strftime('%Y%m%d')}.tucajero"
+        nombre_sugerido = (
+            f"TuCajero_backup_{datetime.now().strftime('%Y%m%d')}.tucajero"
+        )
         ruta, _ = QFileDialog.getSaveFileName(
             self,
             "Guardar backup de datos",
             nombre_sugerido,
-            "Backup TuCajero (*.tucajero);;Todos los archivos (*)"
+            "Backup TuCajero (*.tucajero);;Todos los archivos (*)",
         )
 
         if not ruta:
             return
 
-        if not ruta.endswith('.tucajero'):
-            ruta += '.tucajero'
+        if not ruta.endswith(".tucajero"):
+            ruta += ".tucajero"
 
         resultado = exportar_datos(ruta)
 
@@ -341,13 +318,13 @@ class ConfigNegocioDialog(QDialog):
             QMessageBox.information(
                 self,
                 "✅ Exportación exitosa",
-                f"Datos exportados correctamente.\n\nArchivo guardado en:\n{ruta}\n\nGuarda este archivo en un lugar seguro (USB, Google Drive, etc.)"
+                f"Datos exportados correctamente.\n\nArchivo guardado en:\n{ruta}\n\nGuarda este archivo en un lugar seguro (USB, Google Drive, etc.)",
             )
         else:
             QMessageBox.critical(
                 self,
                 "❌ Error al exportar",
-                f"No se pudieron exportar los datos:\n{resultado['error']}"
+                f"No se pudieron exportar los datos:\n{resultado['error']}",
             )
 
     def _importar_datos(self):
@@ -362,7 +339,7 @@ class ConfigNegocioDialog(QDialog):
             "Se creará un backup automático de los datos actuales antes de continuar.\n\n"
             "¿Deseas continuar?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No
+            QMessageBox.StandardButton.No,
         )
 
         if confirm != QMessageBox.StandardButton.Yes:
@@ -372,7 +349,7 @@ class ConfigNegocioDialog(QDialog):
             self,
             "Seleccionar backup de TuCajero",
             "",
-            "Backup TuCajero (*.tucajero);;Todos los archivos (*)"
+            "Backup TuCajero (*.tucajero);;Todos los archivos (*)",
         )
 
         if not ruta:
@@ -385,12 +362,12 @@ class ConfigNegocioDialog(QDialog):
                 self,
                 "✅ Importación exitosa",
                 f"Datos restaurados correctamente.\n\n"
-                f"Backup importado: versión {resultado.get('version','?')} del {resultado.get('fecha','?')}\n\n"
-                f"Cierra y vuelve a abrir TuCajero para ver los cambios."
+                f"Backup importado: versión {resultado.get('version', '?')} del {resultado.get('fecha', '?')}\n\n"
+                f"Cierra y vuelve a abrir TuCajero para ver los cambios.",
             )
         else:
             QMessageBox.critical(
                 self,
                 "❌ Error al importar",
-                f"No se pudieron importar los datos:\n{resultado['error']}"
+                f"No se pudieron importar los datos:\n{resultado['error']}",
             )

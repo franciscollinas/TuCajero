@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
     QLineEdit,
 )
 from PySide6.QtCore import Qt
+from utils.theme import btn_primary, btn_secondary, btn_danger
 
 
 class LoginCajeroDialog(QDialog):
@@ -24,28 +25,33 @@ class LoginCajeroDialog(QDialog):
         self.cargar_cajeros()
 
     def init_ui(self):
+        from utils.theme import get_colors
+        c = get_colors()
+        self.setStyleSheet(f"QDialog {{ background-color: {c['bg_app']}; }}")
+        
         layout = QVBoxLayout()
         self.setLayout(layout)
 
         header = QWidget()
-        header.setStyleSheet("background-color: #2c3e50; padding: 20px;")
+        header.setStyleSheet(f"background-color: {c['bg_sidebar']}; padding: 20px; border-bottom: 1px solid {c['border']};")
         header_layout = QVBoxLayout()
         header.setLayout(header_layout)
 
         titulo = QLabel("TuCajero POS")
-        titulo.setStyleSheet("color: white; font-size: 28px; font-weight: bold;")
+        titulo.setStyleSheet(f"color: {c['text_primary']}; font-size: 28px; font-weight: bold;")
         titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         header_layout.addWidget(titulo)
 
         subtitulo = QLabel("Selecciona tu nombre e ingresa tu PIN")
         subtitulo.setObjectName("subtitulo")
+        subtitulo.setStyleSheet(f"color: {c['text_secondary']};")
         subtitulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         header_layout.addWidget(subtitulo)
         layout.addWidget(header)
 
         cajeros_label = QLabel("¿Quién eres?")
         cajeros_label.setStyleSheet(
-            "font-size: 15px; font-weight: bold; padding: 10px 20px 5px;"
+            f"font-size: 15px; font-weight: bold; padding: 10px 20px 5px; color: {c['text_primary']};"
         )
         layout.addWidget(cajeros_label)
 
@@ -56,6 +62,7 @@ class LoginCajeroDialog(QDialog):
 
         self.lbl_cajero_sel = QLabel("Selecciona un cajero")
         self.lbl_cajero_sel.setObjectName("lbl_cajero_sel")
+        self.lbl_cajero_sel.setStyleSheet(f"color: {c['text_primary']};")
         self.lbl_cajero_sel.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.lbl_cajero_sel)
 
@@ -65,9 +72,10 @@ class LoginCajeroDialog(QDialog):
         self.pin_display.setReadOnly(True)
         self.pin_display.setPlaceholderText("PIN")
         self.pin_display.setStyleSheet(
-            "font-size: 32px; padding: 10px; text-align: center; "
-            "border: 2px solid #bdc3c7; border-radius: 6px; "
-            "letter-spacing: 8px;"
+            f"font-size: 32px; padding: 10px; text-align: center; "
+            f"background-color: {c['bg_input']}; color: {c['text_primary']}; "
+            f"border: 2px solid {c['border']}; border-radius: 6px; "
+            f"letter-spacing: 8px;"
         )
         self.pin_display.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.pin_display)
@@ -94,19 +102,11 @@ class LoginCajeroDialog(QDialog):
             btn = QPushButton(texto)
             btn.setFixedSize(90, 60)
             if texto == "✓":
-                btn.setStyleSheet(
-                    "background:#27ae60;color:white;"
-                    "font-size:22px;font-weight:bold;border-radius:6px;"
-                )
+                btn.setStyleSheet(btn_primary() + "font-size:22px;font-weight:bold;")
             elif texto == "⌫":
-                btn.setStyleSheet(
-                    "background:#e74c3c;color:white;font-size:22px;border-radius:6px;"
-                )
+                btn.setStyleSheet(btn_danger() + "font-size:22px;")
             else:
-                btn.setStyleSheet(
-                    "background:#ecf0f1;color:#2c3e50;"
-                    "font-size:22px;font-weight:bold;border-radius:6px;"
-                )
+                btn.setStyleSheet(btn_secondary() + "font-size:22px;font-weight:bold;")
             btn.clicked.connect(lambda checked, t=texto: self.on_tecla(t))
             teclado_layout.addWidget(btn, fila, col)
 
@@ -131,27 +131,9 @@ class LoginCajeroDialog(QDialog):
             btn = QPushButton(cajero.nombre)
             btn.setFixedSize(140, 50)
             if cajero.rol == "admin":
-                btn.setStyleSheet("""
-                    QPushButton {
-                        background:#2c3e50;color:white;
-                        font-size:14px;font-weight:bold;
-                        border-radius:6px;
-                    }
-                    QPushButton:checked {
-                        background:#3498db;border:2px solid white;
-                    }
-                """)
+                btn.setStyleSheet(btn_primary())
             else:
-                btn.setStyleSheet("""
-                    QPushButton {
-                        background:#ecf0f1;color:#2c3e50;
-                        font-size:14px;border-radius:6px;
-                    }
-                    QPushButton:checked {
-                        background:#3498db;color:white;
-                        border:2px solid #2980b9;
-                    }
-                """)
+                btn.setStyleSheet(btn_secondary())
             btn.setCheckable(True)
             btn.clicked.connect(lambda checked, c=cajero: self.seleccionar_cajero(c))
             self.cajeros_layout.addWidget(btn, fila, col)

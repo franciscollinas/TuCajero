@@ -20,6 +20,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
 from utils.formato import fmt_moneda
+from utils.theme import btn_primary, btn_danger, btn_secondary, get_colors
 
 
 class ProveedoresView(QWidget):
@@ -52,17 +53,17 @@ class ProveedoresView(QWidget):
         btn_layout.addStretch()
 
         btn_nuevo = QPushButton("+ Nuevo Proveedor")
-        btn_nuevo.setStyleSheet("background:#27ae60;color:white;padding:10px;")
+        btn_nuevo.setStyleSheet(btn_primary())
         btn_nuevo.clicked.connect(self.nuevo_proveedor)
         btn_layout.addWidget(btn_nuevo)
 
         btn_editar = QPushButton("Editar")
-        btn_editar.setStyleSheet("background:#3498db;color:white;padding:10px;")
+        btn_editar.setStyleSheet(btn_primary())
         btn_editar.clicked.connect(self.editar_proveedor)
         btn_layout.addWidget(btn_editar)
 
         btn_eliminar = QPushButton("Eliminar")
-        btn_eliminar.setStyleSheet("background:#e74c3c;color:white;padding:10px;")
+        btn_eliminar.setStyleSheet(btn_danger())
         btn_eliminar.clicked.connect(self.eliminar_proveedor)
         btn_layout.addWidget(btn_eliminar)
 
@@ -142,25 +143,21 @@ class ProveedoresView(QWidget):
         btn_nueva = QPushButton("+ Nueva Orden de Compra")
         btn_nueva.setFixedHeight(36)
         btn_nueva.setMaximumWidth(200)
-        btn_nueva.setStyleSheet(
-            "background:#27ae60;color:white;padding:8px;font-weight:bold;"
-        )
+        btn_nueva.setStyleSheet(btn_primary())
         btn_nueva.clicked.connect(self.nueva_orden)
         btn_layout.addWidget(btn_nueva)
 
         btn_recibir = QPushButton("✅ Recibir mercancía")
         btn_recibir.setFixedHeight(36)
         btn_recibir.setMaximumWidth(200)
-        btn_recibir.setStyleSheet(
-            "background:#2980b9;color:white;padding:8px;font-weight:bold;"
-        )
+        btn_recibir.setStyleSheet(btn_primary())
         btn_recibir.clicked.connect(self.recibir_orden)
         btn_layout.addWidget(btn_recibir)
 
         btn_cancelar = QPushButton("✕ Cancelar orden")
         btn_cancelar.setFixedHeight(36)
         btn_cancelar.setMaximumWidth(200)
-        btn_cancelar.setStyleSheet("background:#e74c3c;color:white;padding:8px;")
+        btn_cancelar.setStyleSheet(btn_danger())
         btn_cancelar.clicked.connect(self.cancelar_orden)
         btn_layout.addWidget(btn_cancelar)
 
@@ -181,7 +178,12 @@ class ProveedoresView(QWidget):
         layout.addWidget(self.tabla_ord)
 
         info = QLabel("💡 Doble clic en una orden para ver el detalle de productos")
-        info.setStyleSheet("color:#7f8c8d;font-size:12px;padding:4px;")
+        from utils.theme import get_colors
+
+        c = get_colors()
+        info.setStyleSheet(
+            f"color: {c['text_secondary']}; font-size: 12px; padding: 4px;"
+        )
         layout.addWidget(info)
 
         self.ordenes = []
@@ -190,6 +192,9 @@ class ProveedoresView(QWidget):
 
     def cargar_ordenes(self):
         from services.proveedor_service import OrdenCompraService
+        from utils.theme import get_colors
+
+        c = get_colors()
 
         self.ordenes = OrdenCompraService(self.session).get_all()
         self.tabla_ord.setRowCount(len(self.ordenes))
@@ -203,14 +208,14 @@ class ProveedoresView(QWidget):
 
             estado_item = QTableWidgetItem(o.estado.capitalize())
             if o.estado == "pendiente":
-                estado_item.setBackground(QColor("#ffeaa7"))
-                estado_item.setForeground(QColor("#d35400"))
+                estado_item.setBackground(QColor(c["warning"] + "33"))
+                estado_item.setForeground(QColor(c["warning"]))
             elif o.estado == "recibida":
-                estado_item.setBackground(QColor("#d5f5e3"))
-                estado_item.setForeground(QColor("#1e8449"))
+                estado_item.setBackground(QColor(c["success"] + "33"))
+                estado_item.setForeground(QColor(c["success"]))
             elif o.estado == "cancelada":
-                estado_item.setBackground(QColor("#fadbd8"))
-                estado_item.setForeground(QColor("#922b21"))
+                estado_item.setBackground(QColor(c["danger"] + "33"))
+                estado_item.setForeground(QColor(c["danger"]))
             self.tabla_ord.setItem(i, 4, estado_item)
             self.tabla_ord.setItem(i, 5, QTableWidgetItem(o.notas or ""))
 
@@ -328,10 +333,11 @@ class ProveedorDialog(QDialog):
 
         btns = QHBoxLayout()
         btn_g = QPushButton("Guardar")
-        btn_g.setStyleSheet("background:#27ae60;color:white;padding:10px;")
+        btn_g.setStyleSheet(btn_primary())
         btn_g.clicked.connect(self.guardar)
         btns.addWidget(btn_g)
         btn_c = QPushButton("Cancelar")
+        btn_c.setStyleSheet(btn_secondary())
         btn_c.clicked.connect(self.reject)
         btns.addWidget(btn_c)
         layout.addRow("", btns)
@@ -377,6 +383,10 @@ class OrdenCompraDialog(QDialog):
         self.init_ui()
 
     def init_ui(self):
+        from utils.theme import get_colors
+
+        c = get_colors()
+
         layout = QVBoxLayout()
         self.setLayout(layout)
 
@@ -410,7 +420,7 @@ class OrdenCompraDialog(QDialog):
         self._cargar_productos()
 
         btn_agregar = QPushButton("+ Agregar")
-        btn_agregar.setStyleSheet("background:#27ae60;color:white;padding:8px;")
+        btn_agregar.setStyleSheet(btn_primary())
         btn_agregar.clicked.connect(self.agregar_item)
         agregar_layout.addWidget(btn_agregar)
         layout.addLayout(agregar_layout)
@@ -428,7 +438,7 @@ class OrdenCompraDialog(QDialog):
 
         self.lbl_total = QLabel("Total: $0.00")
         self.lbl_total.setStyleSheet(
-            "font-size: 18px; font-weight: bold; color: #27ae60; padding: 8px;"
+            f"font-size: 18px; font-weight: bold; color: {c['success']}; padding: 8px;"
         )
         self.lbl_total.setAlignment(Qt.AlignmentFlag.AlignRight)
         layout.addWidget(self.lbl_total)
@@ -440,14 +450,11 @@ class OrdenCompraDialog(QDialog):
 
         btns = QHBoxLayout()
         btn_crear = QPushButton("📦 CREAR ORDEN")
-        btn_crear.setStyleSheet(
-            "background:#27ae60;color:white;"
-            "padding:12px;font-weight:bold;font-size:14px;"
-        )
+        btn_crear.setStyleSheet(btn_primary())
         btn_crear.clicked.connect(self.crear_orden)
         btns.addWidget(btn_crear)
         btn_cancel = QPushButton("Cancelar")
-        btn_cancel.setStyleSheet("padding:12px;")
+        btn_cancel.setStyleSheet(btn_secondary())
         btn_cancel.clicked.connect(self.reject)
         btns.addWidget(btn_cancel)
         layout.addLayout(btns)
@@ -511,7 +518,7 @@ class OrdenCompraDialog(QDialog):
             self.tabla.setItem(i, 3, QTableWidgetItem(fmt_moneda(subtotal)))
 
             btn_del = QPushButton("✕")
-            btn_del.setStyleSheet("background:#e74c3c;color:white;padding:4px;")
+            btn_del.setStyleSheet(btn_danger())
             btn_del.clicked.connect(lambda checked, idx=i: self._eliminar_item(idx))
             self.tabla.setCellWidget(i, 4, btn_del)
 
@@ -555,6 +562,9 @@ class DetalleOrdenDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle(f"Detalle — Orden #{orden.id}")
         self.setMinimumSize(550, 400)
+        from utils.theme import get_colors
+
+        c = get_colors()
         layout = QVBoxLayout()
         self.setLayout(layout)
 
@@ -565,7 +575,7 @@ class DetalleOrdenDialog(QDialog):
             f"<b>Total:</b> {fmt_moneda(orden.total)}"
         )
         info.setStyleSheet(
-            "font-size:13px;padding:8px;background:#ecf0f1;border-radius:4px;"
+            f"font-size:13px; padding:8px; background: {c['bg_card']}; border-radius:4px;"
         )
         info.setWordWrap(True)
         layout.addWidget(info)
@@ -579,12 +589,14 @@ class DetalleOrdenDialog(QDialog):
 
         from models.producto import Producto
 
+        session = None
+        if parent and hasattr(parent, "session"):
+            session = parent.session
+
         for i, item in enumerate(orden.items):
-            prod = (
-                parent.session.query(Producto).get(item.producto_id)
-                if hasattr(parent, "session")
-                else None
-            )
+            prod = None
+            if session:
+                prod = session.query(Producto).get(item.producto_id)
             nombre = prod.nombre if prod else f"Producto #{item.producto_id}"
             tabla.setItem(i, 0, QTableWidgetItem(nombre))
             tabla.setItem(i, 1, QTableWidgetItem(str(item.cantidad)))
@@ -594,9 +606,12 @@ class DetalleOrdenDialog(QDialog):
 
         if orden.notas:
             nota = QLabel(f"📝 Notas: {orden.notas}")
-            nota.setStyleSheet("color:#7f8c8d;font-size:12px;padding:4px;")
+            nota.setStyleSheet(
+                f"color: {c['text_secondary']}; font-size: 12px; padding: 4px;"
+            )
             layout.addWidget(nota)
 
         btn_cerrar = QPushButton("Cerrar")
+        btn_cerrar.setStyleSheet(btn_secondary())
         btn_cerrar.clicked.connect(self.accept)
         layout.addWidget(btn_cerrar)

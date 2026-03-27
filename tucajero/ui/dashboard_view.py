@@ -2,20 +2,30 @@ from PySide6.QtWidgets import (
     QWidget,
     QVBoxLayout,
     QHBoxLayout,
+    QGridLayout,
     QLabel,
+    QComboBox,
+    QGraphicsDropShadowEffect,
     QTableWidget,
     QTableWidgetItem,
     QHeaderView,
-    QFrame,
-    QGraphicsDropShadowEffect,
     QPushButton,
     QMessageBox,
-    QComboBox,
+    QScrollArea,
 )
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal, QTimer
 from PySide6.QtGui import QColor
+from datetime import datetime, date
 import os
-from utils.theme import get_colors, card_style, label_style
+
+from utils.theme import (
+    get_colors,
+    card_style,
+    label_style,
+    btn_primary,
+    btn_secondary,
+    btn_danger,
+)
 from utils.formato import fmt_moneda
 
 
@@ -27,588 +37,518 @@ def add_shadow(widget, blur=20, offset_y=4, opacity=80):
     widget.setGraphicsEffect(shadow)
 
 
-class MetricCard(QWidget):
+class ClickableMetricCard(QWidget):
+    clicked = Signal()
+
     def __init__(self, icon, title, value, color, badge=None, parent=None):
         super().__init__(parent)
-        from utils.theme import get_colors
-        from PySide6.QtWidgets import QGraphicsDropShadowEffect
-        from PySide6.QtGui import QColor
-
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
         c = get_colors()
 
-        # Outer wrapper: transparent, only provides padding so shadow is not clipped
         self.setStyleSheet("background: transparent; border: none;")
-        self.setMinimumHeight(124)
+        self.setMinimumHeight(120)
 
         outer = QVBoxLayout(self)
-        outer.setContentsMargins(6, 6, 6, 14)
+        outer.setContentsMargins(4, 4, 4, 8)
         outer.setSpacing(0)
 
-        # Inner card with scoped object-name so global QWidget { background } can't win
         inner = QWidget()
         inner.setObjectName("metricCard")
         inner.setStyleSheet(f"""
             QWidget#metricCard {{
                 background-color: {c["bg_card"]};
-                border-radius: 20px;
-                border: none;
+                border-radius: 16px;
+                border: 1px solid {c["border"]};
             }}
-            QWidget#metricCard * {{
-                background: transparent;
-                border: none;
+            QWidget#metricCard:hover {{
+                background-color: {c["bg_elevated"]};
+                border: 1px solid {c["accent"]};
             }}
         """)
-        shadow = QGraphicsDropShadowEffect()
-        shadow.setBlurRadius(36)
-        shadow.setOffset(0, 8)
-        shadow.setColor(QColor(0, 0, 0, 60))
-        inner.setGraphicsEffect(shadow)
+        add_shadow(inner, blur=20, offset_y=4, opacity=40)
         outer.addWidget(inner)
 
         layout = QVBoxLayout(inner)
-        layout.setContentsMargins(22, 20, 22, 20)
-        layout.setSpacing(10)
+        layout.setContentsMargins(16, 14, 16, 14)
+        layout.setSpacing(6)
 
-        # ── Top: icon pill + badge ─────────────────────────────────────
         top = QHBoxLayout()
-        top.setSpacing(8)
-
-        icon_pill = QLabel(icon)
-        icon_pill.setFixedSize(48, 48)
-        icon_pill.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        icon_pill.setObjectName("iconPill")
-        icon_pill.setStyleSheet(f"""
-            QLabel#iconPill {{
-                background-color: {color}28 !important;
-                color: {color};
-                border-radius: 14px;
-                font-size: 22px;
-            }}
-        """)
-        top.addWidget(icon_pill)
+        icon_lbl = QLabel(icon)
+        icon_lbl.setStyleSheet(f"font-size: 20px; color: {color};")
+        top.addWidget(icon_lbl)
         top.addStretch()
 
         if badge:
-            badge_lbl = QLabel(badge)
-            badge_lbl.setObjectName("badgeLbl")
-            badge_lbl.setStyleSheet(f"""
-                QLabel#badgeLbl {{
-                    color: {c["success"]};
-                    font-size: 11px;
-                    font-weight: bold;
-                    background-color: {c["success_light"]} !important;
-                    border-radius: 9px;
-                    padding: 3px 10px;
-                }}
-            """)
-            top.addWidget(badge_lbl)
+            b_lbl = QLabel(badge)
+            b_lbl.setStyleSheet(
+                f"background: {c['success_light']}; color: {c['success']}; border-radius: 8px; padding: 2px 8px; font-size: 10px; font-weight: bold;"
+            )
+            top.addWidget(b_lbl)
         layout.addLayout(top)
 
-        # ── Value ───────────────────────────────────────────────────────
         self.value_label = QLabel(value)
-        self.value_label.setStyleSheet(f"""
-            color: {c["text_primary"]};
-            font-size: 28px;
-            font-weight: bold;
-        """)
+        self.value_label.setStyleSheet(
+            f"color: {c['text_primary']}; font-size: 22px; font-weight: bold;"
+        )
         layout.addWidget(self.value_label)
 
-        # ── Title ───────────────────────────────────────────────────────
         title_lbl = QLabel(title.upper())
-        title_lbl.setStyleSheet(f"""
-            color: {c["text_muted"]};
-            font-size: 10px;
-            font-weight: bold;
-            letter-spacing: 1px;
-        """)
+        title_lbl.setStyleSheet(
+            f"color: {c['text_muted']}; font-size: 10px; font-weight: bold; letter-spacing: 0.5px;"
+        )
         layout.addWidget(title_lbl)
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.clicked.emit()
 
     def update_value(self, value):
         self.value_label.setText(value)
 
 
 class DashboardView(QWidget):
+    """Dashboard unificado: KPIs + Gráficos + Historial Hoy"""
+
+    AUTO_REFRESH_INTERVAL = 30000  # 30 segundos
+
     def __init__(self, session, parent=None):
         super().__init__(parent)
         self.session = session
+        self.chart_periodo = "mes"
         self._init_ui()
+        self._setup_auto_refresh()
+
+    def _setup_auto_refresh(self):
+        """Configura el auto-refresh del dashboard"""
+        self.refresh_timer = QTimer()
+        self.refresh_timer.timeout.connect(self.refresh)
+        self.refresh_timer.start(self.AUTO_REFRESH_INTERVAL)
 
     def _init_ui(self):
         c = get_colors()
         self.setStyleSheet(f"background-color: {c['bg_app']};")
 
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(28, 24, 28, 24)
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setStyleSheet("border: none; background: transparent;")
+        main_layout.addWidget(scroll)
+
+        content = QWidget()
+        content.setStyleSheet(f"background-color: {c['bg_app']};")
+        layout = QVBoxLayout(content)
+        layout.setContentsMargins(24, 24, 24, 24)
         layout.setSpacing(24)
+        scroll.setWidget(content)
 
+        # ── Encabezado ────────────────────────────────────────────────────────
+        header_layout = QHBoxLayout()
         title_layout = QVBoxLayout()
-        title_layout.setSpacing(4)
-        title = QLabel("Escritorio")
+        title = QLabel("Panel de Control")
         title.setStyleSheet(label_style("xl", "bold"))
-        from datetime import datetime
-
-        sub = QLabel(f"Bienvenido — {datetime.now().strftime('%A %d de %B, %Y')}")
+        sub = QLabel(
+            f"Resumen de actividad — {datetime.now().strftime('%d de %B, %Y')}"
+        )
         sub.setStyleSheet(label_style("sm", color_key="text_secondary"))
         title_layout.addWidget(title)
         title_layout.addWidget(sub)
-        layout.addLayout(title_layout)
+        header_layout.addLayout(title_layout)
+        header_layout.addStretch()
 
-        grid = QHBoxLayout()
-        grid.setSpacing(16)
+        self.combo_periodo = QComboBox()
+        self.combo_periodo.addItems(
+            ["Este mes", "Este trimestre", "Este semestre", "Este año"]
+        )
+        self.combo_periodo.setStyleSheet(
+            f"background: {c['bg_card']}; color: {c['text_primary']}; padding: 8px; border-radius: 8px; border: 1px solid {c['border']}; font-weight: bold;"
+        )
+        self.combo_periodo.currentTextChanged.connect(self._actualizar_periodo_grafico)
+        header_layout.addWidget(self.combo_periodo)
 
-        self.card_ventas_hoy = MetricCard(
-            "📈", "Ventas hoy", fmt_moneda(0), c["accent"], badge="+12%"
+        layout.addLayout(header_layout)
+
+        # ── KPI Cards ────────────────────────────────────────────────────────
+        kpi_grid = QHBoxLayout()
+        kpi_grid.setSpacing(16)
+
+        self.card_hoy = ClickableMetricCard(
+            "💰", "Ventas Hoy", fmt_moneda(0), c["accent"]
         )
-        self.card_ventas_mes = MetricCard(
-            "📅", "Ventas del mes", fmt_moneda(0), c["info"], badge="+5.2%"
+        self.card_mes = ClickableMetricCard(
+            "📊", "Ventas Mes", fmt_moneda(0), c["info"]
         )
-        self.card_clientes = MetricCard("👥", "Clientes", "0", c["success"])
-        self.card_productos = MetricCard("📦", "Productos activos", "0", c["warning"])
+        self.card_sistema = ClickableMetricCard(
+            "⚙️", "Sistema", "Backup / Edit", c["success"]
+        )
+        self.card_vencimiento = ClickableMetricCard(
+            "📦", "Vencimientos", "Alertas", c["warning"]
+        )
+
+        self.card_hoy.clicked.connect(self._ir_a_corte)
+        self.card_mes.clicked.connect(self._ir_a_historial)
+        self.card_sistema.clicked.connect(self._mostrar_sistema)
+        self.card_vencimiento.clicked.connect(self._ir_a_productos)
 
         for card in [
-            self.card_ventas_hoy,
-            self.card_ventas_mes,
-            self.card_clientes,
-            self.card_productos,
+            self.card_hoy,
+            self.card_mes,
+            self.card_sistema,
+            self.card_vencimiento,
         ]:
-            grid.addWidget(card)
-        layout.addLayout(grid)
+            kpi_grid.addWidget(card)
+        layout.addLayout(kpi_grid)
 
-        section_label = QLabel("Acciones rápidas")
-        section_label.setStyleSheet(label_style("lg", "bold"))
-        layout.addWidget(section_label)
+        # ── Gráficos ─────────────────────────────────────────────────────────
+        charts_layout = QGridLayout()
+        charts_layout.setSpacing(20)
 
-        actions_grid = QHBoxLayout()
-        actions_grid.setSpacing(16)
+        card1, self.chart_evolucion = self._crear_contenedor_grafico()
+        charts_layout.addWidget(card1, 0, 0)
 
-        self.btn_ventas_dia = self._crear_accion_card(
-            "💰", "Ventas del día", "Corte de caja hoy", c["accent"]
-        )
-        self.btn_ventas_dia.clicked.connect(self._ir_a_corte)
+        card2, self.chart_metodos = self._crear_contenedor_grafico()
+        charts_layout.addWidget(card2, 0, 1)
 
-        self.btn_ventas_mes = self._crear_accion_card(
-            "📊", "Ventas del mes", "Reporte mensual", c["info"]
-        )
-        self.btn_ventas_mes.clicked.connect(self._ir_a_historial)
+        card3, self.chart_clientes = self._crear_contenedor_grafico()
+        charts_layout.addWidget(card3, 1, 0, 1, 2)
 
-        self.btn_facturas = self._crear_accion_card(
-            "🧾", "Facturas", "Ver facturas PDF", c["purple"]
-        )
-        self.btn_facturas.clicked.connect(self._abrir_facturas)
+        layout.addLayout(charts_layout)
 
-        self.btn_backup = self._crear_accion_card(
-            "💾", "Backup", "Respaldar datos", c["success"]
-        )
-        self.btn_backup.clicked.connect(self._hacer_backup)
-
-        self.btn_actualizar = self._crear_accion_card(
-            "🔄", "Actualizar", "Nueva versión", c["warning"]
-        )
-        self.btn_actualizar.clicked.connect(self._mostrar_actualizacion)
-
-        self.btn_restaurar = self._crear_accion_card(
-            "📥", "Restaurar", "Cargar backup", c["danger"]
-        )
-        self.btn_restaurar.clicked.connect(self._restaurar_backup)
-
-        self.btn_exportar = self._crear_accion_card(
-            "📤", "Exportar", "Copiar a USB", c["info"]
-        )
-        self.btn_exportar.clicked.connect(self._exportar_backup)
-
-        for btn in [
-            self.btn_ventas_dia,
-            self.btn_ventas_mes,
-            self.btn_facturas,
-            self.btn_backup,
-            self.btn_actualizar,
-            self.btn_restaurar,
-            self.btn_exportar,
-        ]:
-            actions_grid.addWidget(btn)
-        layout.addLayout(actions_grid)
+        # ── Tabla de Hoy ─────────────────────────────────────────────────────
+        table_title = QLabel("Últimas Facturas de Hoy")
+        table_title.setStyleSheet(label_style("lg", "bold"))
+        layout.addWidget(table_title)
 
         table_container = QWidget()
-        table_container.setStyleSheet(f"""
-            QWidget {{
-                {card_style()}
-            }}
-        """)
-        add_shadow(table_container, blur=16, offset_y=4, opacity=40)
+        table_container.setStyleSheet(
+            f"background-color: {c['bg_card']}; border-radius: 12px; border: 1px solid {c['border']};"
+        )
         tc_layout = QVBoxLayout(table_container)
         tc_layout.setContentsMargins(0, 0, 0, 0)
 
-        self.tabla_top = QTableWidget()
-        self.tabla_top.setColumnCount(4)
-        self.tabla_top.setHorizontalHeaderLabels(
-            ["Artículo", "Stock", "Cantidad vendida", "Ingresos"]
+        self.tabla_hoy = QTableWidget()
+        self.tabla_hoy.setColumnCount(6)
+        self.tabla_hoy.setHorizontalHeaderLabels(
+            ["Hora", "Cliente", "Productos", "Método", "Total", "Estado"]
         )
-        self.tabla_top.horizontalHeader().setSectionResizeMode(
-            0, QHeaderView.ResizeMode.Stretch
+        self.tabla_hoy.horizontalHeader().setSectionResizeMode(
+            1, QHeaderView.ResizeMode.Stretch
         )
-        self.tabla_top.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.tabla_top.setAlternatingRowColors(True)
-        self.tabla_top.verticalHeader().setVisible(False)
-        self.tabla_top.setMinimumHeight(200)
-        self.tabla_top.setStyleSheet("border: none; border-radius: 14px;")
-        tc_layout.addWidget(self.tabla_top)
+        self.tabla_hoy.horizontalHeader().setSectionResizeMode(
+            2, QHeaderView.ResizeMode.Stretch
+        )
+        self.tabla_hoy.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.tabla_hoy.verticalHeader().setVisible(False)
+        self.tabla_hoy.setMinimumHeight(300)
+        self.tabla_hoy.setStyleSheet(f"""
+            QTableWidget {{
+                background: transparent;
+                border: none;
+                gridline-color: {c["border"]};
+                color: {c["text_primary"]};
+            }}
+            QHeaderView::section {{
+                background-color: {c["bg_sidebar"]};
+                color: #cbd5e1;
+                font-size: 11px;
+                font-weight: bold;
+                letter-spacing: 0.5px;
+                padding: 10px 8px;
+                border: none;
+                border-bottom: 1px solid {c["border"]};
+                text-transform: uppercase;
+            }}
+        """)
+        tc_layout.addWidget(self.tabla_hoy)
         layout.addWidget(table_container)
+
+    def _crear_contenedor_grafico(self):
+        from ui.chart_widget import ChartWidget
+
+        container = QWidget()
+        container.setStyleSheet(
+            f"background-color: {get_colors()['bg_card']}; border-radius: 16px; border: 1px solid {get_colors()['border']};"
+        )
+        add_shadow(container, blur=24, offset_y=6, opacity=50)
+        lyt = QVBoxLayout(container)
+        lyt.setContentsMargins(12, 12, 12, 12)
+        chart = ChartWidget()
+        chart.setMinimumHeight(400)
+        lyt.addWidget(chart)
+        return container, chart
 
     def showEvent(self, event):
         super().showEvent(event)
-        self._cargar_datos()
+        self.refresh()
+        # Reiniciar el timer cuando se muestra la vista
+        if hasattr(self, "refresh_timer"):
+            self.refresh_timer.start(self.AUTO_REFRESH_INTERVAL)
 
-    def _crear_accion_card(self, icon, titulo, desc, color):
-        """Crea una tarjeta botón estilizada para acciones"""
-        from PySide6.QtWidgets import QPushButton
+    def hideEvent(self, event):
+        super().hideEvent(event)
+        # Detener el timer cuando se oculta la vista para ahorrar recursos
+        if hasattr(self, "refresh_timer"):
+            self.refresh_timer.stop()
 
-        btn = QPushButton()
-        btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn.setMinimumHeight(80)
+    def _actualizar_periodo_grafico(self, texto):
+        period_map = {
+            "Este mes": "mes",
+            "Este trimestre": "trimestre",
+            "Este semestre": "semestre",
+            "Este año": "año",
+        }
+        self.chart_periodo = period_map.get(texto, "mes")
+        self.refresh()
 
-        btn.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {get_colors()["bg_card"]};
-                border: 2px solid {color}40;
-                border-radius: 16px;
-                padding: 16px;
-                text-align: left;
-            }}
-            QPushButton:hover {{
-                background-color: {color}20;
-                border: 2px solid {color};
-            }}
-        """)
-
-        layout = QHBoxLayout(btn)
-        layout.setContentsMargins(20, 12, 20, 12)
-
-        icon_lbl = QLabel(icon)
-        icon_lbl.setStyleSheet("font-size: 32px;")
-        layout.addWidget(icon_lbl)
-
-        text_layout = QVBoxLayout()
-        text_layout.setSpacing(2)
-
-        titulo_lbl = QLabel(titulo)
-        titulo_lbl.setStyleSheet(
-            f"font-size: 15px; font-weight: bold; color: {get_colors()['text_primary']};"
-        )
-        text_layout.addWidget(titulo_lbl)
-
-        desc_lbl = QLabel(desc)
-        desc_lbl.setStyleSheet(
-            f"font-size: 12px; color: {get_colors()['text_secondary']};"
-        )
-        text_layout.addWidget(desc_lbl)
-
-        layout.addLayout(text_layout)
-        layout.addStretch()
-
-        return btn
-
-    def _abrir_facturas(self):
-        """Abre la carpeta de facturas"""
-        ruta = os.path.join(os.environ.get("LOCALAPPDATA", ""), "TuCajero", "facturas")
-        os.makedirs(ruta, exist_ok=True)
-        os.startfile(ruta)
-
-    def _ir_a_corte(self):
-        """Navega a corte de caja"""
-        parent = self.window() if self.parent() else None
-        if parent and hasattr(parent, "switch_view_by_name"):
-            parent.switch_view_by_name("corte")
-
-    def _ir_a_historial(self):
-        """Navega a historial"""
-        parent = self.window() if self.parent() else None
-        if parent and hasattr(parent, "switch_view_by_name"):
-            parent.switch_view_by_name("historial")
-
-    def _hacer_backup(self):
-        """Ejecuta backup manual"""
-        try:
-            from utils.backup import backup_database
-
-            backup_database()
-            QMessageBox.information(self, "✅ Backup", "Backup creado exitosamente")
-        except Exception as e:
-            QMessageBox.warning(self, "Error", f"Error al crear backup: {e}")
-
-    def _mostrar_actualizacion(self):
-        """Muestra instrucciones para actualizar"""
-        msg = (
-            "🔄 Actualizar TuCajero\n\n"
-            "Tus datos están seguros porque se almacenan en:\n"
-            f"%LOCALAPPDATA%\\TuCajero\\database\\pos.db\n\n"
-            "Para actualizar:\n"
-            "1. Haz clic en el botón 'Backup' para respaldar tus datos\n"
-            "2. Descarga la nueva versión de TuCajero\n"
-            "3. Ejecuta el nuevo instalador\n"
-            "4. Tus datos se cargarán automáticamente\n\n"
-            "💡 Tus ventas, productos y clientes están seguros."
-        )
-        QMessageBox.information(self, "🔄 Actualizar sistema", msg)
-
-    def _restaurar_backup(self):
-        """Permite restaurar un backup existente"""
-        from PySide6.QtWidgets import QFileDialog
-
-        respuesta = QMessageBox.warning(
-            self,
-            "⚠️ Restaurar Backup",
-            "Esto reemplazará TODOS los datos actuales.\n\n¿Continuar?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-        )
-
-        if respuesta != QMessageBox.StandardButton.Yes:
-            return
-
-        ruta, _ = QFileDialog.getOpenFileName(
-            self,
-            "Seleccionar archivo de backup",
-            "",
-            "Base de datos (*.db)",
-        )
-
-        if not ruta:
-            return
-
-        try:
-            from utils.backup import restaurar_backup
-
-            restaurar_backup(ruta)
-            reply = QMessageBox.information(
-                self,
-                "✅ Restauración exitosa",
-                "El backup ha sido restaurado.\n\n"
-                "La aplicación se cerrará. Reinicie manualmente.",
-            )
-            from PySide6.QtWidgets import QApplication
-
-            QApplication.instance().quit()
-        except Exception as e:
-            QMessageBox.critical(
-                self,
-                "❌ Error",
-                f"No se pudo restaurar el backup:\n{e}",
-            )
-
-    def _exportar_backup(self):
-        """Exporta el backup más reciente a una ubicación externa"""
-        from PySide6.QtWidgets import QFileDialog
-        from utils.backup import get_backups_dir
-        import shutil
-
-        backup_dir = get_backups_dir()
-
-        if not os.path.exists(backup_dir):
-            QMessageBox.warning(self, "⚠️ Sin backups", "No hay backups disponibles")
-            return
-
-        archivos = [f for f in os.listdir(backup_dir) if f.endswith(".db")]
-
-        if not archivos:
-            QMessageBox.warning(self, "⚠️ Sin backups", "No hay backups disponibles")
-            return
-
-        ultimo = sorted(archivos)[-1]
-
-        ruta_destino = QFileDialog.getExistingDirectory(
-            self,
-            "Seleccionar destino (USB o carpeta)",
-        )
-
-        if not ruta_destino:
-            return
-
-        origen = os.path.join(backup_dir, ultimo)
-        destino = os.path.join(ruta_destino, ultimo)
-
-        try:
-            shutil.copy2(origen, destino)
-            QMessageBox.information(
-                self,
-                "✅ Exportado",
-                f"Backup copiado a:\n{destino}",
-            )
-        except Exception as e:
-            QMessageBox.critical(
-                self,
-                "❌ Error",
-                f"No se pudo exportar el backup:\n{e}",
-            )
-
-    def _cargar_datos(self):
+    def refresh(self):
+        """Actualiza todos los datos del dashboard."""
         import logging
 
+        c = get_colors()
         try:
-            from models.producto import Venta, Producto
-            from models.cliente import Cliente
-            from datetime import datetime, date
+            from models.producto import Venta
+            from PySide6.QtWidgets import QTableWidgetItem
+            from PySide6.QtGui import QColor
 
             hoy_inicio = datetime.combine(date.today(), datetime.min.time())
             mes_inicio = datetime.now().replace(
                 day=1, hour=0, minute=0, second=0, microsecond=0
             )
 
+            # KPIs
             ventas_hoy = (
                 self.session.query(Venta)
-                .filter(Venta.fecha >= hoy_inicio, Venta.anulada == False)
+                .filter(Venta.fecha >= hoy_inicio)
+                .order_by(Venta.fecha.desc())
                 .all()
             )
-            self.card_ventas_hoy.update_value(
-                fmt_moneda(sum(v.total for v in ventas_hoy))
-            )
-            logging.info(f"Dashboard: ventas hoy = {len(ventas_hoy)}")
+            total_hoy = sum(v.total for v in ventas_hoy if not v.anulada)
+            self.card_hoy.update_value(fmt_moneda(total_hoy))
 
             ventas_mes = (
                 self.session.query(Venta)
                 .filter(Venta.fecha >= mes_inicio, Venta.anulada == False)
                 .all()
             )
-            self.card_ventas_mes.update_value(
-                fmt_moneda(sum(v.total for v in ventas_mes))
-            )
+            self.card_mes.update_value(fmt_moneda(sum(v.total for v in ventas_mes)))
 
-            num_clientes = 0
+            # Alertas Inventario
             try:
-                num_clientes = self.session.query(Cliente).count()
-            except Exception:
-                pass
-            self.card_clientes.update_value(str(num_clientes))
+                from services.producto_service import ProductoService
 
-            try:
-                num_prod = (
-                    self.session.query(Producto).filter(Producto.activo == True).count()
+                ps = ProductoService(self.session)
+                bajos = ps.get_productos_bajo_stock_limite(5)
+                criticos = ps.get_productos_stock_critico()
+                total_alertas = len(bajos) + len(criticos)
+                self.card_vencimiento.update_value(f"{total_alertas} Alertas")
+                self.card_vencimiento.value_label.setStyleSheet(
+                    f"color: {c['danger' if total_alertas > 0 else 'success']}; font-size: 22px; font-weight: bold;"
                 )
-                self.card_productos.update_value(str(num_prod))
-            except Exception:
-                self.card_productos.update_value("—")
+            except Exception as e:
+                logging.error(f"Error inventario dashboard: {e}")
+                self.card_vencimiento.update_value("—")
 
-            self._cargar_top_productos(ventas_mes)
+            # Tabla Hoy - Con manejo de errores
+            try:
+                self.tabla_hoy.setRowCount(0)  # Limpiar tabla primero
+
+                if not ventas_hoy:
+                    logging.info("No hay ventas hoy para mostrar en el dashboard")
+                else:
+                    logging.info(f"Mostrando {len(ventas_hoy)} ventas en el dashboard")
+
+                for i, v in enumerate(ventas_hoy):
+                    self.tabla_hoy.setRowCount(i + 1)
+
+                    # Hora
+                    try:
+                        hora = v.fecha.strftime("%I:%M %p")
+                    except:
+                        hora = "N/A"
+                    self.tabla_hoy.setItem(i, 0, QTableWidgetItem(hora))
+
+                    # Cliente (con manejo de errores)
+                    try:
+                        cliente = v.cliente.nombre if v.cliente else "Consumidor Final"
+                    except Exception as e:
+                        logging.warning(
+                            f"Error obteniendo cliente de venta {v.id}: {e}"
+                        )
+                        cliente = "Consumidor Final"
+                    self.tabla_hoy.setItem(i, 1, QTableWidgetItem(cliente))
+
+                    # Productos (nueva columna)
+                    try:
+                        productos_text = ""
+                        if hasattr(v, "items") and v.items:
+                            productos_list = []
+                            for item in v.items:
+                                if hasattr(item, "producto") and item.producto:
+                                    productos_list.append(
+                                        f"{item.cantidad}x {item.producto.nombre}"
+                                    )
+                            productos_text = " | ".join(productos_list)
+                        if not productos_text:
+                            productos_text = "Sin productos"
+                    except Exception as e:
+                        logging.warning(
+                            f"Error obteniendo productos de venta {v.id}: {e}"
+                        )
+                        productos_text = "Error al cargar"
+                    productos_item = QTableWidgetItem(productos_text)
+                    productos_item.setFlags(
+                        productos_item.flags() & ~Qt.ItemFlag.ItemIsEditable
+                    )
+                    self.tabla_hoy.setItem(i, 2, QTableWidgetItem(productos_text))
+
+                    # Método de pago
+                    metodo = v.metodo_pago or "Efectivo"
+                    self.tabla_hoy.setItem(i, 3, QTableWidgetItem(metodo))
+
+                    # Total
+                    t_item = QTableWidgetItem(fmt_moneda(v.total))
+                    t_item.setForeground(QColor(c["accent"]))
+                    self.tabla_hoy.setItem(i, 4, t_item)
+
+                    # Estado
+                    e_item = QTableWidgetItem("Anulada" if v.anulada else "Completada")
+                    e_item.setForeground(
+                        QColor(c["danger"] if v.anulada else c["success"])
+                    )
+                    self.tabla_hoy.setItem(i, 5, e_item)
+
+            except Exception as e:
+                logging.error(f"Error llenando tabla de ventas: {e}")
+                import traceback
+
+                logging.error(traceback.format_exc())
+
+            # Gráficos
+            try:
+                from ui.chart_widget import (
+                    get_ventas_por_periodo,
+                    get_ventas_por_metodo,
+                    get_ventas_por_cliente,
+                )
+
+                l_t, v_t = get_ventas_por_periodo(self.session, self.chart_periodo)
+                self.chart_evolucion.plot_bar(
+                    l_t, v_t, f"Ventas: {self.combo_periodo.currentText()}"
+                )
+
+                l_m, v_m = get_ventas_por_metodo(self.session)
+                self.chart_metodos.plot_pie(l_m, v_m, "Métodos de Pago")
+
+                l_c, v_c = get_ventas_por_cliente(self.session)
+                self.chart_clientes.plot_bar(l_c, v_c, "Top 10 Clientes")
+            except Exception as e:
+                logging.error(f"Error en gráficos: {e}")
 
         except Exception as e:
-            logging.error(f"Dashboard._cargar_datos FATAL: {e}", exc_info=True)
+            logging.error(f"Dashboard error: {e}")
+            import traceback
 
-    def _cargar_top_productos(self, ventas):
-        from collections import defaultdict
+            logging.error(traceback.format_exc())
 
-        conteo = defaultdict(
-            lambda: {"nombre": "", "stock": 0, "cantidad": 0, "ingresos": 0.0}
-        )
-        for v in ventas:
-            if v.anulada:
-                continue
-            for item in v.items if hasattr(v, "items") else []:
-                k = item.producto_id
-                conteo[k]["nombre"] = item.producto.nombre if item.producto else str(k)
-                conteo[k]["stock"] = item.producto.stock if item.producto else 0
-                conteo[k]["cantidad"] += item.cantidad
-                conteo[k]["ingresos"] += item.cantidad * item.precio
+    def _ir_a_corte(self):
+        self.window().switch_view_by_name("corte")
 
-        top = sorted(conteo.values(), key=lambda x: x["cantidad"], reverse=True)[:8]
-        self.tabla_top.setRowCount(len(top))
+    def _ir_a_historial(self):
+        self.window().switch_view_by_name("historial")
+
+    def _ir_a_productos(self):
+        self.window().switch_view_by_name("productos")
+
+    def _mostrar_sistema(self):
+        from PySide6.QtWidgets import QDialog
+
         c = get_colors()
-        for i, p in enumerate(top):
-            self.tabla_top.setItem(i, 0, QTableWidgetItem(p["nombre"]))
-            stock_item = QTableWidgetItem(str(p["stock"]))
-            if p["stock"] <= 0:
-                stock_item.setForeground(QColor(c["danger"]))
-            elif p["stock"] < 5:
-                stock_item.setForeground(QColor(c["warning"]))
-            else:
-                stock_item.setForeground(QColor(c["success"]))
-            self.tabla_top.setItem(i, 1, stock_item)
-            self.tabla_top.setItem(i, 2, QTableWidgetItem(str(p["cantidad"])))
-            self.tabla_top.setItem(i, 3, QTableWidgetItem(fmt_moneda(p["ingresos"])))
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Configuración de Sistema")
+        dialog.setMinimumWidth(350)
+        dialog.setStyleSheet(
+            f"background-color: {c['bg_card']}; border: 1px solid {c['border']};"
+        )
+        layout = QVBoxLayout(dialog)
 
-    def refresh(self):
-        self._cargar_datos()
+        title = QLabel("Opciones Rápidas")
+        title.setStyleSheet(label_style("lg", "bold"))
+        layout.addWidget(title)
 
+        btns = [
+            ("💾 Crear Backup", self._hacer_backup, btn_primary()),
+            ("📥 Restaurar Datos", self._restaurar_backup, btn_danger()),
+            ("📤 Exportar a USB", self._exportar_backup, btn_secondary()),
+            ("🔄 Actualización", self._mostrar_actualizacion, btn_primary()),
+        ]
 
-class DashboardViewWithCharts(DashboardView):
-    """Dashboard con gráficos visuales"""
+        for text, func, style in btns:
+            b = QPushButton(text)
+            b.setStyleSheet(style)
+            b.clicked.connect(lambda _, f=func: (dialog.accept(), f()))
+            layout.addWidget(b)
 
-    def _init_ui(self):
-        super()._init_ui()
+        close = QPushButton("Cerrar")
+        close.setStyleSheet(btn_secondary())
+        close.clicked.connect(dialog.reject)
+        layout.addWidget(close)
+        dialog.exec()
 
-        self.chart_type = "bar"
-        self.chart_periodo = "dia"
+    def _hacer_backup(self):
+        try:
+            from utils.backup import backup_database
 
-        chart_section = QLabel("📊 Análisis de Ventas")
-        chart_section.setStyleSheet(label_style("lg", "bold"))
-        self.layout().insertWidget(4, chart_section)
+            backup_database()
+            QMessageBox.information(self, "✅ Backup", "Respaldo creado con éxito.")
+        except Exception as e:
+            QMessageBox.warning(self, "Error", str(e))
 
-        controls = QHBoxLayout()
-        controls.setSpacing(12)
-
-        self.combo_tipo = QComboBox()
-        self.combo_tipo.addItems(["📊 Barras", "🍰 Torta"])
-        self.combo_tipo.setFixedWidth(120)
-        self.combo_tipo.currentTextChanged.connect(self._actualizar_tipo_grafico)
-
-        self.combo_periodo = QComboBox()
-        self.combo_periodo.addItems(["Hoy", "Este mes", "Este año"])
-        self.combo_periodo.setFixedWidth(120)
-        self.combo_periodo.currentTextChanged.connect(self._actualizar_periodo_grafico)
-
-        controls.addWidget(QLabel("Tipo:"))
-        controls.addWidget(self.combo_tipo)
-        controls.addWidget(QLabel("Período:"))
-        controls.addWidget(self.combo_periodo)
-        controls.addStretch()
-
-        self.layout().insertLayout(5, controls)
-
-        from ui.chart_widget import (
-            ChartWidget,
-            get_ventas_por_periodo,
-            get_ventas_por_metodo,
-            get_chart_colors,
+    def _mostrar_actualizacion(self):
+        QMessageBox.information(
+            self,
+            "Actualizar",
+            "Para actualizar, descargue la nueva versión e instálela.\nSus datos se conservan automáticamente.",
         )
 
-        self.get_ventas_por_periodo = get_ventas_por_periodo
-        self.get_ventas_por_metodo = get_ventas_por_metodo
+    def _restaurar_backup(self):
+        from PySide6.QtWidgets import QFileDialog, QApplication
 
-        chart_card = QWidget()
-        chart_card.setStyleSheet(f"""
-            QWidget {{
-                {card_style()}
-            }}
-        """)
-        chart_layout = QVBoxLayout(chart_card)
-        chart_layout.setContentsMargins(16, 16, 16, 16)
-
-        self.chart_widget = ChartWidget()
-        chart_layout.addWidget(self.chart_widget)
-
-        self.layout().insertWidget(6, chart_card)
-
-    def _actualizar_tipo_grafico(self, texto):
-        self.chart_type = "bar" if "Barras" in texto else "pie"
-        self._actualizar_grafico()
-
-    def _actualizar_periodo_grafico(self, texto):
-        periodo_map = {"Hoy": "dia", "Este mes": "mes", "Este año": "año"}
-        self.chart_periodo = periodo_map.get(texto, "dia")
-        self._actualizar_grafico()
-
-    def _actualizar_grafico(self):
-        try:
-            labels, values = self.get_ventas_por_periodo(
-                self.session, self.chart_periodo
+        if (
+            QMessageBox.warning(
+                self,
+                "⚠️ Alerta",
+                "¿Desea reemplazar todos los datos con un backup?",
+                QMessageBox.Yes | QMessageBox.No,
             )
+            == QMessageBox.Yes
+        ):
+            path, _ = QFileDialog.getOpenFileName(
+                self, "Seleccionar Backup", "", "DB (*.db)"
+            )
+            if path:
+                try:
+                    from utils.backup import restaurar_backup
 
-            if not labels or sum(values) == 0:
-                labels, values = self.get_ventas_por_metodo(self.session)
-                titulo = "Ventas por método de pago"
-            else:
-                titulo = f"Ventas por {self.chart_periodo}"
+                    restaurar_backup(path)
+                    QMessageBox.information(self, "Éxito", "Reinicie la aplicación.")
+                    QApplication.quit()
+                except Exception as e:
+                    QMessageBox.critical(self, "Error", str(e))
 
-            if self.chart_type == "bar":
-                self.chart_widget.plot_bar(labels, values, titulo)
-            else:
-                self.chart_widget.plot_pie(labels, values, titulo)
-        except Exception as e:
-            self.chart_widget.clear()
+    def _exportar_backup(self):
+        from PySide6.QtWidgets import QFileDialog
+        from utils.backup import get_backups_dir
+        import shutil
+
+        b_dir = get_backups_dir()
+        files = [f for f in os.listdir(b_dir) if f.endswith(".db")]
+        if not files:
+            return
+        dest = QFileDialog.getExistingDirectory(self, "Destino Exportación")
+        if dest:
+            shutil.copy2(
+                os.path.join(b_dir, sorted(files)[-1]),
+                os.path.join(dest, sorted(files)[-1]),
+            )
+            QMessageBox.information(self, "Éxito", "Exportado correctamente.")

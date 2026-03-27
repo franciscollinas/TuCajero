@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor
 from utils.formato import fmt_moneda
+from utils.theme import btn_danger, btn_primary, get_colors
 
 
 class CotizacionesView(QWidget):
@@ -26,11 +27,17 @@ class CotizacionesView(QWidget):
         self.cargar_cotizaciones()
 
     def init_ui(self):
+        from utils.theme import get_colors
+
+        c = get_colors()
+
         layout = QVBoxLayout()
         self.setLayout(layout)
 
         titulo = QLabel("Cotizaciones")
-        titulo.setStyleSheet("font-size: 24px; font-weight: bold;")
+        titulo.setStyleSheet(
+            f"font-size: 24px; font-weight: bold; color: {c['accent']};"
+        )
         layout.addWidget(titulo)
 
         filtro_layout = QHBoxLayout()
@@ -46,14 +53,12 @@ class CotizacionesView(QWidget):
         btn_layout.addStretch()
 
         self.btn_facturar = QPushButton("⚡ Convertir en venta")
-        self.btn_facturar.setStyleSheet(
-            "background:#27ae60;color:white;padding:10px;font-weight:bold;"
-        )
+        self.btn_facturar.setStyleSheet(btn_primary())
         self.btn_facturar.clicked.connect(self.convertir_en_venta)
         btn_layout.addWidget(self.btn_facturar)
 
         self.btn_cancelar = QPushButton("✕ Cancelar cotización")
-        self.btn_cancelar.setStyleSheet("background:#e74c3c;color:white;padding:10px;")
+        self.btn_cancelar.setStyleSheet(btn_danger())
         self.btn_cancelar.clicked.connect(self.cancelar_cotizacion)
         btn_layout.addWidget(self.btn_cancelar)
 
@@ -76,6 +81,9 @@ class CotizacionesView(QWidget):
         info = QLabel(
             "Doble clic o 'Convertir en venta' para facturar una cotización pendiente"
         )
+        info.setStyleSheet(
+            f"color: {c['text_secondary']}; font-size: 13px; font-style: italic;"
+        )
         info.setObjectName("info_label")
         layout.addWidget(info)
 
@@ -95,34 +103,37 @@ class CotizacionesView(QWidget):
         self.cotizaciones = service.get_all(estado=estado)
 
         self.tabla.setRowCount(len(self.cotizaciones))
-        for i, c in enumerate(self.cotizaciones):
-            self.tabla.setItem(i, 0, QTableWidgetItem(str(c.id)))
+        from utils.theme import get_colors
+
+        c = get_colors()
+        for i, cot in enumerate(self.cotizaciones):
+            self.tabla.setItem(i, 0, QTableWidgetItem(str(cot.id)))
             self.tabla.setItem(
-                i, 1, QTableWidgetItem(c.fecha.strftime("%d/%m/%Y %I:%M %p"))
+                i, 1, QTableWidgetItem(cot.fecha.strftime("%d/%m/%Y %I:%M %p"))
             )
 
             cliente_nombre = "Sin cliente"
-            if c.cliente_id:
+            if cot.cliente_id:
                 from services.cliente_service import ClienteService
 
-                cliente = ClienteService(self.session).get_by_id(c.cliente_id)
+                cliente = ClienteService(self.session).get_by_id(cot.cliente_id)
                 if cliente:
                     cliente_nombre = cliente.nombre
             self.tabla.setItem(i, 2, QTableWidgetItem(cliente_nombre))
-            self.tabla.setItem(i, 3, QTableWidgetItem(fmt_moneda(c.total)))
+            self.tabla.setItem(i, 3, QTableWidgetItem(fmt_moneda(cot.total)))
 
-            estado_item = QTableWidgetItem(c.estado.capitalize())
-            if c.estado == "pendiente":
-                estado_item.setBackground(QColor("#ffeaa7"))
-                estado_item.setForeground(QColor("#d35400"))
-            elif c.estado == "facturada":
-                estado_item.setBackground(QColor("#d5f5e3"))
-                estado_item.setForeground(QColor("#1e8449"))
-            elif c.estado == "cancelada":
-                estado_item.setBackground(QColor("#fadbd8"))
-                estado_item.setForeground(QColor("#922b21"))
+            estado_item = QTableWidgetItem(cot.estado.capitalize())
+            if cot.estado == "pendiente":
+                estado_item.setBackground(QColor(c["warning"] + "33"))
+                estado_item.setForeground(QColor(c["warning"]))
+            elif cot.estado == "facturada":
+                estado_item.setBackground(QColor(c["success"] + "33"))
+                estado_item.setForeground(QColor(c["success"]))
+            elif cot.estado == "cancelada":
+                estado_item.setBackground(QColor(c["danger"] + "33"))
+                estado_item.setForeground(QColor(c["danger"]))
             self.tabla.setItem(i, 4, estado_item)
-            self.tabla.setItem(i, 5, QTableWidgetItem(c.notas or ""))
+            self.tabla.setItem(i, 5, QTableWidgetItem(cot.notas or ""))
 
     def obtener_seleccionada(self):
         row = self.tabla.currentRow()

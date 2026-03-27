@@ -20,6 +20,7 @@ from utils.store_config import (
     get_email,
     get_address,
 )
+from utils.theme import btn_primary, btn_secondary, btn_danger
 import os
 
 
@@ -186,7 +187,9 @@ class MainWindow(QMainWindow):
 
         sidebar = QWidget()
         sidebar.setFixedWidth(220)
-        sidebar.setStyleSheet(f"QWidget {{ background-color: #1e293b; border: none; }}")
+        sidebar.setStyleSheet(
+            f"QWidget {{ background-color: {c['bg_sidebar'] if 'bg_sidebar' in c else '#1e293b'}; border: none; }}"
+        )
 
         layout = QVBoxLayout(sidebar)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -196,7 +199,7 @@ class MainWindow(QMainWindow):
         header = QWidget()
         header.setFixedHeight(64)
         header.setStyleSheet(
-            "background-color: #1e293b; border-bottom: 1px solid #334155;"
+            f"background-color: {c['bg_sidebar'] if 'bg_sidebar' in c else '#1e293b'}; border-bottom: 1px solid {c['border']};"
         )
         h_layout = QHBoxLayout(header)
         h_layout.setContentsMargins(16, 0, 16, 0)
@@ -255,21 +258,20 @@ class MainWindow(QMainWindow):
         # ── Label MENÚ ─────────────────────────────────────────
         menu_label = QLabel("MENÚ")
         menu_label.setStyleSheet(
-            "color: #475569; font-size: 10px; font-weight: bold; letter-spacing: 1px; padding: 20px 20px 6px 20px; background: transparent;"
+            f"color: {c['text_muted']}; font-size: 10px; font-weight: bold; letter-spacing: 1px; padding: 20px 20px 6px 20px; background: transparent;"
         )
         layout.addWidget(menu_label)
 
         # ── Botones de navegación ──────────────────────────────
         nav_items = [
-            ("🖥", "Escritorio", "dashboard"),
-            ("🛒", "Ventas", "ventas"),
-            ("📦", "Productos", "productos"),
+            ("📊", "Dashboard", "dashboard"),
+            ("🛒", "Punto de Venta", "ventas"),
+            ("📦", "Inventario", "productos"),
             ("👥", "Clientes", "clientes"),
-            ("📊", "Inventario", "inventario"),
             ("📋", "Cotizaciones", "cotizaciones"),
             ("💰", "Corte de Caja", "corte"),
-            ("📈", "Historial", "historial"),
-            ("⚙", "Config", "config"),
+            ("📉", "Historial", "historial"),
+            ("⚙", "Configuración", "setup"),
             ("🏭", "Proveedores", "proveedores"),
         ]
 
@@ -281,28 +283,9 @@ class MainWindow(QMainWindow):
             btn.setFixedHeight(40)
             btn.setCheckable(True)
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
-            btn.setStyleSheet("""
-                QPushButton {
-                    background: transparent;
-                    color: #94a3b8;
-                    border: none;
-                    border-radius: 8px;
-                    text-align: left;
-                    padding: 0px 12px;
-                    font-size: 13px;
-                    font-weight: normal;
-                    margin: 1px 10px;
-                }
-                QPushButton:hover {
-                    background-color: rgba(255,255,255,0.06);
-                    color: #e2e8f0;
-                }
-                QPushButton:checked {
-                    background-color: #3b82f6;
-                    color: #ffffff;
-                    font-weight: bold;
-                }
-            """)
+            from utils.theme import btn_sidebar
+
+            btn.setStyleSheet(btn_sidebar())
             btn.clicked.connect(lambda checked, k=key: self.switch_view_by_name(k))
             self._nav_buttons[key] = btn
             self._nav_group.addButton(btn)
@@ -317,15 +300,15 @@ class MainWindow(QMainWindow):
         layout.addWidget(sep)
 
         # ── Footer ─────────────────────────────────────────────
-        self.lbl_cajero = QLabel("👑  Administrador")
-        self.lbl_cajero.setStyleSheet(
-            "color: #10b981; font-size: 12px; padding: 10px 16px 4px 16px; background: transparent;"
+        self.lbl_cajero_footer = QLabel("👑  Administrador")
+        self.lbl_cajero_footer.setStyleSheet(
+            f"color: {c['success']}; font-size: 12px; padding: 10px 16px 4px 16px; background: transparent;"
         )
-        layout.addWidget(self.lbl_cajero)
+        layout.addWidget(self.lbl_cajero_footer)
 
         copyright_label = QLabel("© Ing. Francisco Llinas P.")
         copyright_label.setStyleSheet(
-            "color: #334155; font-size: 10px; padding: 2px 16px 14px 16px; background: transparent;"
+            f"color: {c['text_muted']}; font-size: 10px; padding: 2px 16px 14px 16px; background: transparent;"
         )
         copyright_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
         layout.addWidget(copyright_label)
@@ -370,10 +353,6 @@ class MainWindow(QMainWindow):
             from ui.productos_view import ProductosView
 
             view = ProductosView(self.session, parent=self)
-        elif name == "inventario":
-            from ui.inventario_view import InventarioView
-
-            view = InventarioView(self.session, parent=self)
         elif name == "corte":
             from ui.corte_view import CorteView
 
@@ -392,19 +371,23 @@ class MainWindow(QMainWindow):
             from ui.cotizaciones_view import CotizacionesView
 
             view = CotizacionesView(self.session, parent=self)
-        elif name == "dashboard":
-            from ui.dashboard_view import DashboardView
-
-            view = DashboardView(self.session, parent=self)
         elif name == "proveedores":
             from ui.proveedores_view import ProveedoresView
 
             view = ProveedoresView(self.session, parent=self)
+        elif name == "setup":
+            from ui.setup_view import SetupView
+
+            view = SetupView(self.session, parent=self)
+        elif name == "dashboard":
+            from ui.dashboard_view import DashboardView
+
+            view = DashboardView(self.session, parent=self)
         elif name == "cajeros":
             from ui.cajeros_view import CajerosView
 
             view = CajerosView(self.session, parent=self)
-        elif name == "config":
+        elif name == "config":  # Alias for backward compatibility
             from ui.setup_view import SetupView
 
             view = SetupView(self.session, parent=self)
@@ -431,9 +414,6 @@ class MainWindow(QMainWindow):
     def switch_to_cajeros(self):
         self.switch_view_by_name("cajeros")
 
-    def switch_to_inventario(self):
-        self.switch_view_by_name("inventario")
-
     def switch_to_cotizaciones(self):
         self.switch_view_by_name("cotizaciones")
 
@@ -444,7 +424,7 @@ class MainWindow(QMainWindow):
         self.switch_view_by_name("historial")
 
     def switch_to_config(self):
-        self.switch_view_by_name("config")
+        self.switch_view_by_name("setup")
 
     def switch_to_proveedores(self):
         self.switch_view_by_name("proveedores")
@@ -506,17 +486,17 @@ class MainWindow(QMainWindow):
 
             pass
 
-    def actualizar_badge_inventario(self, num_alertas):
-        """Actualiza el botón de Inventario con badge de alertas"""
+    def actualizar_badge_productos(self, num_alertas):
+        """Actualiza el botón de Productos con badge de alertas"""
         from utils.theme import get_colors
 
         c = get_colors()
-        btn = self._nav_buttons.get("inventario")
+        btn = self._nav_buttons.get("productos")
         if btn:
             if num_alertas > 0:
-                btn.setText(f"  📊  Inventario  🔴{num_alertas}")
+                btn.setText(f"  📦  Productos  🔴{num_alertas}")
             else:
-                btn.setText(f"  📊  Inventario")
+                btn.setText(f"  📦  Productos")
 
     def closeEvent(self, event):
         """Cierra la aplicación correctamente"""

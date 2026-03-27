@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, QDate
 from datetime import datetime, timedelta
+from utils.theme import btn_primary
 import os
 from utils.formato import fmt_moneda
 
@@ -28,11 +29,18 @@ class HistorialView(QWidget):
 
     def init_ui(self):
         """Inicializa la interfaz"""
+        from utils.theme import get_colors
+
+        c = get_colors()
+        self.setStyleSheet(f"background-color: {c['bg_app']};")
+
         layout = QVBoxLayout()
         self.setLayout(layout)
 
         titulo = QLabel("Historial de Cierres")
-        titulo.setStyleSheet("font-size: 24px; font-weight: bold;")
+        titulo.setStyleSheet(
+            f"font-size: 24px; font-weight: bold; color: {c['text_primary']};"
+        )
         layout.addWidget(titulo)
 
         filtros_layout = QHBoxLayout()
@@ -63,16 +71,12 @@ class HistorialView(QWidget):
         filtros_layout.addWidget(self.filtro_rapido)
 
         btn_filtrar = QPushButton("Filtrar")
-        btn_filtrar.setStyleSheet(
-            "background-color: #3498db; color: white; padding: 8px 16px;"
-        )
+        btn_filtrar.setStyleSheet(btn_primary())
         btn_filtrar.clicked.connect(self.cargar_historial)
         filtros_layout.addWidget(btn_filtrar)
 
         btn_exportar = QPushButton("Exportar Excel")
-        btn_exportar.setStyleSheet(
-            "background-color: #27ae60; color: white; padding: 8px 16px;"
-        )
+        btn_exportar.setStyleSheet(btn_primary())
         btn_exportar.clicked.connect(self.exportar_excel)
         filtros_layout.addWidget(btn_exportar)
 
@@ -80,12 +84,12 @@ class HistorialView(QWidget):
         layout.addLayout(filtros_layout)
 
         self.resumen_widget = QWidget()
-        self.resumen_widget.setStyleSheet("""
-            QWidget {
-                background-color: #2c3e50;
+        self.resumen_widget.setStyleSheet(f"""
+            QWidget {{
+                background-color: {c["bg_sidebar"]};
                 border-radius: 8px;
                 padding: 15px;
-            }
+            }}
         """)
         resumen_layout = QHBoxLayout()
         self.resumen_widget.setLayout(resumen_layout)
@@ -98,27 +102,27 @@ class HistorialView(QWidget):
 
         self.lbl_gastos = QLabel(f"Gastos: {fmt_moneda(0)}")
         self.lbl_gastos.setStyleSheet(
-            "color: #e74c3c; font-size: 16px; font-weight: bold;"
+            f"color: {c['danger']}; font-size: 16px; font-weight: bold;"
         )
         resumen_layout.addWidget(self.lbl_gastos)
 
         self.lbl_ganancia = QLabel(f"Ganancia neta: {fmt_moneda(0)}")
         self.lbl_ganancia.setStyleSheet(
-            "color: #2ecc71; font-size: 16px; font-weight: bold;"
+            f"color: {c['success']}; font-size: 16px; font-weight: bold;"
         )
         resumen_layout.addWidget(self.lbl_ganancia)
 
         resumen_layout.addStretch()
 
         self.lbl_resumen_datos = QLabel("Cierres: 0 | Ventas: 0")
-        self.lbl_resumen_datos.setStyleSheet("")
+        self.lbl_resumen_datos.setStyleSheet(f"color: {c['text_muted']};")
         resumen_layout.addWidget(self.lbl_resumen_datos)
 
         layout.addWidget(self.resumen_widget)
 
         cierres_label = QLabel("Cierres del período")
         cierres_label.setStyleSheet(
-            "font-size: 18px; font-weight: bold; margin-top: 15px;"
+            f"font-size: 18px; font-weight: bold; margin-top: 15px; color: {c['text_primary']};"
         )
         layout.addWidget(cierres_label)
 

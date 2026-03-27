@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
     QHeaderView,
 )
 from PySide6.QtCore import Qt
+from utils.theme import btn_primary, btn_danger
 
 
 class CajerosView(QWidget):
@@ -20,18 +21,22 @@ class CajerosView(QWidget):
         self.cargar_cajeros()
 
     def init_ui(self):
+        from utils.theme import get_colors
+        c = get_colors()
+        self.setStyleSheet(f"background-color: {c['bg_app']};")
+        
         layout = QVBoxLayout()
         self.setLayout(layout)
-
+ 
         titulo = QLabel("Gestión de Cajeros")
-        titulo.setStyleSheet("font-size: 24px; font-weight: bold;")
+        titulo.setStyleSheet(f"font-size: 24px; font-weight: bold; color: {c['text_primary']};")
         layout.addWidget(titulo)
-
+ 
         info = QLabel(
             "Administra los cajeros que pueden usar el sistema. "
             "Solo el administrador puede ver esta sección."
         )
-        info.setStyleSheet("")
+        info.setStyleSheet(f"color: {c['text_secondary']};")
         info.setWordWrap(True)
         layout.addWidget(info)
 
@@ -39,17 +44,17 @@ class CajerosView(QWidget):
         btn_layout.addStretch()
 
         btn_nuevo = QPushButton("+ Nuevo Cajero")
-        btn_nuevo.setStyleSheet("background:#27ae60;color:white;padding:10px;")
+        btn_nuevo.setStyleSheet(btn_primary())
         btn_nuevo.clicked.connect(self.nuevo_cajero)
         btn_layout.addWidget(btn_nuevo)
 
         btn_cambiar_pin = QPushButton("🔑 Cambiar PIN")
-        btn_cambiar_pin.setStyleSheet("background:#e67e22;color:white;padding:10px;")
+        btn_cambiar_pin.setStyleSheet(btn_primary())
         btn_cambiar_pin.clicked.connect(self.cambiar_pin)
         btn_layout.addWidget(btn_cambiar_pin)
 
         btn_eliminar = QPushButton("Eliminar")
-        btn_eliminar.setStyleSheet("background:#e74c3c;color:white;padding:10px;")
+        btn_eliminar.setStyleSheet(btn_danger())
         btn_eliminar.clicked.connect(self.eliminar_cajero)
         btn_layout.addWidget(btn_eliminar)
 

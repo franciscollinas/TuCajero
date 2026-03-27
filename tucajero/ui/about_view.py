@@ -1,6 +1,8 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QDialog
 from PySide6.QtCore import Qt
 from utils.store_config import get_store_name, get_address, get_phone, get_nit
+from utils.theme import btn_primary, get_colors
+c = get_colors()
 
 
 class AboutView(QDialog):
@@ -20,7 +22,7 @@ class AboutView(QDialog):
         self.setLayout(layout)
 
         titulo = QLabel(get_store_name())
-        titulo.setStyleSheet("font-size: 28px; font-weight: bold; color: #2c3e50;")
+        titulo.setStyleSheet(f"font-size: 28px; font-weight: bold; color: {c['primary']};")
         titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(titulo)
 
@@ -31,7 +33,7 @@ class AboutView(QDialog):
 
         version = QLabel("Versión 1.0")
         version.setStyleSheet(
-            "font-size: 16px; color: #27ae60; font-weight: bold; margin-top: 20px;"
+            f"font-size: 16px; color: {c['success']}; font-weight: bold; margin-top: 20px;"
         )
         version.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(version)
@@ -67,24 +69,13 @@ class AboutView(QDialog):
         layout.addWidget(desarrollado)
 
         autor = QLabel("Ingeniero Francisco Llinas P.")
-        autor.setStyleSheet("font-size: 16px; font-weight: bold; color: #2c3e50;")
+        autor.setStyleSheet(f"font-size: 16px; font-weight: bold; color: {c['primary']};")
         autor.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(autor)
 
         layout.addStretch()
 
         btn_cerrar = QPushButton("Cerrar")
-        btn_cerrar.setStyleSheet("""
-            QPushButton {
-                background-color: #3498db;
-                color: white;
-                padding: 10px 30px;
-                font-size: 14px;
-                border: none;
-            }
-            QPushButton:hover {
-                background-color: #2980b9;
-            }
-        """)
+        btn_cerrar.setStyleSheet(btn_primary())
         btn_cerrar.clicked.connect(self.accept)
         layout.addWidget(btn_cerrar)

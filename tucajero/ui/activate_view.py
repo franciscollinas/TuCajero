@@ -10,6 +10,8 @@ from PySide6.QtWidgets import (
     QApplication,
 )
 from PySide6.QtCore import Qt, QTimer
+from utils.theme import btn_primary, btn_secondary, get_colors
+c = get_colors()
 from security.license_manager import (
     get_machine_id,
     generar_licencia,
@@ -36,7 +38,7 @@ class ActivateView(QWidget):
         self.setWindowTitle(f"Activación - {store_name}")
 
         titulo = QLabel(f"Activación de {store_name}")
-        titulo.setStyleSheet("font-size: 20px; font-weight: bold; color: #2c3e50;")
+        titulo.setStyleSheet(f"font-size: 20px; font-weight: bold; color: {c['primary']};")
         titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(titulo)
 
@@ -71,18 +73,7 @@ class ActivateView(QWidget):
         btn_layout = QHBoxLayout()
 
         self.btn_activar = QPushButton("ACTIVAR")
-        self.btn_activar.setStyleSheet("""
-            QPushButton {
-                background-color: #27ae60;
-                color: white;
-                font-size: 16px;
-                font-weight: bold;
-                padding: 12px;
-            }
-            QPushButton:hover {
-                background-color: #2ecc71;
-            }
-        """)
+        self.btn_activar.setStyleSheet(btn_primary())
         self.btn_activar.clicked.connect(self.activar)
         btn_layout.addWidget(self.btn_activar)
 
@@ -138,7 +129,7 @@ class ActivationDialog(QDialog):
         self.setFixedSize(450, 380)
 
         titulo = QLabel(f"Activación de {store_name}")
-        titulo.setStyleSheet("color: #4a9eff; font-size: 18px; font-weight: bold;")
+        titulo.setStyleSheet(f"color: {c['primary']}; font-size: 18px; font-weight: bold;")
         titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(titulo)
 
@@ -157,37 +148,22 @@ class ActivationDialog(QDialog):
 
         self.txt_machine_id = QLineEdit(machine_id)
         self.txt_machine_id.setReadOnly(True)
-        self.txt_machine_id.setStyleSheet("""
-            QLineEdit {
-                background-color: #f0f0f0;
-                color: #1a1a1a;
-                border: 1px solid #999999;
+        self.txt_machine_id.setStyleSheet(f"""
+            QLineEdit {{
+                background-color: {c['surface']};
+                color: {c['primary']};
+                border: 1px solid {c['border']};
                 border-radius: 4px;
                 padding: 8px;
                 font-family: monospace;
                 font-size: 13px;
                 font-weight: bold;
-            }
+            }}
         """)
         machine_layout.addWidget(self.txt_machine_id)
 
         self.btn_copiar = QPushButton("📋 Copiar")
-        self.btn_copiar.setFixedHeight(36)
-        self.btn_copiar.setStyleSheet("""
-            QPushButton {
-                background-color: #0078d4;
-                color: white;
-                border-radius: 4px;
-                padding: 6px 12px;
-                font-size: 12px;
-            }
-            QPushButton:hover {
-                background-color: #1084d8;
-            }
-            QPushButton:pressed {
-                background-color: #006cbd;
-            }
-        """)
+        self.btn_copiar.setStyleSheet(btn_secondary())
         self.btn_copiar.clicked.connect(self.copiar_machine_id)
         machine_layout.addWidget(self.btn_copiar)
 
@@ -202,35 +178,24 @@ class ActivationDialog(QDialog):
 
         self.licencia_input = QLineEdit()
         self.licencia_input.setPlaceholderText("Licencia de 16 caracteres")
-        self.licencia_input.setStyleSheet("""
-            QLineEdit {
-                background-color: #ffffff;
-                color: #1a1a1a;
-                border: 2px solid #0078d4;
+        self.licencia_input.setStyleSheet(f"""
+            QLineEdit {{
+                background-color: {c['background']};
+                color: {c['text']};
+                border: 2px solid {c['primary']};
                 border-radius: 4px;
                 padding: 8px;
                 font-size: 13px;
-            }
-            QLineEdit:focus {
-                border: 2px solid #005a9e;
-            }
+            }}
+            QLineEdit:focus {{
+                border: 2px solid {c['primary_hover']};
+            }}
         """)
         self.licencia_input.setMaxLength(16)
         layout.addWidget(self.licencia_input)
 
         btn_activar = QPushButton("ACTIVAR SISTEMA")
-        btn_activar.setStyleSheet("""
-            QPushButton {
-                background-color: #27ae60;
-                color: white;
-                font-size: 16px;
-                font-weight: bold;
-                padding: 15px;
-            }
-            QPushButton:hover {
-                background-color: #2ecc71;
-            }
-        """)
+        btn_activar.setStyleSheet(btn_primary())
         btn_activar.clicked.connect(self.activar)
         layout.addWidget(btn_activar)
 

@@ -1,68 +1,40 @@
 # -*- mode: python ; coding: utf-8 -*-
-from PyInstaller.utils.hooks import collect_data_files
+
+block_cipher = None
 
 a = Analysis(
-    ['tucajero\\main.py'],
+    ['tucajero/main.py'],
     pathex=[],
     binaries=[],
     datas=[
-        ('tucajero\\assets', 'assets'),
-    ] + collect_data_files('matplotlib'),
+        ('tucajero/ui', 'ui'),
+        ('tucajero/models', 'models'),
+        ('tucajero/repositories', 'repositories'),
+        ('tucajero/services', 'services'),
+        ('tucajero/utils', 'utils'),
+        ('tucajero/config', 'config'),
+        ('tucajero/security', 'security'),
+    ],
     hiddenimports=[
-        'PySide6',
+        'sqlalchemy',
+        'sqlalchemy.dialects.sqlite',
         'PySide6.QtCore',
         'PySide6.QtGui',
         'PySide6.QtWidgets',
-        'PySide6.QtPrintSupport',
-        'sqlalchemy.dialects.sqlite',
-        'sqlalchemy.orm',
-        'sqlalchemy.sql.default_comparator',
-        'reportlab.graphics',
-        'reportlab.platypus',
-        'reportlab.lib.pagesizes',
-        'reportlab.lib.units',
-        'reportlab.lib.colors',
-        'reportlab.lib.styles',
-        'reportlab.lib.enums',
-        'openpyxl',
-        'openpyxl.styles',
-        'openpyxl.utils',
-        'openpyxl.writer.excel',
-        'matplotlib',
-        'matplotlib.backends.backend_qt5agg',
-        'matplotlib.figure',
-        'numpy',
-        'services.categoria_service',
-        'services.historial_service',
-        'services.cotizacion_service',
-        'services.proveedor_service',
-        'services.cliente_service',
-        'services.cajero_service',
-        'utils.factura_diaria',
-        'utils.excel_exporter',
-        'utils.backup',
-        'utils.impresora',
-        'models.cotizacion',
-        'models.proveedor',
-        'models.cliente',
-        'models.cajero',
-        'escpos.printer',
-        'escpos.commandset',
-        'escpos.commandset.generic',
-        'escpos.exceptions',
+        'pkg_resources.py2_warn',
     ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[
-        'tkinter',
-        'unittest',
-        'pydoc'
-    ],
+    excludes=[],
+    win_no_prefer_redirects=False,
+    win_private_assemblies=False,
+    cipher=block_cipher,
     noarchive=False,
-    optimize=0,
 )
-pyz = PYZ(a.pure)
+
+pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
+
 exe = EXE(
     pyz,
     a.scripts,
@@ -82,5 +54,4 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['tucajero\\assets\\icons\\tucajero.ico'],
 )

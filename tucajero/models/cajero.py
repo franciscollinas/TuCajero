@@ -1,5 +1,5 @@
 import hashlib
-from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy import Column, Integer, String, Boolean, Index
 from config.database import Base
 
 
@@ -9,6 +9,7 @@ def hash_pin(pin):
 
 class Cajero(Base):
     __tablename__ = "cajeros"
+    __table_args__ = (Index("idx_cajero_activo", "activo"),)
 
     id = Column(Integer, primary_key=True)
     nombre = Column(String(100), nullable=False)

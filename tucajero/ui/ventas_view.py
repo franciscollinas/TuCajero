@@ -413,6 +413,10 @@ class VentasView(QWidget):
 
         # Barra de acciones (Descuento + Eliminar — sin botones ± redundantes)
         actions_bar = QWidget()
+        actions_bar.setFixedHeight(48)
+        actions_bar.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
+        )
         actions_bar.setStyleSheet(
             f"background: {c['bg_input']}; border-radius: 0 0 12px 12px; "
             f"border-top: 1px solid {c['border']};"
@@ -616,15 +620,15 @@ class VentasView(QWidget):
         self.btn_cobrar.setFixedHeight(54)
         self.btn_cobrar.setStyleSheet(f"""
             QPushButton {{
-                background-color: {c["bg_sidebar"]};
-                color: {c["text_primary"]};
-                border: 1px solid {c["text_primary"]};
+                background-color: {c["accent"]};
+                color: white;
+                border: none;
                 border-radius: 12px;
                 font-size: 15px;
                 font-weight: bold;
                 letter-spacing: 0.5px;
             }}
-            QPushButton:hover {{ background-color: {c["bg_card"]}; }}
+            QPushButton:hover {{ background-color: {c["accent_hover"]}; }}
             QPushButton:disabled {{ background: {c["border"]}; color: {c["text_muted"]}; }}
         """)
         self.btn_cobrar.clicked.connect(self.cobrar)
@@ -1288,8 +1292,7 @@ class VentasView(QWidget):
         btns.addWidget(btn_confirmar)
         cobro_layout.addLayout(btns)
 
-        insert_pos = self.right_layout.count() - 1
-        self.right_layout.insertWidget(insert_pos, self.cobro_widget)
+        self.right_layout.insertWidget(2, self.cobro_widget)
         if hasattr(self, "txt_recibido") and self.txt_recibido:
             self.txt_recibido.setFocus()
 
@@ -1358,6 +1361,8 @@ class VentasView(QWidget):
         self.btn_cancelar.setVisible(True)
         self.btn_cotizacion.setVisible(True)
         self.btn_cobrar.setVisible(True)
+        self.btn_cobrar.setEnabled(True)
+        self._procesando_pago = False
 
     def _confirmar_cobro(self):
         metodo = getattr(self, "_metodo_seleccionado", "Efectivo")
@@ -1427,6 +1432,8 @@ class VentasView(QWidget):
         self._cancelar_cobro()
         self.carrito = []
         self.descuento = {"tipo": None, "valor": 0, "total": 0}
+        self.btn_cobrar.setEnabled(True)
+        self._procesando_pago = False
         from utils.theme import get_colors
 
         c = get_colors()

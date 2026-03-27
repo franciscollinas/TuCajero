@@ -1,4 +1,4 @@
-from models.producto import Venta, VentaItem, MovimientoInventario
+from models.producto import Venta, VentaItem, MovimientoInventario, Producto, ConsecutivoFactura
 from sqlalchemy import and_
 from datetime import datetime, timedelta
 
@@ -11,6 +11,24 @@ class VentaRepository:
     def __init__(self, session):
         self.session = session
 
+    def obtener_siguiente_consecutivo(self, prefijo="FAC"):
+        """Obtiene el siguiente número consecutivo para una factura"""
+        consecutivo = (
+            self.session.query(ConsecutivoFactura)
+            .filter(ConsecutivoFactura.prefijo == prefijo)
+            .first()
+        )
+        
+        if not consecutivo:
+            # Crear nuevo consecutivo si no existe
+            consecutivo = ConsecutivoFactura(prefijo=prefijo, ultimo_numero=0)
+            self.session.add(consecutivo)
+        
+        consecutivo.ultimo_numero += 1
+        self.session.commit()
+        
+        return f"{prefijo}-{consecutivo.ultimo_numero:08d}"
+
     def create_venta(
         self,
         items,
@@ -20,8 +38,22 @@ class VentaRepository:
         descuento_tipo=None,
         descuento_valor=0,
         descuento_total=0,
+        comprobante=None,
     ):
         """Crea una venta con sus items (incluye IVA)"""
+
+        # Validar stock disponible antes de crear la venta
+        for item in items:
+            producto = self.session.query(Producto).get(item["producto_id"])
+            if producto:
+                if producto.stock < item["cantidad"]:
+                    raise ValueError(
+                        f"⚠️ Stock insuficiente para {producto.nombre}\n\n"
+                        f"Disponible: {producto.stock}\n"
+                        f"Solicitado: {item['cantidad']}\n\n"
+                        "Por favor ajuste la cantidad o reabastezca el inventario."
+                    )
+
         total_bruto = 0
         for item in items:
             subtotal = item["cantidad"] * item["precio"]
@@ -42,6 +74,7 @@ class VentaRepository:
             descuento_tipo=descuento_tipo,
             descuento_valor=descuento_valor,
             descuento_total=descuento_total,
+            comprobante=comprobante,
         )
         self.session.add(venta)
         self.session.flush()
@@ -60,6 +93,12 @@ class VentaRepository:
                 iva_monto=iva_monto,
             )
             self.session.add(venta_item)
+
+        # Descontar el stock después de crear la venta
+        for item in items:
+            producto = self.session.query(Producto).get(item["producto_id"])
+            if producto:
+                producto.stock -= item["cantidad"]
 
         self.session.commit()
         return venta

@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python *)",
+      "Bash(rmdir *)",
+      "Bash(del *)",
+      "Bash(pyinstaller *)",
+      "Bash(findstr *)",
+      "Bash(timeout *)",
+      "Bash(type)"
+    ]
+  }
+}

@@ -11,13 +11,21 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 from utils.formato import fmt_moneda
+from utils.theme import btn_danger, btn_secondary, btn_primary, get_colors
+c = get_colors()
 
 
 class DescuentoDialog(QDialog):
-    def __init__(self, total_bruto, descuento_actual, parent=None):
+    """Dialog for applying discounts with limits and validation"""
+
+    MAX_DESCUENTO_PORCENTAJE = 50  # Límite máximo de descuento: 50%
+
+    def __init__(self, total_bruto, descuento_actual, parent=None, es_admin=False):
         super().__init__(parent)
         self.total_bruto = total_bruto
         self.descuento_resultado = descuento_actual.copy()
+        self.es_admin = es_admin
+        self.max_descuento = self.MAX_DESCUENTO_PORCENTAJE if es_admin else 25
         self.setWindowTitle("Aplicar Descuento")
         self.setMinimumWidth(400)
         layout = QVBoxLayout()
@@ -25,14 +33,14 @@ class DescuentoDialog(QDialog):
 
         lbl_total = QLabel(f"Total actual: {fmt_moneda(total_bruto)}")
         lbl_total.setStyleSheet(
-            "font-size:16px;font-weight:bold;padding:8px;"
-            "background:#ecf0f1;border-radius:4px;"
+            f"font-size:16px; font-weight:bold; padding:8px; "
+            f"background: {c['bg_card']}; color: {c['text_primary']}; border-radius:4px; border: 1px solid {c['border']};"
         )
         lbl_total.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(lbl_total)
 
         tipo_label = QLabel("Tipo de descuento:")
-        tipo_label.setStyleSheet("font-size:13px;font-weight:bold;margin-top:8px;")
+        tipo_label.setStyleSheet(f"font-size:13px;font-weight:bold;margin-top:8px; color: {c['text_primary']};")
         layout.addWidget(tipo_label)
 
         self.radio_group = QButtonGroup()
@@ -48,21 +56,21 @@ class DescuentoDialog(QDialog):
         layout.addWidget(self.radio_fijo)
 
         self.lbl_input = QLabel("Porcentaje de descuento:")
-        self.lbl_input.setStyleSheet("font-size:13px;margin-top:8px;")
+        self.lbl_input.setStyleSheet(f"font-size:13px;margin-top:8px; color: {c['text_primary']};")
         layout.addWidget(self.lbl_input)
 
         self.valor_input = QDoubleSpinBox()
         self.valor_input.setRange(0, 100)
         self.valor_input.setDecimals(2)
-        self.valor_input.setStyleSheet("font-size:18px;padding:8px;")
+        self.valor_input.setStyleSheet(f"font-size:18px;padding:8px; background-color: {c['bg_input']}; color: {c['text_primary']}; border: 1.5px solid {c['border']};")
         self.valor_input.setSuffix(" %")
         self.valor_input.valueChanged.connect(self.actualizar_preview)
         layout.addWidget(self.valor_input)
 
         self.lbl_preview = QLabel("")
         self.lbl_preview.setStyleSheet(
-            "font-size:15px;font-weight:bold;color:#27ae60;"
-            "padding:8px;background:#f0fff4;border-radius:4px;"
+            f"font-size:15px; font-weight:bold; color: {c['success']}; "
+            f"padding:8px; background: {c['success_light']}; border-radius:4px; border: 1px solid {c['success']};"
         )
         self.lbl_preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.lbl_preview)
@@ -70,20 +78,17 @@ class DescuentoDialog(QDialog):
 
         btns = QHBoxLayout()
         btn_aplicar = QPushButton("✓ APLICAR DESCUENTO")
-        btn_aplicar.setStyleSheet(
-            "background:#27ae60;color:white;"
-            "padding:12px;font-weight:bold;font-size:14px;"
-        )
+        btn_aplicar.setStyleSheet(btn_primary())
         btn_aplicar.clicked.connect(self.aplicar)
         btns.addWidget(btn_aplicar)
 
         btn_quitar = QPushButton("✕ Quitar descuento")
-        btn_quitar.setStyleSheet("background:#e74c3c;color:white;padding:12px;")
+        btn_quitar.setStyleSheet(btn_danger())
         btn_quitar.clicked.connect(self.quitar)
         btns.addWidget(btn_quitar)
 
         btn_cancel = QPushButton("Cancelar")
-        btn_cancel.setStyleSheet("padding:12px;")
+        btn_cancel.setStyleSheet(btn_secondary())
         btn_cancel.clicked.connect(self.reject)
         btns.addWidget(btn_cancel)
         layout.addLayout(btns)
@@ -96,10 +101,21 @@ class DescuentoDialog(QDialog):
             self.on_tipo_changed()
             self.valor_input.setValue(descuento_actual.get("valor", 0))
 
+    def validar_descuento(self, valor, tipo):
+        """Valida que el descuento esté dentro de los límites permitidos"""
+        if tipo == "porcentaje":
+            if valor > self.max_descuento:
+                return False, f"El descuento máximo permitido es {self.max_descuento}%."
+            return True, None
+        else:  # valor_fijo
+            if valor >= self.total_bruto:
+                return False, "El descuento no puede ser igual o mayor al total de la venta."
+            return True, None
+
     def on_tipo_changed(self):
         if self.radio_pct.isChecked():
-            self.lbl_input.setText("Porcentaje de descuento:")
-            self.valor_input.setRange(0, 100)
+            self.lbl_input.setText(f"Porcentaje de descuento (máx. {self.max_descuento}%):")
+            self.valor_input.setRange(0, self.max_descuento)
             self.valor_input.setSuffix(" %")
             self.valor_input.setValue(0)
         else:
@@ -126,7 +142,35 @@ class DescuentoDialog(QDialog):
         self._descuento_calculado = {"tipo": tipo, "valor": val, "total": descuento}
 
     def aplicar(self):
-        self.descuento_resultado = self._descuento_calculado
+        """Apply discount with validation"""
+        val = self.valor_input.value()
+
+        # Validar límites del descuento usando validar_descuento()
+        tipo = "porcentaje" if self.radio_pct.isChecked() else "valor_fijo"
+        valido, error = self.validar_descuento(val, tipo)
+        
+        if not valido:
+            from PySide6.QtWidgets import QMessageBox
+            QMessageBox.warning(self, "Descuento no válido", error)
+            return
+
+        # Calcular descuento final
+        if self.radio_pct.isChecked():
+            descuento = round(self.total_bruto * val / 100, 2)
+        else:
+            descuento = min(val, self.total_bruto)
+
+        # Validar que el descuento no sea mayor al total
+        if descuento >= self.total_bruto:
+            from PySide6.QtWidgets import QMessageBox
+            QMessageBox.warning(
+                self,
+                "Descuento no válido",
+                "El descuento no puede ser igual o mayor al total de la venta."
+            )
+            return
+
+        self.descuento_resultado = {"tipo": tipo, "valor": val, "total": descuento}
         self.accept()
 
     def quitar(self):

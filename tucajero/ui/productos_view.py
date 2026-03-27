@@ -16,10 +16,13 @@ from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QInputDialog,
+    QDateEdit,
 )
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QDate
+from PySide6.QtGui import QColor
 import os
 from utils.formato import fmt_moneda
+from utils.theme import btn_primary, btn_danger, btn_secondary
 
 
 class ProductosView(QWidget):
@@ -42,94 +45,265 @@ class ProductosView(QWidget):
         self.setLayout(layout)
 
         titulo = QLabel("Productos")
-        titulo.setStyleSheet("font-size: 24px; font-weight: bold;")
+        titulo.setStyleSheet(
+            f"font-size: 24px; font-weight: bold; color: {c['text_primary']};"
+        )
         layout.addWidget(titulo)
+
+        self.banner_stock = QWidget()
+        self.banner_stock.setVisible(False)
+        banner_layout = QHBoxLayout()
+        self.banner_stock.setLayout(banner_layout)
+        self.banner_stock.setStyleSheet(
+            f"background-color: {c['warning']}; border-radius: 6px; padding: 8px;"
+        )
+
+        self.lbl_banner = QLabel("")
+        self.lbl_banner.setStyleSheet(
+            "color: white; font-weight: bold; font-size: 13px;"
+        )
+        banner_layout.addWidget(self.lbl_banner)
+
+        btn_ver_bajos = QPushButton("Ver solo críticos")
+        btn_ver_bajos.setStyleSheet(btn_secondary())
+        btn_ver_bajos.clicked.connect(self.filtrar_stock_bajo)
+        banner_layout.addWidget(btn_ver_bajos)
+
+        btn_ver_todos = QPushButton("Ver todos")
+        btn_ver_todos.setStyleSheet(btn_secondary())
+        btn_ver_todos.clicked.connect(self.cargar_productos)
+        banner_layout.addWidget(btn_ver_todos)
+
+        layout.addWidget(self.banner_stock)
+
+        self.input_busqueda = QLineEdit()
+        self.input_busqueda.setPlaceholderText(
+            "🔍 Buscar producto por código o nombre..."
+        )
+        self.input_busqueda.setStyleSheet(
+            f"padding: 10px; font-size: 14px; background: {c['bg_input']}; color: {c['text_primary']}; border: 1.5px solid {c['border']}; border-radius: 8px;"
+        )
+        self.input_busqueda.textChanged.connect(self.filtrar_productos)
+        layout.addWidget(self.input_busqueda)
 
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
 
         btn_agregar = QPushButton("+ Agregar Producto")
-        btn_agregar.setStyleSheet(
-            "background-color: #27ae60; color: white; padding: 10px;"
-        )
+        btn_agregar.setStyleSheet(btn_primary())
         btn_agregar.clicked.connect(self.abrir_dialogo_agregar)
         btn_layout.addWidget(btn_agregar)
 
         btn_editar = QPushButton("Editar")
-        btn_editar.setStyleSheet(
-            "background-color: #3498db; color: white; padding: 10px;"
-        )
+        btn_editar.setStyleSheet(btn_primary())
         btn_editar.clicked.connect(self.editar_producto)
         btn_layout.addWidget(btn_editar)
 
         btn_eliminar = QPushButton("Eliminar")
-        btn_eliminar.setStyleSheet(
-            "background-color: #e74c3c; color: white; padding: 10px;"
-        )
+        btn_eliminar.setStyleSheet(btn_danger())
         btn_eliminar.clicked.connect(self.eliminar_producto)
         btn_layout.addWidget(btn_eliminar)
 
         btn_categorias = QPushButton("Categorías")
-        btn_categorias.setStyleSheet(
-            "background-color: #9b59b6; color: white; padding: 10px;"
-        )
+        btn_categorias.setStyleSheet(btn_primary())
         btn_categorias.clicked.connect(self.abrir_gestor_categorias)
         btn_layout.addWidget(btn_categorias)
 
         btn_importar = QPushButton("⬆ Importar Excel/CSV")
-        btn_importar.setStyleSheet(
-            "background-color: #2980b9; color: white; padding: 10px;"
-        )
+        btn_importar.setStyleSheet(btn_primary())
         btn_importar.clicked.connect(self.importar_productos)
         btn_layout.addWidget(btn_importar)
 
         layout.addLayout(btn_layout)
 
         self.tabla = QTableWidget()
-        self.tabla.setColumnCount(6)
-        self.tabla.setHorizontalHeaderLabels(
-            ["ID", "Código", "Nombre", "Precio", "Stock", "Categoría"]
-        )
+        self.tabla.setColumnCount(4)
+        self.tabla.setHorizontalHeaderLabels(["Código", "Nombre", "Stock", "Precio"])
         self.tabla.horizontalHeader().setSectionResizeMode(
-            2, QHeaderView.ResizeMode.Stretch
+            1, QHeaderView.ResizeMode.Stretch
         )
         self.tabla.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-        self.tabla.setStyleSheet("font-size: 14px;")
+        self.tabla.setStyleSheet(f"""
+            QTableWidget {{
+                background-color: {c["bg_card"]};
+                border: 1px solid {c["border"]};
+                border-radius: 8px;
+                gridline-color: {c["border"]};
+                font-size: 14px;
+                color: {c["text_primary"]};
+            }}
+            QHeaderView::section {{
+                background-color: {c["bg_input"]};
+                color: {c["text_muted"]};
+                padding: 8px;
+                border: none;
+                border-bottom: 1px solid {c["border"]};
+                font-weight: bold;
+            }}
+            QTableWidget::item {{
+                padding: 10px;
+                border-bottom: 1px solid {c["border"]};
+            }}
+        """)
+        self.tabla.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         layout.addWidget(self.tabla)
+
+        btn_layout = QHBoxLayout()
+
+        btn_entrada = QPushButton("+ Entrada")
+        btn_entrada.setStyleSheet(btn_primary())
+        btn_entrada.clicked.connect(lambda: self.movimiento_inventario("entrada"))
+        btn_layout.addWidget(btn_entrada)
+
+        btn_salida = QPushButton("- Salida")
+        btn_salida.setStyleSheet(btn_danger())
+        btn_salida.clicked.connect(lambda: self.movimiento_inventario("salida"))
+        btn_layout.addWidget(btn_salida)
+
+        self.btn_desempacar = QPushButton("💊 Desempacar")
+        self.btn_desempacar.setStyleSheet(btn_primary())
+        self.btn_desempacar.setToolTip(
+            "Convierte cajas/empaques en unidades individuales"
+        )
+        self.btn_desempacar.clicked.connect(self.desempacar_producto)
+        btn_layout.addWidget(self.btn_desempacar)
+
+        btn_layout.addStretch()
+
+        btn_actualizar = QPushButton("Actualizar")
+        btn_actualizar.setStyleSheet(btn_secondary())
+        btn_actualizar.clicked.connect(self.cargar_productos)
+        btn_layout.addWidget(btn_actualizar)
+
+        layout.addLayout(btn_layout)
 
     def cargar_productos(self):
         """Carga los productos desde la base de datos"""
+        from utils.theme import get_colors
+
+        c = get_colors()
+
         from services.producto_service import ProductoService
 
         service = ProductoService(self.session)
         productos = service.get_all_productos()
+        self.productos = productos
 
+        bajos = service.get_productos_stock_bajo()
+        criticos = service.get_productos_stock_critico()
+        total_alertas = len(set([p.id for p in bajos + criticos]))
+
+        if total_alertas > 0:
+            self.banner_stock.setVisible(True)
+            critico_txt = f" ({len(criticos)} sin stock)" if criticos else ""
+            self.lbl_banner.setText(
+                f"⚠  {total_alertas} producto(s) con stock bajo{critico_txt}"
+            )
+            if len(criticos) > 0:
+                self.banner_stock.setStyleSheet(
+                    f"background-color: {c['danger']}; border-radius: 6px; padding: 8px;"
+                )
+                self.lbl_banner.setStyleSheet(
+                    f"color: white; font-weight: bold; font-size: 13px;"
+                )
+        else:
+            self.banner_stock.setVisible(False)
+
+        self._mostrar_productos(productos)
+
+    def _mostrar_productos(self, productos):
+        """Muestra la lista de productos en la tabla"""
         self.tabla.setRowCount(len(productos))
 
         for i, p in enumerate(productos):
-            self.tabla.setItem(i, 0, QTableWidgetItem(str(p.id)))
-            self.tabla.setItem(i, 1, QTableWidgetItem(p.codigo))
-            self.tabla.setItem(i, 2, QTableWidgetItem(p.nombre))
-            self.tabla.setItem(i, 3, QTableWidgetItem(fmt_moneda(p.precio)))
-            self.tabla.setItem(i, 4, QTableWidgetItem(str(p.stock)))
-            cat_nombre = p.categoria.nombre if p.categoria else "—"
-            self.tabla.setItem(i, 5, QTableWidgetItem(cat_nombre))
+            self.tabla.setItem(i, 0, QTableWidgetItem(p.codigo))
+            self.tabla.setItem(i, 1, QTableWidgetItem(p.nombre))
 
-    def recargar_productos(self):
-        """Recarga los productos (para auto-actualizacion despues de venta)"""
-        self.cargar_productos()
+            stock_minimo = p.stock_minimo or 0
+            stock_item = QTableWidgetItem(str(p.stock))
+
+            if p.stock <= 0:
+                stock_item.setBackground(QColor(c["danger"]))
+                stock_item.setForeground(QColor("white"))
+            elif stock_minimo > 0 and p.stock <= stock_minimo:
+                stock_item.setBackground(QColor(c["warning"]))
+                stock_item.setForeground(QColor("white"))
+            elif stock_minimo > 0 and p.stock <= stock_minimo * 2:
+                stock_item.setBackground(QColor(c["info"]))
+                stock_item.setForeground(QColor("white"))
+
+            self.tabla.setItem(i, 2, stock_item)
+            self.tabla.setItem(i, 3, QTableWidgetItem(fmt_moneda(p.precio)))
+
+    def filtrar_productos(self, texto):
+        """Filtra productos por código o nombre"""
+        if not texto:
+            self._mostrar_productos(self.productos)
+            return
+
+        texto_lower = texto.lower()
+        filtrados = [
+            p
+            for p in self.productos
+            if texto_lower in p.codigo.lower() or texto_lower in p.nombre.lower()
+        ]
+        self._mostrar_productos(filtrados)
+
+    def filtrar_stock_bajo(self):
+        """Muestra solo productos con stock bajo o crítico"""
+        from services.producto_service import ProductoService
+
+        service = ProductoService(self.session)
+        bajos = service.get_productos_stock_bajo()
+        criticos = service.get_productos_stock_critico()
+        productos = list({p.id: p for p in bajos + criticos}.values())
+        self._mostrar_productos(productos)
 
     def obtener_producto_seleccionado(self):
-        """Retorna el ID del producto seleccionado"""
+        """Retorna el producto seleccionado"""
         row = self.tabla.currentRow()
         if row >= 0:
             item = self.tabla.item(row, 0)
             if item is not None:
-                try:
-                    return int(item.text())
-                except (ValueError, TypeError):
-                    return None
+                codigo = item.text()
+                from services.producto_service import ProductoService
+
+                service = ProductoService(self.session)
+                return service.get_producto_by_codigo(codigo)
         return None
+
+    def movimiento_inventario(self, tipo):
+        """Abre el diálogo para registrar movimiento"""
+        producto = self.obtener_producto_seleccionado()
+        if not producto:
+            QMessageBox.warning(self, "Error", "Seleccione un producto")
+            return
+
+        dialog = MovimientoDialog(self.session, producto, tipo, self)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            self.cargar_productos()
+
+    def desempacar_producto(self):
+        """Desempaca el producto seleccionado"""
+        producto = self.obtener_producto_seleccionado()
+        if not producto:
+            QMessageBox.warning(self, "Error", "Seleccione un producto")
+            return
+        if not producto.producto_fraccion_id:
+            QMessageBox.warning(
+                self,
+                "No fraccionable",
+                "Este producto no tiene un producto unitario vinculado.\n"
+                "Para configurarlo, edita el producto.",
+            )
+            return
+        dialog = DesempaqueDialog(self.session, producto, self)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            self.cargar_productos()
+
+    def recargar_productos(self):
+        """Recarga los productos (para auto-actualizacion despues de venta)"""
+        self.cargar_productos()
 
     def abrir_dialogo_agregar(self):
         """Abre el diálogo para agregar un producto"""
@@ -139,19 +313,19 @@ class ProductosView(QWidget):
 
     def editar_producto(self):
         """Abre el diálogo para editar un producto"""
-        producto_id = self.obtener_producto_seleccionado()
-        if not producto_id:
+        producto = self.obtener_producto_seleccionado()
+        if not producto:
             QMessageBox.warning(self, "Error", "Seleccione un producto")
             return
 
-        dialog = ProductoDialog(self.session, self, producto_id)
+        dialog = ProductoDialog(self.session, self, producto.id)
         if dialog.exec() == QDialog.DialogCode.Accepted:
             self.cargar_productos()
 
     def eliminar_producto(self):
         """Elimina el producto seleccionado"""
-        producto_id = self.obtener_producto_seleccionado()
-        if not producto_id:
+        producto = self.obtener_producto_seleccionado()
+        if not producto:
             QMessageBox.warning(self, "Error", "Seleccione un producto")
             return
 
@@ -166,7 +340,7 @@ class ProductosView(QWidget):
             from services.producto_service import ProductoService
 
             service = ProductoService(self.session)
-            service.delete_producto(producto_id)
+            service.delete_producto(producto.id)
             self.cargar_productos()
 
     def abrir_gestor_categorias(self):
@@ -217,6 +391,21 @@ class ProductoDialog(QDialog):
 
     def init_ui(self):
         """Inicializa la interfaz"""
+        from utils.theme import get_colors
+
+        c = get_colors()
+        self.setStyleSheet(f"""
+            QDialog {{ background-color: {c["bg_app"]}; }}
+            QLabel {{ color: {c["text_primary"]}; }}
+            QLineEdit, QDoubleSpinBox, QSpinBox, QComboBox {{ 
+                background-color: {c["bg_input"]}; 
+                color: {c["text_primary"]};
+                border: 1px solid {c["border"]};
+                padding: 5px;
+            }}
+            QLabel#separador {{ color: {c["text_muted"]}; font-weight: bold; margin-top: 10px; }}
+        """)
+
         layout = QFormLayout()
         self.setLayout(layout)
 
@@ -269,14 +458,12 @@ class ProductoDialog(QDialog):
         self.btn_crear_fraccion = QPushButton(
             "✨ Crear producto unitario automáticamente"
         )
-        self.btn_crear_fraccion.setStyleSheet(
-            "background-color: #8e44ad; color: white; padding: 8px;"
-        )
+        self.btn_crear_fraccion.setStyleSheet(btn_primary())
         self.btn_crear_fraccion.clicked.connect(self.crear_fraccion_automatica)
         fraccion_layout.addRow("", self.btn_crear_fraccion)
 
         self.lbl_fraccion_info = QLabel("")
-        self.lbl_fraccion_info.setStyleSheet("color: #27ae60; font-size: 12px;")
+        self.lbl_fraccion_info.setStyleSheet(f"color: {c['success']}; font-size: 12px;")
         fraccion_layout.addRow("", self.lbl_fraccion_info)
 
         layout.addRow("", self.fraccion_widget)
@@ -289,6 +476,7 @@ class ProductoDialog(QDialog):
 
         btn_nueva_cat = QPushButton("+")
         btn_nueva_cat.setFixedWidth(40)
+        btn_nueva_cat.setStyleSheet(btn_secondary() + " padding: 0px; min-height: 0px;")
         btn_nueva_cat.setToolTip("Crear nueva categoría")
         btn_nueva_cat.clicked.connect(self._crear_categoria_rapida)
         cat_layout.addWidget(btn_nueva_cat)
@@ -299,17 +487,25 @@ class ProductoDialog(QDialog):
         self.aplica_iva.setChecked(True)
         layout.addRow("", self.aplica_iva)
 
+        self.fecha_vencimiento = QDateEdit()
+        self.fecha_vencimiento.setCalendarPopup(True)
+        self.fecha_vencimiento.setDate(QDate.currentDate())
+        self.fecha_vencimiento.setMinimumDate(QDate.currentDate())  # No permitir fechas pasadas
+        self.fecha_vencimiento.setDisplayFormat("yyyy-MM-dd")
+        self.fecha_vencimiento.setToolTip(
+            "Fecha de vencimiento del producto (no se permiten fechas en el pasado)"
+        )
+        layout.addRow("Vencimiento:", self.fecha_vencimiento)
+
         btn_layout = QHBoxLayout()
 
         btn_guardar = QPushButton("Guardar")
-        btn_guardar.setStyleSheet(
-            "background-color: #27ae60; color: white; padding: 10px;"
-        )
+        btn_guardar.setStyleSheet(btn_primary())
         btn_guardar.clicked.connect(self.guardar)
         btn_layout.addWidget(btn_guardar)
 
         btn_cancelar = QPushButton("Cancelar")
-        btn_cancelar.setObjectName("btn_cancelar")
+        btn_cancelar.setStyleSheet(btn_secondary())
         btn_cancelar.clicked.connect(self.reject)
         btn_layout.addWidget(btn_cancelar)
 
@@ -374,6 +570,17 @@ class ProductoDialog(QDialog):
             self.stock_min_input.setValue(producto.stock_minimo or 0)
             self.aplica_iva.setChecked(producto.aplica_iva)
 
+            if producto.fecha_vencimiento:
+                self.fecha_vencimiento.setDate(
+                    QDate(
+                        producto.fecha_vencimiento.year,
+                        producto.fecha_vencimiento.month,
+                        producto.fecha_vencimiento.day,
+                    )
+                )
+            else:
+                self.fecha_vencimiento.setDate(QDate(2099, 12, 31))
+
             if producto.categoria_id:
                 for i in range(self.cat_combo.count()):
                     if self.cat_combo.currentData() == producto.categoria_id:
@@ -392,6 +599,7 @@ class ProductoDialog(QDialog):
     def guardar(self):
         """Guarda el producto"""
         from services.producto_service import ProductoService
+        from PySide6.QtCore import QDate
 
         codigo = self.codigo_input.text().strip()
         nombre = self.nombre_input.text().strip()
@@ -406,7 +614,23 @@ class ProductoDialog(QDialog):
             QMessageBox.warning(self, "Error", "Código y nombre son requeridos")
             return
 
+        # Validar fecha de vencimiento no esté en el pasado
+        fecha_seleccionada = self.fecha_vencimiento.date()
+        if fecha_seleccionada < QDate.currentDate():
+            QMessageBox.warning(
+                self,
+                "Fecha inválida",
+                "La fecha de vencimiento no puede estar en el pasado.\n\n"
+                "Por favor seleccione una fecha futura o deje la fecha actual."
+            )
+            return
+
         service = ProductoService(self.session)
+
+        fecha_vencimiento = fecha_seleccionada.toPython()
+        # Si la fecha es muy lejana (2099), se considera como sin vencimiento
+        if fecha_vencimiento.year == 2099:
+            fecha_vencimiento = None
 
         try:
             if self.producto_id:
@@ -420,6 +644,7 @@ class ProductoDialog(QDialog):
                     aplica_iva=aplica_iva,
                     categoria_id=categoria_id,
                     stock_minimo=stock_minimo,
+                    fecha_vencimiento=fecha_vencimiento,
                 )
                 producto_guardado = service.get_producto_by_id(self.producto_id)
             else:
@@ -432,6 +657,7 @@ class ProductoDialog(QDialog):
                     aplica_iva,
                     categoria_id,
                     stock_minimo,
+                    fecha_vencimiento=fecha_vencimiento,
                 )
 
             if self.chk_fraccionable.isChecked() and producto_guardado:
@@ -466,14 +692,204 @@ class ProductoDialog(QDialog):
             QMessageBox.critical(self, "Error", f"Error al guardar: {str(e)}")
 
 
-class ImportPreviewDialog(QDialog):
+class MovimientoDialog(QDialog):
+    """Diálogo para registrar movimientos de inventario"""
+
+    def __init__(self, session, producto, tipo, parent=None):
+        super().__init__(parent)
+        self.session = session
+        self.producto = producto
+        self.tipo = tipo
+        from utils.theme import get_colors
+
+        c = get_colors()
+        self.setWindowTitle(
+            f"{'Entrada' if tipo == 'entrada' else 'Salida'} de Inventario"
+        )
+
+    def init_ui(self, color):
+        from utils.theme import get_colors
+
+        c = get_colors()
+        self.setStyleSheet(f"""
+            QDialog {{ background-color: {c["bg_app"]}; }}
+            QLabel {{ color: {c["text_primary"]}; }}
+            QSpinBox {{ 
+                background-color: {c["bg_input"]}; 
+                color: {c["text_primary"]};
+                border: 1px solid {c["border"]};
+                padding: 5px;
+            }}
+        """)
+        layout = QFormLayout()
+        self.setLayout(layout)
+
+        info_box = QWidget()
+        info_box.setStyleSheet(
+            f"background-color: {c['bg_card']}; padding: 10px; border-radius: 5px; border: 1px solid {c['border']};"
+        )
+        info_layout = QVBoxLayout()
+        info_box.setLayout(info_layout)
+
+        info_layout.addWidget(QLabel(f"<b>Producto:</b> {self.producto.nombre}"))
+        info_layout.addWidget(QLabel(f"<b>Código:</b> {self.producto.codigo}"))
+        info_layout.addWidget(QLabel(f"<b>Stock actual:</b> {self.producto.stock}"))
+
+        layout.addRow("", info_box)
+
+        self.cantidad_input = QSpinBox()
+        self.cantidad_input.setRange(1, 999999)
+        self.cantidad_input.setStyleSheet(
+            f"padding: 8px; font-size: 16px; background-color: {c['bg_input']}; color: {c['text_primary']}; border: 1.5px solid {c['border']};"
+        )
+        self.cantidad_input.setFocus()
+        layout.addRow("Cantidad:", self.cantidad_input)
+
+        btn_layout = QHBoxLayout()
+
+        btn_aceptar = QPushButton("Aceptar")
+        btn_aceptar.setStyleSheet(btn_primary())
+        btn_aceptar.clicked.connect(self.aceptar)
+        btn_layout.addWidget(btn_aceptar)
+
+        btn_cancelar = QPushButton("Cancelar")
+        btn_cancelar.setStyleSheet(btn_secondary())
+        btn_cancelar.clicked.connect(self.reject)
+        btn_layout.addWidget(btn_cancelar)
+
+        layout.addRow("", btn_layout)
+
+    def aceptar(self):
+        from services.producto_service import InventarioService
+
+        cantidad = self.cantidad_input.value()
+
+        if cantidad <= 0:
+            QMessageBox.warning(self, "Error", "Cantidad inválida")
+            return
+
+        try:
+            service = InventarioService(self.session)
+            if self.tipo == "entrada":
+                service.entrada_inventario(self.producto.id, cantidad)
+            else:
+                service.salida_inventario(self.producto.id, cantidad)
+
+            self.accept()
+        except ValueError as e:
+            QMessageBox.warning(self, "Error", str(e))
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Error: {str(e)}")
+
+
+class DesempaqueDialog(QDialog):
+    def __init__(self, session, producto, parent=None):
+        super().__init__(parent)
+        from utils.theme import get_colors
+
+        c = get_colors()
+        self.session = session
+        self.producto = producto
+        self.setWindowTitle("Desempacar producto")
+        self.setMinimumWidth(420)
+        self.setStyleSheet(
+            f"QDialog {{ background-color: {c['bg_app']}; }} QLabel {{ color: {c['text_primary']}; }}"
+        )
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+
+        from models.producto import Producto
+
+        hijo = session.query(Producto).get(producto.producto_fraccion_id)
+        und = producto.unidades_por_empaque or 1
+
+        info = QWidget()
+        info.setStyleSheet(
+            f"background:{c['bg_card']};padding:12px;border-radius:6px; border: 1px solid {c['border']};"
+        )
+        info_layout = QVBoxLayout()
+        info.setLayout(info_layout)
+        info_layout.addWidget(QLabel(f"<b>Empaque:</b> {producto.nombre}"))
+        info_layout.addWidget(QLabel(f"<b>Stock actual (cajas):</b> {producto.stock}"))
+        info_layout.addWidget(QLabel(f"<b>Unidades por caja:</b> {und}"))
+        info_layout.addWidget(
+            QLabel(f"<b>Producto unitario:</b> {hijo.nombre if hijo else '?'}")
+        )
+        info_layout.addWidget(
+            QLabel(f"<b>Stock actual (unidades):</b> {hijo.stock if hijo else 0}")
+        )
+        layout.addWidget(info)
+
+        form = QFormLayout()
+        self.spin_cajas = QSpinBox()
+        self.spin_cajas.setRange(1, producto.stock or 1)
+        self.spin_cajas.setValue(1)
+        self.spin_cajas.setStyleSheet(
+            f"background-color: {c['bg_input']}; color: {c['text_primary']}; border: 1px solid {c['border']}; font-size:16px;padding:8px;"
+        )
+        self.spin_cajas.valueChanged.connect(self.actualizar_preview)
+        form.addRow("¿Cuántas cajas desempacar?", self.spin_cajas)
+        layout.addLayout(form)
+
+        self.lbl_preview = QLabel("")
+        self.lbl_preview.setStyleSheet(
+            f"font-size:14px;color:{c['success']};font-weight:bold;padding:8px;"
+        )
+        self.lbl_preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.lbl_preview)
+        self.actualizar_preview()
+
+        btns = QHBoxLayout()
+        btn_ok = QPushButton("✓ CONFIRMAR DESEMPAQUE")
+        btn_ok.setStyleSheet(btn_primary())
+        btn_ok.clicked.connect(self.confirmar)
+        btns.addWidget(btn_ok)
+        btn_cancel = QPushButton("Cancelar")
+        btn_cancel.setStyleSheet(btn_secondary())
+        btn_cancel.clicked.connect(self.reject)
+        btns.addWidget(btn_cancel)
+        layout.addLayout(btns)
+
+    def actualizar_preview(self):
+        cajas = self.spin_cajas.value()
+        und = self.producto.unidades_por_empaque or 1
+        unidades = cajas * und
+        self.lbl_preview.setText(f"{cajas} caja(s) → {unidades} unidades")
+
+    def confirmar(self):
+        from services.fraccion_service import FraccionService
+
+        try:
+            resultado = FraccionService(self.session).desempacar(
+                self.producto.id, self.spin_cajas.value()
+            )
+            QMessageBox.information(
+                self,
+                "Desempaque exitoso",
+                f"✓ {resultado['cajas_descontadas']} caja(s) desempacada(s)\n"
+                f"✓ {resultado['unidades_agregadas']} unidades agregadas\n\n"
+                f"Stock empaque: {resultado['stock_padre']} cajas\n"
+                f"Stock unidades: {resultado['stock_hijo']} und",
+            )
+            self.accept()
+        except ValueError as e:
+            QMessageBox.warning(self, "Error", str(e))
+
+    # --- Se movieron los métodos a ProductoDialog más abajo ---
+
     def __init__(self, filas, filepath, session, parent=None):
         super().__init__(parent)
+        from utils.theme import get_colors
+
+        c = get_colors()
         self.filas = filas
         self.filepath = filepath
         self.session = session
         self.setWindowTitle("Vista previa — Importar productos")
         self.setMinimumSize(750, 520)
+        self.setStyleSheet(
+            f"QDialog {{ background-color: {c['bg_app']}; }} QLabel {{ color: {c['text_primary']}; }}"
+        )
         layout = QVBoxLayout()
         self.setLayout(layout)
 
@@ -481,7 +897,7 @@ class ImportPreviewDialog(QDialog):
             f"📄  {len(self.filas)} filas detectadas  |  {os.path.basename(filepath)}"
         )
         info.setStyleSheet(
-            "font-size:13px;padding:8px;background:#ecf0f1;border-radius:4px;"
+            f"font-size:13px;padding:8px;background:{c['bg_card']};color:{c['text_primary']};border-radius:4px; border: 1px solid {c['border']};"
         )
         layout.addWidget(info)
 
@@ -506,14 +922,11 @@ class ImportPreviewDialog(QDialog):
 
         btns = QHBoxLayout()
         btn_imp = QPushButton("⬆ IMPORTAR TODO")
-        btn_imp.setStyleSheet(
-            "background-color:#27ae60;color:white;"
-            "padding:12px;font-weight:bold;font-size:14px;"
-        )
+        btn_imp.setStyleSheet(btn_primary())
         btn_imp.clicked.connect(self.ejecutar)
         btns.addWidget(btn_imp)
         btn_cancel = QPushButton("Cancelar")
-        btn_cancel.setStyleSheet("padding:12px;")
+        btn_cancel.setStyleSheet(btn_secondary())
         btn_cancel.clicked.connect(self.reject)
         btns.addWidget(btn_cancel)
         layout.addLayout(btns)
@@ -552,6 +965,13 @@ class CategoriaDialog(QDialog):
 
     def init_ui(self):
         """Inicializa la interfaz"""
+        from utils.theme import get_colors
+
+        c = get_colors()
+        self.setStyleSheet(
+            f"QDialog {{ background-color: {c['bg_app']}; }} QLabel {{ color: {c['text_primary']}; }}"
+        )
+
         layout = QVBoxLayout()
         self.setLayout(layout)
 
@@ -568,22 +988,19 @@ class CategoriaDialog(QDialog):
         btn_layout = QHBoxLayout()
 
         btn_agregar = QPushButton("+ Agregar")
-        btn_agregar.setStyleSheet(
-            "background-color: #27ae60; color: white; padding: 8px;"
-        )
+        btn_agregar.setStyleSheet(btn_primary())
         btn_agregar.clicked.connect(self.agregar_categoria)
         btn_layout.addWidget(btn_agregar)
 
         btn_eliminar = QPushButton("Eliminar")
-        btn_eliminar.setStyleSheet(
-            "background-color: #e74c3c; color: white; padding: 8px;"
-        )
+        btn_eliminar.setStyleSheet(btn_danger())
         btn_eliminar.clicked.connect(self.eliminar_categoria)
         btn_layout.addWidget(btn_eliminar)
 
         btn_layout.addStretch()
 
         btn_cerrar = QPushButton("Cerrar")
+        btn_cerrar.setStyleSheet(btn_secondary())
         btn_cerrar.clicked.connect(self.accept)
         btn_layout.addWidget(btn_cerrar)
 

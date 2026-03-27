@@ -42,6 +42,8 @@ class ProductoRepository:
         aplica_iva=True,
         categoria_id=None,
         stock_minimo=0,
+        fecha_vencimiento=None,
+        producto_fraccion_id=None,
     ):
         """Crea un nuevo producto"""
         producto = Producto(
@@ -53,6 +55,8 @@ class ProductoRepository:
             aplica_iva=aplica_iva,
             categoria_id=categoria_id,
             stock_minimo=stock_minimo,
+            fecha_vencimiento=fecha_vencimiento,
+            producto_fraccion_id=producto_fraccion_id,
         )
         try:
             self.session.add(producto)
@@ -67,6 +71,15 @@ class ProductoRepository:
         """Actualiza un producto"""
         producto = self.get_by_id(producto_id)
         if producto:
+            # Validar stock negativo
+            if "stock" in kwargs:
+                nuevo_stock = kwargs["stock"]
+                if nuevo_stock < 0:
+                    raise ValueError(
+                        f"Stock no puede ser negativo. "
+                        f"Producto: {producto.nombre}, Stock solicitado: {nuevo_stock}"
+                    )
+            
             for key, value in kwargs.items():
                 if key == "categoria_id" and value is None:
                     setattr(producto, key, None)
@@ -97,6 +110,12 @@ class ProductoRepository:
         """Actualiza el stock de un producto"""
         producto = self.get_by_id(producto_id)
         if producto:
+            nuevo_stock = producto.stock + cantidad
+            if nuevo_stock < 0:
+                raise ValueError(
+                    f"Stock no puede ser negativo. "
+                    f"Producto: {producto.nombre}, Stock actual: {producto.stock}, Cambio: {cantidad}"
+                )
             producto.stock += cantidad
             try:
                 self.session.commit()

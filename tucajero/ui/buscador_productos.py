@@ -17,6 +17,8 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QColor
 from utils.formato import fmt_moneda
+from utils.theme import btn_primary, btn_secondary, get_colors
+c = get_colors()
 
 COLORES_CATEGORIA = [
     "#3498db",
@@ -48,11 +50,15 @@ class BuscadorProductosDialog(QDialog):
         self._timer.timeout.connect(self._filtrar_debounced)
 
     def init_ui(self):
+        from utils.theme import get_colors
+        c = get_colors()
+        self.setStyleSheet(f"QDialog {{ background-color: {c['bg_app']}; }}")
+        
         layout = QVBoxLayout()
         self.setLayout(layout)
 
         titulo = QLabel("Buscar Producto")
-        titulo.setStyleSheet("font-size: 18px; font-weight: bold; padding-bottom: 4px;")
+        titulo.setStyleSheet(f"font-size: 18px; font-weight: bold; color: {c['text_primary']}; padding-bottom: 4px;")
         layout.addWidget(titulo)
 
         search_layout = QHBoxLayout()
@@ -60,7 +66,7 @@ class BuscadorProductosDialog(QDialog):
         self.buscador_input.setPlaceholderText(
             "Buscar por código o nombre del producto..."
         )
-        self.buscador_input.setStyleSheet("padding: 10px; font-size: 14px;")
+        self.buscador_input.setStyleSheet(f"padding: 10px; font-size: 14px; background-color: {c['bg_input']}; color: {c['text_primary']}; border: 1.5px solid {c['border']}; border-radius: 8px;")
         self.buscador_input.textChanged.connect(self._on_text_changed)
         self.buscador_input.returnPressed.connect(self._seleccionar_primero)
         search_layout.addWidget(self.buscador_input)
@@ -75,7 +81,7 @@ class BuscadorProductosDialog(QDialog):
         tab_resultados.setLayout(tab_resultados_layout)
 
         self.lbl_resultados = QLabel("Mostrando todos los productos")
-        self.lbl_resultados.setStyleSheet("")
+        self.lbl_resultados.setStyleSheet(f"color: {c['text_secondary']};")
         tab_resultados_layout.addWidget(self.lbl_resultados)
 
         self.tabla = QTableWidget()
@@ -96,7 +102,7 @@ class BuscadorProductosDialog(QDialog):
         tab_categorias.setLayout(tab_cat_layout)
 
         lbl_cat = QLabel("Selecciona una categoría para filtrar productos:")
-        lbl_cat.setStyleSheet("color: #7f8c8d; font-size: 12px; padding: 2px;")
+        lbl_cat.setStyleSheet(f"color: {c['text_secondary']}; font-size: 12px; padding: 2px;")
         tab_cat_layout.addWidget(lbl_cat)
 
         scroll = QScrollArea()
@@ -127,28 +133,12 @@ class BuscadorProductosDialog(QDialog):
 
         btn_layout = QHBoxLayout()
         btn_seleccionar = QPushButton("Seleccionar")
-        btn_seleccionar.setStyleSheet("""
-            QPushButton {
-                background-color: #27ae60;
-                color: white;
-                padding: 10px 20px;
-                font-weight: bold;
-                font-size: 14px;
-            }
-            QPushButton:hover { background-color: #2ecc71; }
-        """)
+        btn_seleccionar.setStyleSheet(btn_primary())
         btn_seleccionar.clicked.connect(self.seleccionar_producto)
         btn_layout.addWidget(btn_seleccionar)
 
         btn_cancelar = QPushButton("Cancelar")
-        btn_cancelar.setStyleSheet("""
-            QPushButton {
-                background-color: #95a5a6;
-                color: white;
-                padding: 10px 20px;
-            }
-            QPushButton:hover { background-color: #6a7a8a; }
-        """)
+        btn_cancelar.setStyleSheet(btn_secondary())
         btn_cancelar.clicked.connect(self.reject)
         btn_layout.addWidget(btn_cancelar)
         layout.addLayout(btn_layout)
@@ -193,9 +183,9 @@ class BuscadorProductosDialog(QDialog):
             tabla.setItem(i, 1, QTableWidgetItem(p.nombre))
             stock_item = QTableWidgetItem(str(p.stock))
             if p.stock <= 0:
-                stock_item.setForeground(QColor("#e74c3c"))
+                stock_item.setForeground(QColor(c["danger"]))
             elif p.stock < 5:
-                stock_item.setForeground(QColor("#e67e22"))
+                stock_item.setForeground(QColor(c["warning"]))
             tabla.setItem(i, 2, stock_item)
             tabla.setItem(i, 3, QTableWidgetItem(fmt_moneda(p.precio)))
 
@@ -236,17 +226,7 @@ class BuscadorProductosDialog(QDialog):
                     item.widget().deleteLater()
 
             btn_todos = QPushButton("Todos")
-            btn_todos.setStyleSheet("""
-                QPushButton {
-                    background-color: #2c3e50;
-                    color: white;
-                    padding: 8px 16px;
-                    border-radius: 16px;
-                    font-weight: bold;
-                    font-size: 12px;
-                }
-                QPushButton:hover { background-color: #34495e; }
-            """)
+            btn_todos.setStyleSheet(btn_secondary())
             btn_todos.clicked.connect(
                 lambda: self.llenar_tabla(self.productos, self.tabla_cat)
             )
@@ -255,16 +235,7 @@ class BuscadorProductosDialog(QDialog):
             for i, cat in enumerate(categorias):
                 color = cat.color or COLORES_CATEGORIA[i % len(COLORES_CATEGORIA)]
                 btn = QPushButton(f"🏷 {cat.nombre}")
-                btn.setStyleSheet(f"""
-                    QPushButton {{
-                        background-color: {color};
-                        color: white;
-                        padding: 8px 16px;
-                        border-radius: 16px;
-                        font-size: 12px;
-                    }}
-                    QPushButton:hover {{ opacity: 0.85; }}
-                """)
+                btn.setStyleSheet(btn_secondary())
                 btn.clicked.connect(
                     lambda checked, c=cat: self._filtrar_por_categoria(c)
                 )

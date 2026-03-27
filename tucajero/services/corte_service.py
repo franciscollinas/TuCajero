@@ -52,8 +52,8 @@ class CorteCajaService:
         """Retorna el total de gastos de hoy"""
         return sum(g.monto for g in self.get_gastos_hoy())
 
-    def cerrar_caja(self):
-        """Cierra la caja actual"""
+    def cerrar_caja(self, diferencia=0):
+        """Cierra la caja actual y registra la diferencia si existe"""
         corte = self.get_corte_actual()
         if not corte:
             return None
@@ -65,7 +65,19 @@ class CorteCajaService:
         corte.total_ventas = total
         corte.numero_ventas = num_ventas
         corte.total_gastos = total_gastos
-        corte.ganancia_neta = total - total_gastos
+        corte.ganancia_neta = total - total_gastos + diferencia
+        
+        # Registrar diferencia si existe
+        if abs(diferencia) > 0.01:
+            tipo = "SOBRANTE" if diferencia > 0 else "FALTANTE"
+            concepto = f"Ajuste de caja - {tipo}"
+            gasto_ajuste = GastoCaja(
+                corte_id=corte.id,
+                concepto=concepto,
+                monto=-diferencia if diferencia > 0 else abs(diferencia)
+            )
+            self.session.add(gasto_ajuste)
+        
         self.session.commit()
 
         try:

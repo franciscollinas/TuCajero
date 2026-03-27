@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, ForeignKey, Index
 from sqlalchemy.orm import relationship
 from config.database import Base
 from datetime import datetime
@@ -6,6 +6,7 @@ from datetime import datetime
 
 class Proveedor(Base):
     __tablename__ = "proveedores"
+    __table_args__ = (Index("idx_proveedor_nombre", "nombre"),)
 
     id = Column(Integer, primary_key=True)
     nombre = Column(String(100), nullable=False)
@@ -23,6 +24,11 @@ class Proveedor(Base):
 
 class OrdenCompra(Base):
     __tablename__ = "ordenes_compra"
+    __table_args__ = (
+        Index("idx_orden_fecha", "fecha"),
+        Index("idx_orden_proveedor", "proveedor_id"),
+        Index("idx_orden_estado", "estado"),
+    )
 
     id = Column(Integer, primary_key=True)
     proveedor_id = Column(Integer, ForeignKey("proveedores.id"), nullable=False)
@@ -42,6 +48,10 @@ class OrdenCompra(Base):
 
 class OrdenCompraItem(Base):
     __tablename__ = "orden_compra_items"
+    __table_args__ = (
+        Index("idx_orden_item_orden", "orden_id"),
+        Index("idx_orden_item_producto", "producto_id"),
+    )
 
     id = Column(Integer, primary_key=True)
     orden_id = Column(Integer, ForeignKey("ordenes_compra.id"), nullable=False)

@@ -169,142 +169,37 @@ def get_stylesheet():
             background-color: {c["border"]};
             color: {c["text_muted"]};
         }}
-        QTableWidget {{
-            background-color: {c["bg_card"]};
-            color: {c["text_primary"]};
-            gridline-color: {c["border"]};
-            border: 1.5px solid {c["border"]};
-            border-radius: 12px;
-            font-size: 13px;
-        }}
-        QTableWidget::item {{
-            padding: 10px 8px;
-        }}
-        QTableWidget::item:selected {{
-            background-color: {c["accent_light"]};
-            color: {c["accent"]};
-            border-radius: 4px;
-        }}
-        QTableWidget::item:alternate {{
-            background-color: {c["bg_input"]};
-        }}
-        QHeaderView::section {{
-            background-color: {c["bg_input"]};
-            color: {c["text_secondary"]};
+    """
+
+
+def btn_sidebar():
+    c = get_colors()
+    return f"""
+        QPushButton {{
+            background-color: {c["bg_sidebar"]};
+            color: #cbd5e1;
             border: none;
-            border-bottom: 1.5px solid {c["border"]};
-            padding: 10px 8px;
-            font-weight: bold;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }}
-        QTabWidget::pane {{
-            border: 1.5px solid {c["border"]};
-            border-radius: 10px;
-            background: {c["bg_card"]};
-            top: -1px;
-        }}
-        QTabBar::tab {{
-            background: transparent;
-            color: {c["text_secondary"]};
-            padding: 9px 20px;
-            border-radius: 8px 8px 0 0;
+            border-radius: 0px;
+            padding: 8px 14px;
             font-size: 13px;
-            margin-right: 2px;
+            text-align: left;
+            min-height: 32px;
         }}
-        QTabBar::tab:selected {{
-            background: {c["accent"]};
+        QPushButton:hover {{
+            background-color: {c["bg_card_hover"]};
+            color: {c["text_primary"]};
+        }}
+        QPushButton:pressed {{
+            background-color: {c["accent"]};
             color: white;
-            font-weight: bold;
         }}
-        QTabBar::tab:hover:!selected {{
-            background: {c["bg_input"]};
-            color: {c["text_primary"]};
+        QPushButton:checked {{
+            background-color: {c["accent"]};
+            color: white;
         }}
-        QScrollBar:vertical {{
-            background: transparent;
-            width: 6px;
-            margin: 0;
-        }}
-        QScrollBar::handle:vertical {{
-            background: {c["border_strong"]};
-            border-radius: 3px;
-            min-height: 30px;
-        }}
-        QScrollBar::handle:vertical:hover {{
-            background: {c["accent"]};
-        }}
-        QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
-            height: 0px;
-        }}
-        QScrollBar:horizontal {{
-            background: transparent;
-            height: 6px;
-        }}
-        QScrollBar::handle:horizontal {{
-            background: {c["border_strong"]};
-            border-radius: 3px;
-        }}
-        QCheckBox {{
-            color: {c["text_primary"]};
-            spacing: 8px;
-        }}
-        QCheckBox::indicator {{
-            width: 18px;
-            height: 18px;
-            border-radius: 4px;
-            border: 1.5px solid {c["border_strong"]};
-            background: {c["bg_input"]};
-        }}
-        QCheckBox::indicator:checked {{
-            background: {c["accent"]};
-            border: 1.5px solid {c["accent"]};
-        }}
-        QRadioButton {{
-            color: {c["text_primary"]};
-            spacing: 8px;
-        }}
-        QRadioButton::indicator {{
-            width: 16px;
-            height: 16px;
-            border-radius: 8px;
-            border: 1.5px solid {c["border_strong"]};
-            background: {c["bg_input"]};
-        }}
-        QRadioButton::indicator:checked {{
-            background: {c["accent"]};
-            border: 1.5px solid {c["accent"]};
-        }}
-        QGroupBox {{
-            border: 1.5px solid {c["border"]};
-            border-radius: 10px;
-            margin-top: 12px;
-            padding: 12px;
-            color: {c["text_secondary"]};
-            font-size: 12px;
-            font-weight: bold;
-        }}
-        QGroupBox::title {{
-            subcontrol-origin: margin;
-            left: 12px;
-            padding: 0 6px;
-            color: {c["text_secondary"]};
-        }}
-        QMessageBox {{
-            background-color: {c["bg_card"]};
-        }}
-        QMessageBox QLabel {{
-            color: {c["text_primary"]};
-            font-size: 13px;
-        }}
-        QToolTip {{
-            background-color: {c["bg_elevated"]};
-            color: {c["text_primary"]};
-            border: 1px solid {c["border"]};
-            border-radius: 6px;
-            padding: 6px 10px;
-            font-size: 12px;
+        QPushButton:disabled {{
+            background-color: {c["bg_sidebar"]};
+            color: {c["text_muted"]};
         }}
     """
 
@@ -316,29 +211,6 @@ def card_style(elevated=False):
         background-color: {bg};
         border-radius: 14px;
         border: 1.5px solid {c["border"]};
-    """
-
-
-def btn_style(color_key="accent", size="md"):
-    c = get_colors()
-    color = c.get(color_key, c["accent"])
-    padding = {"sm": "6px 12px", "md": "9px 18px", "lg": "12px 24px"}.get(
-        size, "9px 18px"
-    )
-    font = {"sm": "12px", "md": "13px", "lg": "14px"}.get(size, "13px")
-    return f"""
-        QPushButton {{
-            background-color: {color};
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: {padding};
-            font-size: {font};
-            font-weight: bold;
-        }}
-        QPushButton:hover {{ background-color: {color}cc; }}
-        QPushButton:pressed {{ background-color: {color}aa; }}
-        QPushButton:disabled {{ background-color: {c["border"]}; color: {c["text_muted"]}; }}
     """
 
 
@@ -411,32 +283,6 @@ def btn_danger():
         }}
         QPushButton:pressed {{
             background-color: {c["danger"]};
-        }}
-        QPushButton:disabled {{
-            background-color: {c["border"]};
-            color: {c["text_muted"]};
-        }}
-    """
-
-
-def btn_success():
-    c = get_colors()
-    return f"""
-        QPushButton {{
-            background-color: {c["success"]};
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 8px 14px;
-            font-size: 13px;
-            font-weight: bold;
-            min-height: 32px;
-        }}
-        QPushButton:hover {{
-            background-color: #059669;
-        }}
-        QPushButton:pressed {{
-            background-color: {c["success"]};
         }}
         QPushButton:disabled {{
             background-color: {c["border"]};

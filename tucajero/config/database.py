@@ -111,6 +111,7 @@ def init_db():
     engine = get_engine()
     Base.metadata.create_all(engine)
     agregar_columnas_si_existen(engine)
+    crear_indices()  # ← AGREGAR ESTA LÍNEA
 
 
 def agregar_columnas_si_existen(engine):
@@ -129,6 +130,9 @@ def agregar_columnas_si_existen(engine):
         ("ventas", "descuento_total", "FLOAT DEFAULT 0"),
         ("ventas", "cajero_id", "INTEGER"),
         ("cortes_caja", "cajero_id", "INTEGER"),
+        ("productos", "fecha_vencimiento", "DATETIME"),
+        ("ventas", "comprobante", "VARCHAR(100)"),
+        ("ventas", "numero_factura", "VARCHAR(20)"),
     ]
     with engine.connect() as conn:
         for tabla, columna, tipo in columnas:
@@ -149,6 +153,66 @@ def agregar_columnas_si_existen(engine):
                     conn.commit()
             except Exception:
                 pass
+
+
+def crear_indices():
+    """Crea índices para optimizar consultas frecuentes"""
+    from sqlalchemy import text
+    
+    engine = get_engine()
+    
+    indices = [
+        # Búsqueda rápida de productos por código (muy frecuente)
+        "CREATE INDEX IF NOT EXISTS idx_productos_codigo ON productos(codigo)",
+        
+        # Filtrar productos activos (casi todas las consultas)
+        "CREATE INDEX IF NOT EXISTS idx_productos_activo ON productos(activo)",
+        
+        # Búsqueda de productos por nombre (búsqueda parcial)
+        "CREATE INDEX IF NOT EXISTS idx_productos_nombre ON productos(nombre)",
+        
+        # Consultas de ventas por fecha (reportes, dashboard)
+        "CREATE INDEX IF NOT EXISTS idx_ventas_fecha ON ventas(fecha)",
+        
+        # Filtrar ventas no anuladas (casi todas las consultas)
+        "CREATE INDEX IF NOT EXISTS idx_ventas_anulada ON ventas(anulada)",
+        
+        # Ventas por cliente (historial de cliente)
+        "CREATE INDEX IF NOT EXISTS idx_ventas_cliente ON ventas(cliente_id)",
+        
+        # Ventas por cajero (auditoría)
+        "CREATE INDEX IF NOT EXISTS idx_ventas_cajero ON ventas(cajero_id)",
+        
+        # Búsqueda de clientes por nombre
+        "CREATE INDEX IF NOT EXISTS idx_clientes_nombre ON clientes(nombre)",
+        
+        # Filtrar clientes activos
+        "CREATE INDEX IF NOT EXISTS idx_clientes_activo ON clientes(activo)",
+        
+        # Movimientos de inventario por producto (muy frecuente)
+        "CREATE INDEX IF NOT EXISTS idx_movimientos_producto ON movimientos_inventario(producto_id)",
+        
+        # Movimientos por fecha (reportes)
+        "CREATE INDEX IF NOT EXISTS idx_movimientos_fecha ON movimientos_inventario(fecha)",
+        
+        # Índice compuesto para consultas combinadas
+        "CREATE INDEX IF NOT EXISTS idx_movimientos_producto_fecha ON movimientos_inventario(producto_id, fecha)",
+        
+        # Cortes de caja por fecha
+        "CREATE INDEX IF NOT EXISTS idx_cortes_fecha ON cortes_caja(fecha_apertura)",
+    ]
+    
+    with engine.connect() as conn:
+        for idx_sql in indices:
+            try:
+                conn.execute(text(idx_sql))
+                nombre_idx = idx_sql.split('idx_')[1].split(' ON')[0]
+                print(f"  ✅ Índice creado: {nombre_idx}")
+            except Exception as e:
+                print(f"  ⚠️ Error creando índice: {e}")
+        conn.commit()
+    
+    print("✨ Índices de base de datos creados correctamente")
 
 
 def close_db():

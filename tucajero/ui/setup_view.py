@@ -26,6 +26,7 @@ from utils.store_config import (
     get_nit,
     get_logo_path,
 )
+from utils.theme import btn_primary, btn_secondary, get_colors
 
 
 class SetupDialog(QDialog):
@@ -41,17 +42,18 @@ class SetupDialog(QDialog):
 
     def init_ui(self):
         """Inicializa la interfaz."""
+        c = get_colors()
         main_layout = QVBoxLayout()
         self.setLayout(main_layout)
 
         header = QWidget()
-        header.setStyleSheet("background-color: #2c3e50;")
+        header.setStyleSheet(f"background-color: {c['bg_sidebar']};")
         header_layout = QVBoxLayout()
         header.setLayout(header_layout)
         header_layout.setContentsMargins(15, 15, 15, 15)
 
         title = QLabel("Bienvenido a TuCajero")
-        title.setStyleSheet("color: white; font-size: 26px; font-weight: bold;")
+        title.setStyleSheet(f"color: {c['text_primary']}; font-size: 26px; font-weight: bold;")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         header_layout.addWidget(title)
 
@@ -75,13 +77,13 @@ class SetupDialog(QDialog):
 
         def field_label(text):
             lbl = QLabel(text)
-            lbl.setStyleSheet("font-size: 12px; color: #555; margin-bottom: 2px;")
+            lbl.setStyleSheet(f"font-size: 12px; color: {c['text_secondary']}; margin-bottom: 2px;")
             return lbl
 
         def input_style():
             return (
-                "padding: 8px; font-size: 13px; "
-                "border: 1px solid #bdc3c7; border-radius: 4px;"
+                f"padding: 8px; font-size: 13px; background: {c['bg_input']}; color: {c['text_primary']}; "
+                f"border: 1px solid {c['border']}; border-radius: 4px;"
             )
 
         self.nombre_input = QLineEdit()
@@ -136,17 +138,13 @@ class SetupDialog(QDialog):
 
         self.btn_logo = QPushButton("📁  Seleccionar logo...")
         self.btn_logo.setFixedHeight(36)
-        self.btn_logo.setStyleSheet(
-            "padding: 0 16px; font-size: 13px; "
-            "border: 1px solid #bdc3c7; border-radius: 4px; "
-            "text-align: left; background-color: white;"
-        )
+        self.btn_logo.setStyleSheet(btn_secondary())
         self.btn_logo.clicked.connect(self.seleccionar_logo)
 
         self.logo_preview = QLabel()
         self.logo_preview.setFixedSize(70, 70)
         self.logo_preview.setStyleSheet(
-            "border: 1px solid #bdc3c7; border-radius: 4px; background-color: #f8f9fa;"
+            f"border: 1px solid {c['border']}; border-radius: 4px; background-color: {c['bg_card']};"
         )
         self.logo_preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
@@ -171,18 +169,7 @@ class SetupDialog(QDialog):
 
         self.btn_comenzar = QPushButton("COMENZAR")
         self.btn_comenzar.setFixedHeight(48)
-        self.btn_comenzar.setStyleSheet("""
-            QPushButton {
-                background-color: #27ae60;
-                color: white;
-                font-size: 16px;
-                font-weight: bold;
-                border-radius: 6px;
-            }
-            QPushButton:hover {
-                background-color: #2ecc71;
-            }
-        """)
+        self.btn_comenzar.setStyleSheet(btn_primary())
         self.btn_comenzar.clicked.connect(self.guardar)
         footer_layout.addWidget(self.btn_comenzar)
 
@@ -212,11 +199,7 @@ class SetupDialog(QDialog):
             import os
 
             self.btn_logo.setText(f"📁  {os.path.basename(file_path)}")
-            self.btn_logo.setStyleSheet(
-                "padding: 0 16px; font-size: 13px; "
-                "border: 1px solid #27ae60; border-radius: 4px; "
-                "text-align: left; background-color: white;"
-            )
+            self.btn_logo.setStyleSheet(btn_secondary())
 
     def guardar(self):
         """Guarda la configuración."""
@@ -265,6 +248,7 @@ class SetupView(QWidget):
         self.cargar_config()
 
     def init_ui(self):
+        c = get_colors()
         layout = QVBoxLayout()
         self.setLayout(layout)
         layout.setContentsMargins(30, 20, 30, 20)
@@ -272,7 +256,7 @@ class SetupView(QWidget):
 
         titulo = QLabel("Configuración del Negocio")
         titulo.setStyleSheet(
-            "font-size: 22px; font-weight: bold; padding-bottom: 10px;"
+            f"font-size: 22px; font-weight: bold; color: {c['text_primary']}; padding-bottom: 10px;"
         )
         layout.addWidget(titulo)
 
@@ -281,11 +265,11 @@ class SetupView(QWidget):
 
         def field_label(text):
             lbl = QLabel(text)
-            lbl.setStyleSheet("font-size: 12px; color: #555;")
+            lbl.setStyleSheet(f"font-size: 12px; color: {c['text_secondary']};")
             return lbl
 
         def input_style():
-            return "padding: 8px; font-size: 13px; border: 1px solid #bdc3c7; border-radius: 4px;"
+            return f"padding: 8px; font-size: 13px; background: {c['bg_input']}; color: {c['text_primary']}; border: 1px solid {c['border']}; border-radius: 4px;"
 
         self.nombre_input = QLineEdit()
         self.nombre_input.setPlaceholderText("Nombre del negocio")
@@ -327,16 +311,13 @@ class SetupView(QWidget):
 
         self.btn_logo = QPushButton("📁  Seleccionar logo...")
         self.btn_logo.setFixedHeight(36)
-        self.btn_logo.setStyleSheet(
-            "padding: 0 16px; font-size: 13px; border: 1px solid #bdc3c7; border-radius: 4px; "
-            "text-align: left; background-color: white;"
-        )
+        self.btn_logo.setStyleSheet(btn_secondary())
         self.btn_logo.clicked.connect(self.seleccionar_logo)
 
         self.logo_preview = QLabel()
         self.logo_preview.setFixedSize(70, 70)
         self.logo_preview.setStyleSheet(
-            "border: 1px solid #bdc3c7; border-radius: 4px; background-color: #f8f9fa;"
+            f"border: 1px solid {c['border']}; border-radius: 4px; background-color: {c['bg_card']};"
         )
         self.logo_preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
@@ -391,7 +372,7 @@ class SetupView(QWidget):
         printer_layout.addRow("Ancho de papel:", self.ancho_papel)
 
         btn_prueba = QPushButton("Imprimir pagina de prueba")
-        btn_prueba.setStyleSheet("background:#3498db;color:white;padding:8px;")
+        btn_prueba.setStyleSheet(btn_primary())
         btn_prueba.clicked.connect(self.prueba_impresion)
         printer_layout.addRow("", btn_prueba)
 
@@ -404,18 +385,7 @@ class SetupView(QWidget):
 
         self.btn_guardar = QPushButton("GUARDAR CONFIGURACIÓN")
         self.btn_guardar.setFixedHeight(48)
-        self.btn_guardar.setStyleSheet("""
-            QPushButton {
-                background-color: #27ae60;
-                color: white;
-                font-size: 16px;
-                font-weight: bold;
-                border-radius: 6px;
-            }
-            QPushButton:hover {
-                background-color: #2ecc71;
-            }
-        """)
+        self.btn_guardar.setStyleSheet(btn_primary())
         self.btn_guardar.clicked.connect(self.guardar)
         layout.addWidget(self.btn_guardar)
 

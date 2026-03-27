@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Boolean
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Boolean, Index
 from sqlalchemy.orm import relationship
 from config.database import Base
 from datetime import datetime
@@ -6,6 +6,11 @@ from datetime import datetime
 
 class Cotizacion(Base):
     __tablename__ = "cotizaciones"
+    __table_args__ = (
+        Index("idx_cotizacion_fecha", "fecha"),
+        Index("idx_cotizacion_cliente", "cliente_id"),
+        Index("idx_cotizacion_estado", "estado"),
+    )
 
     id = Column(Integer, primary_key=True)
     fecha = Column(DateTime, default=datetime.now)
@@ -25,6 +30,10 @@ class Cotizacion(Base):
 
 class CotizacionItem(Base):
     __tablename__ = "cotizacion_items"
+    __table_args__ = (
+        Index("idx_cotizacion_item_cotizacion", "cotizacion_id"),
+        Index("idx_cotizacion_item_producto", "producto_id"),
+    )
 
     id = Column(Integer, primary_key=True)
     cotizacion_id = Column(Integer, ForeignKey("cotizaciones.id"), nullable=False)

@@ -17,6 +17,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 from datetime import datetime
 from utils.formato import fmt_moneda
+from utils.theme import btn_primary, btn_secondary, btn_danger, get_colors
 
 
 class CorteView(QWidget):
@@ -91,16 +92,7 @@ class CorteView(QWidget):
         self.btn_abrir.setFixedHeight(32)
         self.btn_abrir.setMinimumWidth(160)
         self.btn_abrir.setMaximumWidth(280)
-        self.btn_abrir.setStyleSheet("""
-            QPushButton {
-                background-color: #27ae60;
-                color: white;
-                font-size: 13px;
-                font-weight: bold;
-                padding: 6px 12px;
-            }
-            QPushButton:hover { background-color: #2ecc71; }
-        """)
+        self.btn_abrir.setStyleSheet(btn_primary())
         self.btn_abrir.clicked.connect(self.abrir_caja)
         fila1.addWidget(self.btn_abrir)
 
@@ -108,16 +100,7 @@ class CorteView(QWidget):
         self.btn_cerrar.setFixedHeight(32)
         self.btn_cerrar.setMinimumWidth(160)
         self.btn_cerrar.setMaximumWidth(280)
-        self.btn_cerrar.setStyleSheet("""
-            QPushButton {
-                background-color: #e74c3c;
-                color: white;
-                font-size: 13px;
-                font-weight: bold;
-                padding: 6px 12px;
-            }
-            QPushButton:hover { background-color: #c0392b; }
-        """)
+        self.btn_cerrar.setStyleSheet(btn_danger())
         self.btn_cerrar.clicked.connect(self.cerrar_caja)
         fila1.addWidget(self.btn_cerrar)
 
@@ -125,17 +108,7 @@ class CorteView(QWidget):
         self.btn_gasto.setFixedHeight(32)
         self.btn_gasto.setMinimumWidth(160)
         self.btn_gasto.setMaximumWidth(280)
-        self.btn_gasto.setStyleSheet("""
-            QPushButton {
-                background-color: #e67e22;
-                color: white;
-                font-size: 13px;
-                font-weight: bold;
-                padding: 6px 12px;
-            }
-            QPushButton:hover { background-color: #d35400; }
-            QPushButton:disabled { background-color: #bdc3c7; }
-        """)
+        self.btn_gasto.setStyleSheet(btn_primary())
         self.btn_gasto.clicked.connect(self.registrar_gasto)
         fila1.addWidget(self.btn_gasto)
 
@@ -146,17 +119,7 @@ class CorteView(QWidget):
         self.btn_anular.setFixedHeight(32)
         self.btn_anular.setMinimumWidth(160)
         self.btn_anular.setMaximumWidth(280)
-        self.btn_anular.setStyleSheet("""
-            QPushButton {
-                background-color: #c0392b;
-                color: white;
-                font-size: 13px;
-                font-weight: bold;
-                padding: 6px 12px;
-            }
-            QPushButton:hover { background-color: #e74c3c; }
-            QPushButton:disabled { background-color: #bdc3c7; }
-        """)
+        self.btn_anular.setStyleSheet(btn_danger())
         self.btn_anular.clicked.connect(self.anular_venta)
         fila2.addWidget(self.btn_anular)
 
@@ -164,16 +127,7 @@ class CorteView(QWidget):
         self.btn_facturas.setFixedHeight(32)
         self.btn_facturas.setMinimumWidth(160)
         self.btn_facturas.setMaximumWidth(280)
-        self.btn_facturas.setStyleSheet("""
-            QPushButton {
-                background-color: #2980b9;
-                color: white;
-                font-size: 13px;
-                font-weight: bold;
-                padding: 6px 12px;
-            }
-            QPushButton:hover { background-color: #3498db; }
-        """)
+        self.btn_facturas.setStyleSheet(btn_primary())
         self.btn_facturas.clicked.connect(self.ver_facturas_dia)
         fila2.addWidget(self.btn_facturas)
 
@@ -181,16 +135,7 @@ class CorteView(QWidget):
         self.btn_reimprimir.setFixedHeight(32)
         self.btn_reimprimir.setMinimumWidth(160)
         self.btn_reimprimir.setMaximumWidth(280)
-        self.btn_reimprimir.setStyleSheet("""
-            QPushButton {
-                background-color: #5a6a7a;
-                color: white;
-                font-size: 13px;
-                font-weight: bold;
-                padding: 6px 12px;
-            }
-            QPushButton:hover { background-color: #5a6080; }
-        """)
+        self.btn_reimprimir.setStyleSheet(btn_secondary())
         self.btn_reimprimir.clicked.connect(self.reimprimir_ultimo)
         fila2.addWidget(self.btn_reimprimir)
 
@@ -202,7 +147,7 @@ class CorteView(QWidget):
 
         self.lbl_ganancia = QLabel(f"Ganancia neta: {fmt_moneda(0)}")
         self.lbl_ganancia.setStyleSheet(
-            "font-size: 18px; font-weight: bold; color: #8e44ad; padding: 6px;"
+            f"font-size: 18px; font-weight: bold; color: {c['purple']}; padding: 6px;"
         )
         layout.addWidget(self.lbl_ganancia, stretch=0)
 
@@ -249,7 +194,7 @@ class CorteView(QWidget):
         if caja_abierta:
             self.lbl_estado.setText("Caja: ABIERTA")
             self.lbl_estado.setStyleSheet(
-                "font-size: 18px; font-weight: bold; color: #27ae60;"
+                f"font-size: 18px; font-weight: bold; color: {get_colors()['success']};"
             )
             self.btn_abrir.setEnabled(False)
             self.btn_cerrar.setEnabled(True)
@@ -258,7 +203,7 @@ class CorteView(QWidget):
         else:
             self.lbl_estado.setText("Caja: CERRADA")
             self.lbl_estado.setStyleSheet(
-                "font-size: 18px; font-weight: bold; color: #e74c3c;"
+                f"font-size: 18px; font-weight: bold; color: {get_colors()['danger']};"
             )
             self.btn_abrir.setEnabled(True)
             self.btn_cerrar.setEnabled(False)
@@ -334,9 +279,7 @@ class CorteView(QWidget):
             QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
         )
         buttons.button(QDialogButtonBox.StandardButton.Ok).setText("REGISTRAR")
-        buttons.button(QDialogButtonBox.StandardButton.Ok).setStyleSheet(
-            "background-color: #e67e22; color: white; padding: 8px 16px;"
-        )
+        buttons.button(QDialogButtonBox.StandardButton.Ok).setStyleSheet(btn_primary())
         buttons.accepted.connect(dialog.accept)
         buttons.rejected.connect(dialog.reject)
         layout.addRow("", buttons)
@@ -365,36 +308,100 @@ class CorteView(QWidget):
                 QMessageBox.critical(self, "Error", str(e))
 
     def cerrar_caja(self):
-        """Cierra la caja"""
+        """Cierra la caja con validación de diferencias"""
+        from services.corte_service import CorteCajaService
+
+        service = CorteCajaService(self.session)
+        stats = service.get_estadisticas_hoy()
+        
+        # Calcular total esperado en caja
+        total_esperado = stats['total']
+        total_gastos = stats['total_gastos']
+        
+        # Dialogo para ingresar el monto físico en caja
+        from PySide6.QtWidgets import QInputDialog, QMessageBox
+        from PySide6.QtGui import QDoubleValidator
+        
+        # Calcular efectivo esperado (ventas - gastos)
+        efectivo_esperado = total_esperado - total_gastos
+        
+        mensaje = (
+            f"Total vendido hoy: {fmt_moneda(total_esperado)}\n"
+            f"Total gastos: {fmt_moneda(total_gastos)}\n"
+            f"--------------------------------\n"
+            f"Efectivo esperado en caja: {fmt_moneda(efectivo_esperado)}\n\n"
+            "Ingrese el monto físico contado en caja:"
+        )
+        
+        efectivo_real, ok = QInputDialog.getDouble(
+            self,
+            "Cerrar Caja - Arqueo",
+            mensaje,
+            value=efectivo_esperado,
+            min=0,
+            max=9999999,
+            decimals=2,
+        )
+        
+        if not ok:
+            return
+        
+        # Calcular diferencia
+        diferencia = efectivo_real - efectivo_esperado
+        
+        # Mostrar confirmación con la diferencia
+        if abs(diferencia) > 0.01:
+            tipo_diferencia = "SOBRANTE" if diferencia > 0 else "FALTANTE"
+            color_diferencia = "verde" if diferencia > 0 else "rojo"
+            mensaje_confirmacion = (
+                f"⚠️ ATENCIÓN: Hay un(a) {tipo_diferencia} de {fmt_moneda(abs(diferencia))}\n\n"
+                f"Efectivo esperado: {fmt_moneda(efectivo_esperado)}\n"
+                f"Efectivo contado: {fmt_moneda(efectivo_real)}\n"
+                f"Diferencia: {fmt_moneda(diferencia)} ({color_diferencia})\n\n"
+                "¿Desea continuar con el cierre de caja?"
+            )
+        else:
+            mensaje_confirmacion = (
+                f"✅ CUADRE PERFECTO\n\n"
+                f"Efectivo esperado: {fmt_moneda(efectivo_esperado)}\n"
+                f"Efectivo contado: {fmt_moneda(efectivo_real)}\n\n"
+                "¿Desea continuar con el cierre de caja?"
+            )
+        
         respuesta = QMessageBox.question(
             self,
-            "Confirmar",
-            "¿Está seguro de cerrar la caja?\nSe registrará el corte del día.",
+            "Confirmar Cierre",
+            mensaje_confirmacion,
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
-
-        if respuesta == QMessageBox.StandardButton.Yes:
-            from services.corte_service import CorteCajaService
-
-            service = CorteCajaService(self.session)
-            stats = service.get_estadisticas_hoy()
-
-            corte = service.cerrar_caja()
-
+        
+        if respuesta != QMessageBox.StandardButton.Yes:
+            return
+        
+        # Registrar el cierre con la diferencia
+        try:
+            corte = service.cerrar_caja(diferencia=diferencia)
+            
             if corte:
-                QMessageBox.information(
-                    self,
-                    "Corte de Caja",
+                mensaje_final = (
                     f"Corte de caja cerrado!\n\n"
                     f"Total vendido: {fmt_moneda(corte.total_ventas)}\n"
-                    f"Gastos: {fmt_moneda(stats['total_gastos'])}\n"
-                    f"Ganancia neta: {fmt_moneda(stats['ganancia_neta'])}\n\n"
-                    f"Ventas: {stats['num_ventas']}",
+                    f"Gastos: {fmt_moneda(total_gastos)}\n"
+                    f"Ganancia neta: {fmt_moneda(stats['ganancia_neta'])}\n"
+                    f"Ventas: {stats['num_ventas']}\n\n"
                 )
+                if abs(diferencia) > 0.01:
+                    tipo = "Sobrante" if diferencia > 0 else "Faltante"
+                    mensaje_final += f"\n⚠️ {tipo}: {fmt_moneda(abs(diferencia))}"
+                
+                QMessageBox.information(self, "Corte de Caja", mensaje_final)
             else:
                 QMessageBox.warning(self, "Error", "No hay caja abierta")
-
-            self.cargar_estadisticas()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Error al cerrar caja: {str(e)}")
+            return
+        
+        self.cargar_estadisticas()
 
     def anular_venta(self):
         """Anula una venta del día"""

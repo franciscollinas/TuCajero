@@ -17,6 +17,7 @@ class Categoria(Base):
     """Modelo de Categoría de producto"""
 
     __tablename__ = "categorias"
+    __table_args__ = (Index("idx_categoria_nombre", "nombre"),)
 
     id = Column(Integer, primary_key=True)
     nombre = Column(String(100), unique=True, nullable=False)
@@ -36,6 +37,9 @@ class Producto(Base):
     __table_args__ = (
         Index("idx_producto_codigo", "codigo"),
         Index("idx_producto_nombre", "nombre"),
+        Index("idx_producto_categoria", "categoria_id"),
+        Index("idx_producto_activo", "activo"),
+        Index("idx_producto_fraccion", "producto_fraccion_id"),
     )
 
     id = Column(Integer, primary_key=True)
@@ -49,15 +53,21 @@ class Producto(Base):
     categoria_id = Column(Integer, ForeignKey("categorias.id"), nullable=True)
 
     unidades_por_empaque = Column(Integer, nullable=True)
-    producto_fraccion_id = Column(Integer, ForeignKey("productos.id"), nullable=True)
+    producto_fraccion_id = Column(
+        Integer, 
+        ForeignKey("productos.id", ondelete="SET NULL"), 
+        nullable=True
+    )
     es_fraccion = Column(Boolean, default=False)
     stock_minimo = Column(Integer, default=0, nullable=True)
+    fecha_vencimiento = Column(DateTime, nullable=True)
 
     producto_fraccion = relationship(
-        "Producto",
+        "Producto", 
         foreign_keys=[producto_fraccion_id],
-        remote_side="Producto.id",
+        remote_side="Producto.id",  # ← IMPORTANTE: evita ambigüedad
         uselist=False,
+        lazy="joined"  # Reduce N+1 queries
     )
 
     venta_items = relationship("VentaItem", back_populates="producto")
@@ -72,6 +82,11 @@ class Venta(Base):
     """Modelo de Venta"""
 
     __tablename__ = "ventas"
+    __table_args__ = (
+        Index("idx_venta_fecha", "fecha"),
+        Index("idx_venta_cliente", "cliente_id"),
+        Index("idx_venta_cajero", "cajero_id"),
+    )
 
     id = Column(Integer, primary_key=True)
     fecha = Column(DateTime, default=datetime.now)
@@ -84,19 +99,42 @@ class Venta(Base):
     descuento_valor = Column(Float, default=0)
     descuento_total = Column(Float, default=0)
     cajero_id = Column(Integer, ForeignKey("cajeros.id"), nullable=True)
+    comprobante = Column(String(100), nullable=True)
+    numero_factura = Column(String(20), nullable=True)
 
     items = relationship(
         "VentaItem", back_populates="venta", cascade="all, delete-orphan"
     )
+    cliente = relationship("Cliente", back_populates="ventas")
+    cajero = relationship("Cajero")
 
     def __repr__(self):
         return f"<Venta {self.id} - {self.total}>"
+
+
+class ConsecutivoFactura(Base):
+    """Modelo para controlar el consecutivo de facturas"""
+
+    __tablename__ = "consecutivos_factura"
+    __table_args__ = (Index("idx_consecutivo_prefijo", "prefijo"),)
+
+    id = Column(Integer, primary_key=True)
+    prefijo = Column(String(10), nullable=False, unique=True)  # Ej: "FAC", "BOL"
+    ultimo_numero = Column(Integer, default=0)
+    activo = Column(Boolean, default=True)
+
+    def __repr__(self):
+        return f"<ConsecutivoFactura {self.prefijo} - {self.ultimo_numero}>"
 
 
 class VentaItem(Base):
     """Modelo de Item de Venta"""
 
     __tablename__ = "venta_items"
+    __table_args__ = (
+        Index("idx_venta_item_venta", "venta_id"),
+        Index("idx_venta_item_producto", "producto_id"),
+    )
 
     id = Column(Integer, primary_key=True)
     venta_id = Column(Integer, ForeignKey("ventas.id"), nullable=False)
@@ -120,6 +158,10 @@ class MovimientoInventario(Base):
     """Modelo de Movimiento de Inventario"""
 
     __tablename__ = "movimientos_inventario"
+    __table_args__ = (
+        Index("idx_movimiento_producto", "producto_id"),
+        Index("idx_movimiento_fecha", "fecha"),
+    )
 
     id = Column(Integer, primary_key=True)
     producto_id = Column(Integer, ForeignKey("productos.id"), nullable=False)
@@ -137,6 +179,7 @@ class CorteCaja(Base):
     """Modelo de Corte de Caja"""
 
     __tablename__ = "cortes_caja"
+    __table_args__ = (Index("idx_corte_cajero", "cajero_id"),)
 
     id = Column(Integer, primary_key=True)
     fecha_apertura = Column(DateTime, default=datetime.now)
