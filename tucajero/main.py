@@ -125,7 +125,9 @@ def main():
     window.setWindowIcon(QIcon(ICON_PATH))
     logging.info("Iconos configurados")
 
-    dashboard_view = DashboardView(session)
+    # Usar DashboardPro en lugar de DashboardView (último estado)
+    from ui.dashboard_pro import DashboardPro
+    dashboard_view = DashboardPro(session)
     window.add_view(dashboard_view, "dashboard")
 
     ventas_view = VentasView(session, cajero_activo=cajero_activo)
