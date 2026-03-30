@@ -33,14 +33,13 @@ sys.excepthook = global_exception_handler
 from config.database import init_db, get_session, crear_carpetas
 from services.corte_service import CorteCajaService
 from ui.main_window import MainWindow
-from ui.dashboard_view import DashboardView
 from ui.ventas_view import VentasView
 from models.cliente import Cliente
 from ui.activate_view import ActivationDialog
 from security.license_manager import validar_licencia
 from utils.store_config import load_store_config, is_setup_complete
 from ui.setup_view import SetupDialog
-from utils.theme import get_stylesheet
+from app.ui.theme.theme import app_style
 
 
 def configurar_logging():
@@ -67,7 +66,7 @@ def main():
     # Iniciar aplicación Qt
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
-    app.setStyleSheet(get_stylesheet())
+    app.setStyleSheet(app_style())
     app.setWindowIcon(QIcon(ICON_PATH))
 
     # Validar licencia antes de abrir la app
@@ -89,10 +88,13 @@ def main():
         init_db()
     except Exception as e:
         import traceback
+
         error_detail = traceback.format_exc()
         logging.error(f"Error al inicializar base de datos: {e}\n{error_detail}")
         QMessageBox.critical(
-            None, "Error", f"Error al inicializar la base de datos:\n{str(e)}\n\n{error_detail}"
+            None,
+            "Error",
+            f"Error al inicializar la base de datos:\n{str(e)}\n\n{error_detail}",
         )
         sys.exit(1)
 
@@ -104,9 +106,9 @@ def main():
     cajero_service = CajeroService(session)
     cajero_service.crear_admin_default()
 
-    from ui.login_cajero import LoginCajeroDialog
+    from app.ui.views.auth.login_view import LoginView
 
-    login = LoginCajeroDialog(session)
+    login = LoginView(session)
     result = login.exec()
     if result != QDialog.DialogCode.Accepted:
         sys.exit(0)
@@ -125,9 +127,10 @@ def main():
     window.setWindowIcon(QIcon(ICON_PATH))
     logging.info("Iconos configurados")
 
-    # Usar DashboardPro en lugar de DashboardView (último estado)
-    from ui.dashboard_pro import DashboardPro
-    dashboard_view = DashboardPro(session)
+    # Nuevo dashboard estilo SaaS
+    from app.ui.views.dashboard.dashboard_view import DashboardView
+
+    dashboard_view = DashboardView(session)
     window.add_view(dashboard_view, "dashboard")
 
     ventas_view = VentasView(session, cajero_activo=cajero_activo)

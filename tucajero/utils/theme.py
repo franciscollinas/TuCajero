@@ -1,13 +1,45 @@
 """
 Premium Design System - TuCajero POS
-Sistema de diseño global con paleta de colores premium y componentes estandarizados.
+Legacy theme - redirects to new app.ui.theme
 """
 
 import winreg
 
+# Redirect to new theme
+from app.ui.theme.theme import (
+    get_colors,
+    app_style,
+    card_style,
+    kpi_card_style,
+    button_primary,
+    button_secondary,
+    button_success,
+    button_danger,
+    button_warning,
+    input_style,
+    table_style,
+    sidebar_style,
+    header_style,
+    glass_style,
+    label_title,
+    label_subtitle,
+    label_kpi_value,
+    label_kpi_label,
+    dialog_style,
+)
+
+
+# Legacy function - for backward compatibility
+def get_stylesheet():
+    return app_style()
+
 
 def get_theme():
-    """Detecta el tema del sistema (claro/oscuro)"""
+    """
+    Detecta el tema del sistema (claro/oscuro).
+
+    NOTA: Para forzar Dark Mode, cambiar return a "dark"
+    """
     try:
         key = winreg.OpenKey(
             winreg.HKEY_CURRENT_USER,
@@ -15,7 +47,8 @@ def get_theme():
         )
         value, _ = winreg.QueryValueEx(key, "AppsUseLightTheme")
         winreg.CloseKey(key)
-        return "light" if value == 1 else "dark"
+        # Forzar Dark Mode para el diseño Premium
+        return "dark"  # Cambiar a "light" si se prefiere modo claro
     except:
         return "dark"
 
@@ -23,71 +56,59 @@ def get_theme():
 def get_colors():
     """
     Obtiene la paleta de colores premium.
-    
+
     Dark Mode: Basado en Slate profundo (#1E293B) con acentos vibrantes
     Light Mode: Basado en blanco limpio con contrastes sutiles
     """
     if get_theme() == "dark":
         return {
             # Fondos - Paleta Slate profunda
-            "bg_app": "#0F172A",          # Slate 950 - Fondo principal
-            "bg_sidebar": "#1E293B",      # Slate 800 - Barra lateral
-            "bg_card": "#1E293B",         # Slate 800 - Tarjetas
-            "bg_card_hover": "#334155",   # Slate 700 - Hover cards
-            "bg_input": "#334155",        # Slate 700 - Inputs
-            "bg_elevated": "#334155",     # Slate 700 - Elementos elevados
-            "bg_surface": "#1E293B",      # Slate 800 - Superficies
-            
+            "bg_app": "#0F172A",  # Slate 950 - Fondo principal
+            "bg_sidebar": "#1E293B",  # Slate 800 - Barra lateral
+            "bg_card": "#1E293B",  # Slate 800 - Tarjetas
+            "bg_card_hover": "#334155",  # Slate 700 - Hover cards
+            "bg_input": "#334155",  # Slate 700 - Inputs
+            "bg_elevated": "#334155",  # Slate 700 - Elementos elevados
+            "bg_surface": "#1E293B",  # Slate 800 - Superficies
             # Texto - Jerarquía clara
-            "text_primary": "#F1F5F9",    # Slate 100 - Texto principal
+            "text_primary": "#F1F5F9",  # Slate 100 - Texto principal
             "text_secondary": "#94A3B8",  # Slate 400 - Texto secundario
-            "text_muted": "#64748B",      # Slate 500 - Texto atenuado
-            "text_inverse": "#0F172A",    # Slate 950 - Texto sobre claro
-            "text_accent": "#60A5FA",     # Blue 400 - Texto acento
-            
+            "text_muted": "#64748B",  # Slate 500 - Texto atenuado
+            "text_inverse": "#0F172A",  # Slate 950 - Texto sobre claro
+            "text_accent": "#60A5FA",  # Blue 400 - Texto acento
             # Bordes - Sutiles pero definidos
-            "border": "#475569",          # Slate 600 - Bordes estándar
-            "border_strong": "#64748B",   # Slate 500 - Bordes fuertes
-            "border_light": "#334155",    # Slate 700 - Bordes ligeros
-            
+            "border": "#475569",  # Slate 600 - Bordes estándar
+            "border_strong": "#64748B",  # Slate 500 - Bordes fuertes
+            "border_light": "#334155",  # Slate 700 - Bordes ligeros
             # Colores semánticos - Design Kit exacto
-            "primary": "#3B82F6",         # Blue 500 - Color primario
-            "primary_hover": "#2563EB",   # Blue 600 - Hover primario
-            "primary_light": "#3B82F620", # Blue 500 con 12% alpha
-            "primary_container": "#1E40AF", # Blue 800 - Contenedor primario
-            
-            "secondary": "#1E293B",       # Slate 800 - Color secundario
-            "secondary_hover": "#334155", # Slate 700 - Hover secundario
-            
-            "success": "#10B981",         # Emerald 500 - Éxito
-            "success_light": "#10B98120", # Emerald con 12% alpha
-            "success_hover": "#059669",   # Emerald 600
-            
-            "warning": "#F59E0B",         # Amber 500 - Advertencia (Fiado)
-            "warning_light": "#F59E0B20", # Amber con 12% alpha
-            "warning_hover": "#D97706",   # Amber 600
-            
-            "danger": "#EF4444",          # Red 500 - Peligro/Error
+            "primary": "#3B82F6",  # Blue 500 - Color primario
+            "primary_hover": "#2563EB",  # Blue 600 - Hover primario
+            "primary_light": "#3B82F620",  # Blue 500 con 12% alpha
+            "primary_container": "#1E40AF",  # Blue 800 - Contenedor primario
+            "secondary": "#1E293B",  # Slate 800 - Color secundario
+            "secondary_hover": "#334155",  # Slate 700 - Hover secundario
+            "success": "#10B981",  # Emerald 500 - Éxito
+            "success_light": "#10B98120",  # Emerald con 12% alpha
+            "success_hover": "#059669",  # Emerald 600
+            "warning": "#F59E0B",  # Amber 500 - Advertencia (Fiado)
+            "warning_light": "#F59E0B20",  # Amber con 12% alpha
+            "warning_hover": "#D97706",  # Amber 600
+            "danger": "#EF4444",  # Red 500 - Peligro/Error
             "danger_light": "#EF444420",  # Red con 12% alpha
-            "danger_hover": "#DC2626",    # Red 600
-            
-            "info": "#06B6D4",            # Cyan 500 - Información
-            "info_light": "#06B6D420",    # Cyan con 12% alpha
-            
-            "purple": "#8B5CF6",          # Violet 500 - Acento especial
+            "danger_hover": "#DC2626",  # Red 600
+            "info": "#06B6D4",  # Cyan 500 - Información
+            "info_light": "#06B6D420",  # Cyan con 12% alpha
+            "purple": "#8B5CF6",  # Violet 500 - Acento especial
             "purple_light": "#8B5CF620",  # Violet con 12% alpha
-            
             # Acento (alias para primary)
             "accent": "#3B82F6",
             "accent_hover": "#2563EB",
             "accent_light": "#3B82F620",
-            
             # Sombras - Profundidad realista
             "shadow_sm": "0px 1px 3px rgba(0,0,0,0.3), 0px 1px 2px rgba(0,0,0,0.2)",
             "shadow_md": "0px 4px 6px rgba(0,0,0,0.4), 0px 2px 4px rgba(0,0,0,0.3)",
             "shadow_lg": "0px 10px 15px rgba(0,0,0,0.5), 0px 4px 6px rgba(0,0,0,0.4)",
             "shadow_xl": "0px 20px 25px rgba(0,0,0,0.6), 0px 10px 10px rgba(0,0,0,0.5)",
-            
             # Glassmorphism
             "glass_bg": "rgba(30, 41, 59, 0.7)",
             "glass_border": "rgba(71, 85, 105, 0.5)",
@@ -95,64 +116,52 @@ def get_colors():
     else:
         return {
             # Fondos - Blanco limpio
-            "bg_app": "#F8FAFC",          # Slate 50 - Fondo principal
-            "bg_sidebar": "#1E293B",      # Slate 800 - Barra lateral (contraste)
-            "bg_card": "#FFFFFF",         # Blanco - Tarjetas
-            "bg_card_hover": "#F1F5F9",   # Slate 100 - Hover cards
-            "bg_input": "#FFFFFF",        # Blanco - Inputs
-            "bg_elevated": "#FFFFFF",     # Blanco - Elementos elevados
-            "bg_surface": "#F1F5F9",      # Slate 100 - Superficies
-            
+            "bg_app": "#F8FAFC",  # Slate 50 - Fondo principal
+            "bg_sidebar": "#1E293B",  # Slate 800 - Barra lateral (contraste)
+            "bg_card": "#FFFFFF",  # Blanco - Tarjetas
+            "bg_card_hover": "#F1F5F9",  # Slate 100 - Hover cards
+            "bg_input": "#FFFFFF",  # Blanco - Inputs
+            "bg_elevated": "#FFFFFF",  # Blanco - Elementos elevados
+            "bg_surface": "#F1F5F9",  # Slate 100 - Superficies
             # Texto - Alto contraste
-            "text_primary": "#0F172A",    # Slate 900 - Texto principal
+            "text_primary": "#0F172A",  # Slate 900 - Texto principal
             "text_secondary": "#475569",  # Slate 600 - Texto secundario
-            "text_muted": "#94A3B8",      # Slate 400 - Texto atenuado
-            "text_inverse": "#FFFFFF",    # Blanco - Texto sobre oscuro
-            "text_accent": "#2563EB",     # Blue 600 - Texto acento
-            
+            "text_muted": "#94A3B8",  # Slate 400 - Texto atenuado
+            "text_inverse": "#FFFFFF",  # Blanco - Texto sobre oscuro
+            "text_accent": "#2563EB",  # Blue 600 - Texto acento
             # Bordes - Sutiles
-            "border": "#E2E8F0",          # Slate 200 - Bordes estándar
-            "border_strong": "#CBD5E1",   # Slate 300 - Bordes fuertes
-            "border_light": "#F1F5F9",    # Slate 100 - Bordes ligeros
-            
+            "border": "#E2E8F0",  # Slate 200 - Bordes estándar
+            "border_strong": "#CBD5E1",  # Slate 300 - Bordes fuertes
+            "border_light": "#F1F5F9",  # Slate 100 - Bordes ligeros
             # Colores semánticos - Design Kit exacto
-            "primary": "#3B82F6",         # Blue 500
-            "primary_hover": "#2563EB",   # Blue 600
-            "primary_light": "#3B82F618", # Blue 500 con 9% alpha
-            "primary_container": "#DBEAFE", # Blue 100
-            
-            "secondary": "#64748B",       # Slate 500
-            "secondary_hover": "#475569", # Slate 600
-            
-            "success": "#10B981",         # Emerald 500
-            "success_light": "#10B98118", # Emerald con 9% alpha
-            "success_hover": "#059669",   # Emerald 600
-            
-            "warning": "#F59E0B",         # Amber 500 (Fiado)
-            "warning_light": "#F59E0B18", # Amber con 9% alpha
-            "warning_hover": "#D97706",   # Amber 600
-            
-            "danger": "#EF4444",          # Red 500
+            "primary": "#3B82F6",  # Blue 500
+            "primary_hover": "#2563EB",  # Blue 600
+            "primary_light": "#3B82F618",  # Blue 500 con 9% alpha
+            "primary_container": "#DBEAFE",  # Blue 100
+            "secondary": "#64748B",  # Slate 500
+            "secondary_hover": "#475569",  # Slate 600
+            "success": "#10B981",  # Emerald 500
+            "success_light": "#10B98118",  # Emerald con 9% alpha
+            "success_hover": "#059669",  # Emerald 600
+            "warning": "#F59E0B",  # Amber 500 (Fiado)
+            "warning_light": "#F59E0B18",  # Amber con 9% alpha
+            "warning_hover": "#D97706",  # Amber 600
+            "danger": "#EF4444",  # Red 500
             "danger_light": "#EF444418",  # Red con 9% alpha
-            "danger_hover": "#DC2626",    # Red 600
-            
-            "info": "#06B6D4",            # Cyan 500
-            "info_light": "#06B6D418",    # Cyan con 9% alpha
-            
-            "purple": "#8B5CF6",          # Violet 500
+            "danger_hover": "#DC2626",  # Red 600
+            "info": "#06B6D4",  # Cyan 500
+            "info_light": "#06B6D418",  # Cyan con 9% alpha
+            "purple": "#8B5CF6",  # Violet 500
             "purple_light": "#8B5CF618",  # Violet con 9% alpha
-            
             # Acento (alias para primary)
             "accent": "#3B82F6",
             "accent_hover": "#2563EB",
             "accent_light": "#3B82F618",
-            
             # Sombras - Sutiles para modo claro
             "shadow_sm": "0px 1px 3px rgba(0,0,0,0.08), 0px 1px 2px rgba(0,0,0,0.06)",
             "shadow_md": "0px 4px 6px rgba(0,0,0,0.07), 0px 2px 4px rgba(0,0,0,0.06)",
             "shadow_lg": "0px 10px 15px rgba(0,0,0,0.08), 0px 4px 6px rgba(0,0,0,0.05)",
             "shadow_xl": "0px 20px 25px rgba(0,0,0,0.1), 0px 10px 10px rgba(0,0,0,0.08)",
-            
             # Glassmorphism
             "glass_bg": "rgba(255, 255, 255, 0.8)",
             "glass_border": "rgba(226, 232, 240, 0.5)",
@@ -166,7 +175,7 @@ def get_stylesheet():
     """
     c = get_colors()
     bg = c["bg_app"]
-    
+
     return f"""
         /* ========================================
            CONTENEDORES PRINCIPALES
@@ -717,7 +726,7 @@ def btn_ghost():
 def card_style(elevated=False, padding=16):
     """
     Tarjeta premium con border-radius: 16px.
-    
+
     Args:
         elevated: Si True, usa sombra más pronunciada
         padding: Padding interno en píxeles (default: 16)
@@ -765,7 +774,7 @@ def glass_style():
 def label_style(size="md", weight="normal", color_key="text_primary"):
     """
     Estilo tipográfico consistente para jerarquía visual.
-    
+
     Args:
         size: xs (10px), sm (12px), md (13px), lg (16px), xl (20px), xxl (28px)
         weight: normal, medium (500), semibold (600), bold (700)

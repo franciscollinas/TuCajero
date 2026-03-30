@@ -4,190 +4,459 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QPushButton,
-    QWidget,
-    QGridLayout,
+    QComboBox,
     QLineEdit,
+    QGridLayout,
+    QFrame,
+    QMessageBox,
+    QWidget,
 )
-from PySide6.QtCore import Qt
-from utils.theme import btn_primary, btn_secondary, btn_danger
+from PySide6.QtCore import Qt, QSize
+from PySide6.QtGui import (
+    QFont,
+    QLinearGradient,
+    QGradient,
+    QBrush,
+    QPalette,
+    QColor,
+    QPainter,
+    QIcon,
+)
+
+from models.cajero import Cajero
+from services.cajero_service import CajeroService
+
+
+class GradientWidget(QWidget):
+    """Widget con gradiente de fondo"""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setAutoFillBackground(True)
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        gradient = QLinearGradient(0, 0, self.width(), self.height())
+        gradient.setColorAt(0.0, QColor(138, 43, 226))
+        gradient.setColorAt(0.5, QColor(65, 105, 225))
+        gradient.setColorAt(1.0, QColor(0, 206, 209))
+
+        painter.fillRect(self.rect(), gradient)
 
 
 class LoginCajeroDialog(QDialog):
+    """Dialogo de login moderno para cajeros"""
+
     def __init__(self, session, parent=None):
         super().__init__(parent)
         self.session = session
+        self.cajero_service = CajeroService(session)
         self.cajero_seleccionado = None
-        self.setWindowTitle("TuCajero — Iniciar turno")
-        self.setMinimumSize(500, 550)
-        self.setModal(True)
-        self.pin_ingresado = ""
+
         self.init_ui()
         self.cargar_cajeros()
 
     def init_ui(self):
-        from utils.theme import get_colors
-        c = get_colors()
-        self.setStyleSheet(f"QDialog {{ background-color: {c['bg_app']}; }}")
-        
-        layout = QVBoxLayout()
-        self.setLayout(layout)
+        """Inicializa la interfaz de usuario"""
+        self.setWindowTitle("TuCajero POS - Iniciar Sesión")
+        self.setFixedSize(1200, 700)
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
 
+        main_widget = GradientWidget(self)
+        main_layout = QVBoxLayout(main_widget)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
+
+        header = self.create_header()
+        main_layout.addWidget(header)
+
+        content = QWidget()
+        content.setStyleSheet("background: transparent;")
+        content_layout = QHBoxLayout(content)
+        content_layout.setContentsMargins(60, 40, 60, 60)
+        content_layout.setSpacing(40)
+
+        login_panel = self.create_login_panel()
+        content_layout.addWidget(login_panel, 40)
+
+        welcome_panel = self.create_welcome_panel()
+        content_layout.addWidget(welcome_panel, 60)
+
+        main_layout.addWidget(content, 1)
+
+        main_layout_container = QVBoxLayout(self)
+        main_layout_container.setContentsMargins(0, 0, 0, 0)
+        main_layout_container.addWidget(main_widget)
+
+    def create_header(self):
+        """Crea el header con logo y boton info"""
         header = QWidget()
-        header.setStyleSheet(f"background-color: {c['bg_sidebar']}; padding: 20px; border-bottom: 1px solid {c['border']};")
-        header_layout = QVBoxLayout()
-        header.setLayout(header_layout)
+        header.setStyleSheet("background: rgba(0, 0, 0, 0.3);")
+        header.setFixedHeight(70)
 
-        titulo = QLabel("TuCajero POS")
-        titulo.setStyleSheet(f"color: {c['text_primary']}; font-size: 28px; font-weight: bold;")
-        titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        header_layout.addWidget(titulo)
+        layout = QHBoxLayout(header)
+        layout.setContentsMargins(30, 10, 30, 10)
 
-        subtitulo = QLabel("Selecciona tu nombre e ingresa tu PIN")
-        subtitulo.setObjectName("subtitulo")
-        subtitulo.setStyleSheet(f"color: {c['text_secondary']};")
-        subtitulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        header_layout.addWidget(subtitulo)
-        layout.addWidget(header)
+        logo_label = QLabel("🏪 TuCajero POS")
+        logo_label.setStyleSheet("""
+            QLabel {
+                color: white;
+                font-size: 24px;
+                font-weight: bold;
+                background: transparent;
+            }
+        """)
+        layout.addWidget(logo_label)
 
-        cajeros_label = QLabel("¿Quién eres?")
-        cajeros_label.setStyleSheet(
-            f"font-size: 15px; font-weight: bold; padding: 10px 20px 5px; color: {c['text_primary']};"
+        layout.addStretch()
+
+        info_btn = QPushButton("ℹ️ Info")
+        info_btn.setStyleSheet("""
+            QPushButton {
+                background: rgba(255, 255, 255, 0.2);
+                color: white;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 8px;
+                padding: 8px 20px;
+                font-size: 14px;
+                font-weight: 500;
+            }
+            QPushButton:hover {
+                background: rgba(255, 255, 255, 0.3);
+            }
+        """)
+        info_btn.clicked.connect(self.mostrar_info)
+        layout.addWidget(info_btn)
+
+        return header
+
+    def create_login_panel(self):
+        """Crea el panel de login"""
+        panel = QFrame()
+        panel.setStyleSheet("""
+            QFrame {
+                background: rgba(30, 30, 50, 0.85);
+                border-radius: 20px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+        """)
+
+        layout = QVBoxLayout(panel)
+        layout.setContentsMargins(50, 60, 50, 60)
+        layout.setSpacing(30)
+
+        user_icon_label = QLabel("👤")
+        user_icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        user_icon_label.setStyleSheet("""
+            QLabel {
+                font-size: 80px;
+                color: #00CED1;
+                background: rgba(0, 206, 209, 0.15);
+                border: 3px solid #00CED1;
+                border-radius: 75px;
+                min-width: 150px;
+                max-width: 150px;
+                min-height: 150px;
+                max-height: 150px;
+            }
+        """)
+        layout.addWidget(user_icon_label, 0, Qt.AlignmentFlag.AlignCenter)
+
+        layout.addSpacing(20)
+
+        user_container = QWidget()
+        user_container.setStyleSheet("background: transparent;")
+        user_layout = QVBoxLayout(user_container)
+        user_layout.setContentsMargins(0, 0, 0, 0)
+        user_layout.setSpacing(8)
+
+        user_label = QLabel("USUARIO")
+        user_label.setStyleSheet("""
+            QLabel {
+                color: rgba(255, 255, 255, 0.7);
+                font-size: 11px;
+                font-weight: 600;
+                letter-spacing: 1px;
+                background: transparent;
+            }
+        """)
+        user_layout.addWidget(user_label)
+
+        self.combo_cajero = QComboBox()
+        self.combo_cajero.setStyleSheet("""
+            QComboBox {
+                background: rgba(255, 255, 255, 0.1);
+                color: white;
+                border: 2px solid rgba(255, 255, 255, 0.2);
+                border-radius: 10px;
+                padding: 15px 20px;
+                font-size: 15px;
+                min-height: 25px;
+            }
+            QComboBox:hover {
+                border-color: #00CED1;
+                background: rgba(255, 255, 255, 0.15);
+            }
+            QComboBox:focus {
+                border-color: #00CED1;
+            }
+            QComboBox::drop-down {
+                border: none;
+                width: 30px;
+            }
+            QComboBox::down-arrow {
+                image: none;
+                border-left: 5px solid transparent;
+                border-right: 5px solid transparent;
+                border-top: 6px solid white;
+                margin-right: 10px;
+            }
+            QComboBox QAbstractItemView {
+                background: rgba(30, 30, 50, 0.95);
+                color: white;
+                border: 2px solid #00CED1;
+                border-radius: 10px;
+                padding: 5px;
+                selection-background-color: #00CED1;
+                selection-color: white;
+                outline: none;
+            }
+            QComboBox QAbstractItemView::item {
+                padding: 10px;
+                border-radius: 5px;
+            }
+            QComboBox QAbstractItemView::item:hover {
+                background: rgba(0, 206, 209, 0.3);
+            }
+        """)
+
+        self.combo_cajero.view().window().setWindowFlags(
+            Qt.WindowType.Popup | Qt.WindowType.FramelessWindowHint
         )
-        layout.addWidget(cajeros_label)
 
-        self.cajeros_widget = QWidget()
-        self.cajeros_layout = QGridLayout()
-        self.cajeros_widget.setLayout(self.cajeros_layout)
-        layout.addWidget(self.cajeros_widget)
+        user_layout.addWidget(self.combo_cajero)
+        layout.addWidget(user_container)
 
-        self.lbl_cajero_sel = QLabel("Selecciona un cajero")
-        self.lbl_cajero_sel.setObjectName("lbl_cajero_sel")
-        self.lbl_cajero_sel.setStyleSheet(f"color: {c['text_primary']};")
-        self.lbl_cajero_sel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(self.lbl_cajero_sel)
+        pin_container = QWidget()
+        pin_container.setStyleSheet("background: transparent;")
+        pin_layout = QVBoxLayout(pin_container)
+        pin_layout.setContentsMargins(0, 0, 0, 0)
+        pin_layout.setSpacing(8)
 
-        self.pin_display = QLineEdit()
-        self.pin_display.setEchoMode(QLineEdit.EchoMode.Password)
-        self.pin_display.setMaxLength(4)
-        self.pin_display.setReadOnly(True)
-        self.pin_display.setPlaceholderText("PIN")
-        self.pin_display.setStyleSheet(
-            f"font-size: 32px; padding: 10px; text-align: center; "
-            f"background-color: {c['bg_input']}; color: {c['text_primary']}; "
-            f"border: 2px solid {c['border']}; border-radius: 6px; "
-            f"letter-spacing: 8px;"
+        pin_label = QLabel("PIN (4 DIGITOS)")
+        pin_label.setStyleSheet("""
+            QLabel {
+                color: rgba(255, 255, 255, 0.7);
+                font-size: 11px;
+                font-weight: 600;
+                letter-spacing: 1px;
+                background: transparent;
+            }
+        """)
+        pin_layout.addWidget(pin_label)
+
+        self.input_pin = QLineEdit()
+        self.input_pin.setPlaceholderText("••••")
+        self.input_pin.setEchoMode(QLineEdit.EchoMode.Password)
+        self.input_pin.setMaxLength(4)
+        self.input_pin.setStyleSheet("""
+            QLineEdit {
+                background: rgba(255, 255, 255, 0.1);
+                color: white;
+                border: 2px solid rgba(255, 255, 255, 0.2);
+                border-radius: 10px;
+                padding: 15px 20px;
+                font-size: 20px;
+                letter-spacing: 10px;
+                min-height: 25px;
+            }
+            QLineEdit:hover {
+                border-color: #00CED1;
+                background: rgba(255, 255, 255, 0.15);
+            }
+            QLineEdit:focus {
+                border-color: #00CED1;
+                background: rgba(255, 255, 255, 0.2);
+            }
+        """)
+        self.input_pin.returnPressed.connect(self.validar_login)
+
+        pin_layout.addWidget(self.input_pin)
+        layout.addWidget(pin_container)
+
+        btn_login = QPushButton("INICIAR SESIÓN")
+        btn_login.setStyleSheet("""
+            QPushButton {
+                background: qlineargradient(
+                    x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #FF1493,
+                    stop:1 #FF69B4
+                );
+                color: white;
+                border: none;
+                border-radius: 12px;
+                padding: 18px;
+                font-size: 15px;
+                font-weight: bold;
+                letter-spacing: 1px;
+            }
+            QPushButton:hover {
+                background: qlineargradient(
+                    x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #FF69B4,
+                    stop:1 #FF1493
+                );
+            }
+            QPushButton:pressed {
+                background: #C71585;
+            }
+        """)
+        btn_login.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_login.clicked.connect(self.validar_login)
+        layout.addWidget(btn_login)
+
+        layout.addStretch()
+
+        return panel
+
+    def create_welcome_panel(self):
+        """Crea el panel de bienvenida"""
+        panel = QWidget()
+        panel.setStyleSheet("background: transparent;")
+
+        layout = QVBoxLayout(panel)
+        layout.setContentsMargins(40, 80, 40, 80)
+        layout.setSpacing(30)
+
+        title = QLabel("Bienvenido.")
+        title.setStyleSheet("""
+            QLabel {
+                color: white;
+                font-size: 72px;
+                font-weight: bold;
+                background: transparent;
+            }
+        """)
+        layout.addWidget(title)
+
+        subtitle = QLabel(
+            "Sistema de punto de venta profesional.\n"
+            "Gestión completa de ventas, inventario y clientes.\n"
+            "Rápido, seguro y confiable."
         )
-        self.pin_display.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(self.pin_display)
+        subtitle.setStyleSheet("""
+            QLabel {
+                color: rgba(255, 255, 255, 0.8);
+                font-size: 16px;
+                line-height: 28px;
+                background: transparent;
+            }
+        """)
+        subtitle.setWordWrap(True)
+        layout.addWidget(subtitle)
 
-        teclado = QWidget()
-        teclado_layout = QGridLayout()
-        teclado.setLayout(teclado_layout)
+        layout.addStretch()
 
-        numeros = [
-            ("1", 0, 0),
-            ("2", 0, 1),
-            ("3", 0, 2),
-            ("4", 1, 0),
-            ("5", 1, 1),
-            ("6", 1, 2),
-            ("7", 2, 0),
-            ("8", 2, 1),
-            ("9", 2, 2),
-            ("⌫", 3, 0),
-            ("0", 3, 1),
-            ("✓", 3, 2),
-        ]
-        for texto, fila, col in numeros:
-            btn = QPushButton(texto)
-            btn.setFixedSize(90, 60)
-            if texto == "✓":
-                btn.setStyleSheet(btn_primary() + "font-size:22px;font-weight:bold;")
-            elif texto == "⌫":
-                btn.setStyleSheet(btn_danger() + "font-size:22px;")
-            else:
-                btn.setStyleSheet(btn_secondary() + "font-size:22px;font-weight:bold;")
-            btn.clicked.connect(lambda checked, t=texto: self.on_tecla(t))
-            teclado_layout.addWidget(btn, fila, col)
+        decoration = QLabel("~~~")
+        decoration.setStyleSheet("""
+            QLabel {
+                color: rgba(0, 206, 209, 0.3);
+                font-size: 180px;
+                font-weight: bold;
+                background: transparent;
+            }
+        """)
+        decoration.setAlignment(Qt.AlignmentFlag.AlignRight)
+        layout.addWidget(decoration)
 
-        layout.addWidget(teclado, alignment=Qt.AlignmentFlag.AlignCenter)
-
-        self.lbl_error = QLabel("")
-        self.lbl_error.setStyleSheet("color: #e74c3c; font-size: 13px; padding: 4px;")
-        self.lbl_error.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(self.lbl_error)
+        return panel
 
     def cargar_cajeros(self):
-        from services.cajero_service import CajeroService
+        """Carga la lista de cajeros activos"""
+        cajeros = self.cajero_service.get_all()
+        cajeros_activos = [c for c in cajeros if c.activo]
 
-        cajeros = CajeroService(self.session).get_all()
+        self.combo_cajero.clear()
+        for cajero in cajeros_activos:
+            rol = " (Admin)" if cajero.rol == "admin" else ""
+            self.combo_cajero.addItem(f"{cajero.nombre}{rol}", cajero)
 
-        for i in reversed(range(self.cajeros_layout.count())):
-            self.cajeros_layout.itemAt(i).widget().setParent(None)
+        if self.combo_cajero.count() == 0:
+            self.combo_cajero.addItem("Administrador", None)
 
-        col = 0
-        fila = 0
-        for cajero in cajeros:
-            btn = QPushButton(cajero.nombre)
-            btn.setFixedSize(140, 50)
-            if cajero.rol == "admin":
-                btn.setStyleSheet(btn_primary())
-            else:
-                btn.setStyleSheet(btn_secondary())
-            btn.setCheckable(True)
-            btn.clicked.connect(lambda checked, c=cajero: self.seleccionar_cajero(c))
-            self.cajeros_layout.addWidget(btn, fila, col)
-            col += 1
-            if col >= 3:
-                col = 0
-                fila += 1
+    def validar_login(self):
+        """Valida el PIN ingresado"""
+        pin = self.input_pin.text().strip()
 
-    def seleccionar_cajero(self, cajero):
-        self.cajero_seleccionado = cajero
-        self.pin_ingresado = ""
-        self.pin_display.clear()
-        self.lbl_cajero_sel.setText(f"Hola, {cajero.nombre} 👋  —  Ingresa tu PIN")
-        self.lbl_error.setText("")
+        if not pin:
+            self.mostrar_error("Por favor ingresa tu PIN")
+            return
 
-    def on_tecla(self, tecla):
-        if tecla == "⌫":
-            self.pin_ingresado = self.pin_ingresado[:-1]
-            self.pin_display.setText(self.pin_ingresado)
-        elif tecla == "✓":
-            self.confirmar_login()
+        if len(pin) != 4 or not pin.isdigit():
+            self.mostrar_error("El PIN debe tener exactamente 4 digitos")
+            return
+
+        cajero = self.combo_cajero.currentData()
+
+        if not cajero:
+            self.mostrar_error("No se pudo obtener información del cajero")
+            return
+
+        if self.cajero_service.verificar_login(cajero.id, pin):
+            self.cajero_seleccionado = cajero
+            self.accept()
         else:
-            if len(self.pin_ingresado) < 4:
-                self.pin_ingresado += tecla
-                self.pin_display.setText(self.pin_ingresado)
-                if len(self.pin_ingresado) == 4:
-                    self.confirmar_login()
+            self.mostrar_error("PIN incorrecto")
+            self.input_pin.clear()
+            self.input_pin.setFocus()
 
-    def confirmar_login(self):
-        import logging
+    def mostrar_error(self, mensaje):
+        """Muestra un mensaje de error"""
+        QMessageBox.warning(self, "Error de autenticación", mensaje)
 
-        if not self.cajero_seleccionado:
-            self.lbl_error.setText("⚠ Selecciona un cajero primero")
-            return
-        if len(self.pin_ingresado) != 4:
-            self.lbl_error.setText("⚠ El PIN debe tener 4 dígitos")
-            return
+    def mostrar_info(self):
+        """Muestra información del sistema"""
+        info_text = (
+            "<h2 style='color: #00CED1;'>TuCajero POS</h2>"
+            "<p><b>Version:</b> 2.1.0</p>"
+            "<p><b>Fecha:</b> Marzo 2026</p>"
+            "<p><b>Estado:</b> Produccion ✅</p>"
+            "<hr>"
+            "<p><b>Creado por:</b><br>"
+            "Ingeniero Francisco Llinas Pisciotti</p>"
+            "<hr>"
+            "<p style='font-size: 11px; color: #888;'>"
+            "© 2026 TuCajero POS. Todos los derechos reservados.<br>"
+            "Software propietario para gestión de punto de venta."
+            "</p>"
+        )
 
-        try:
-            from services.cajero_service import CajeroService
-            from PySide6.QtWidgets import QMessageBox
-
-            ok = CajeroService(self.session).verificar_login(
-                self.cajero_seleccionado.id, self.pin_ingresado
-            )
-            if ok:
-                self.accept()
-            else:
-                self.lbl_error.setText("❌ PIN incorrecto. Intenta de nuevo.")
-                self.pin_ingresado = ""
-                self.pin_display.clear()
-        except Exception as e:
-            logging.error(f"Error en login de cajero: {e}", exc_info=True)
-            self.lbl_error.setText("❌ Error al iniciar sesión")
-            QMessageBox.critical(
-                self, "Error", f"Ocurrió un error al iniciar sesión:\n{str(e)}"
-            )
+        msg = QMessageBox(self)
+        msg.setWindowTitle("Información del Sistema")
+        msg.setTextFormat(Qt.TextFormat.RichText)
+        msg.setText(info_text)
+        msg.setIconPixmap(QMessageBox.Icon.Information.pixmap(QSize(64, 64)))
+        msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+        msg.setStyleSheet("""
+            QMessageBox {
+                background: #1e1e32;
+            }
+            QMessageBox QLabel {
+                color: white;
+                min-width: 400px;
+            }
+            QPushButton {
+                background: #00CED1;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                padding: 8px 24px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background: #00B8BB;
+            }
+        """)
+        msg.exec()
