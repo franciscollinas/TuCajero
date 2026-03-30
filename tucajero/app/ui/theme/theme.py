@@ -347,6 +347,48 @@ def glass_style():
     """
 
 
+def btn_sidebar():
+    return f"""
+        QPushButton {{
+            background: transparent;
+            color: {TEXT_SECONDARY};
+            border: none;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 14px;
+            text-align: left;
+        }}
+        QPushButton:hover {{
+            background: rgba(255, 255, 255, 0.08);
+            color: {TEXT_PRIMARY};
+        }}
+        QPushButton:checked {{
+            background: {PRIMARY};
+            color: {TEXT_PRIMARY};
+        }}
+    """
+
+
+def btn_primary():
+    return button_primary()
+
+
+def btn_secondary():
+    return button_secondary()
+
+
+def btn_success():
+    return button_success()
+
+
+def btn_danger():
+    return button_danger()
+
+
+def btn_warning():
+    return button_warning()
+
+
 def get_colors():
     return {
         "bg_app": BG_APP,

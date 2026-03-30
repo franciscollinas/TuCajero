@@ -44,11 +44,19 @@ class PaymentDialog(QDialog):
         self.setWindowTitle("Cobro")
         self.setMinimumSize(450, 550)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        
+
         # Estilo glassmorphism para el diálogo
-        from utils.theme import get_colors, glass_style, btn_primary, btn_success, btn_warning, btn_secondary
+        from utils.theme import (
+            get_colors,
+            glass_style,
+            btn_primary,
+            btn_success,
+            btn_warning,
+            btn_secondary,
+        )
+
         c = get_colors()
-        
+
         self.setStyleSheet(f"""
             QDialog {{
                 {glass_style()}
@@ -73,26 +81,30 @@ class PaymentDialog(QDialog):
         # Separador
         sep = QFrame()
         sep.setFrameShape(QFrame.Shape.HLine)
-        sep.setStyleSheet(f"background-color: {c['border']}; max-height: 1px; border: none;")
+        sep.setStyleSheet(
+            f"background-color: {c['border']}; max-height: 1px; border: none;"
+        )
         layout.addWidget(sep)
 
         # Total a pagar - Display premium
         total_container = QWidget()
         total_container.setStyleSheet(f"""
             QWidget {{
-                background-color: {c['bg_surface']};
+                background-color: {c["bg_surface"]};
                 border-radius: 16px;
-                border: 1px solid {c['border']};
+                border: 1px solid {c["border"]};
                 padding: 16px;
             }}
         """)
         total_layout = QVBoxLayout(total_container)
         total_layout.setSpacing(8)
-        
+
         total_label = QLabel("TOTAL A PAGAR")
         total_label.setObjectName("total_label")
         total_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        total_label.setStyleSheet(f"color: {c['text_secondary']}; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; background: transparent;")
+        total_label.setStyleSheet(
+            f"color: {c['text_secondary']}; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; background: transparent;"
+        )
         total_layout.addWidget(total_label)
 
         self.lbl_total = QLabel(fmt_moneda(self.total))
@@ -104,15 +116,19 @@ class PaymentDialog(QDialog):
 
         if self.descuento > 0:
             lbl_desc = QLabel(f"Descuento: -{fmt_moneda(self.descuento)}")
-            lbl_desc.setStyleSheet(f"font-size:14px; color:{c['danger']}; font-weight: 600; background: transparent;")
+            lbl_desc.setStyleSheet(
+                f"font-size:14px; color:{c['danger']}; font-weight: 600; background: transparent;"
+            )
             lbl_desc.setAlignment(Qt.AlignmentFlag.AlignCenter)
             total_layout.addWidget(lbl_desc)
-        
+
         layout.addWidget(total_container)
 
         # Métodos de pago
         metodo_label = QLabel("MÉTODO DE PAGO")
-        metodo_label.setStyleSheet(f"font-size: 11px; font-weight: 700; color: {c['text_muted']}; text-transform: uppercase; letter-spacing: 0.5px; background: transparent;")
+        metodo_label.setStyleSheet(
+            f"font-size: 11px; font-weight: 700; color: {c['text_muted']}; text-transform: uppercase; letter-spacing: 0.5px; background: transparent;"
+        )
         layout.addWidget(metodo_label)
 
         # Container para botones de método
@@ -120,27 +136,27 @@ class PaymentDialog(QDialog):
         metodos_layout = QGridLayout(metodos_container)
         metodos_layout.setSpacing(8)
         metodos_layout.setContentsMargins(0, 0, 0, 0)
-        
+
         self.metodo_group = QButtonGroup()
         self.metodo_buttons = []
-        
+
         metodos = [
-            ("💵 Efectivo", "Efectivo", c['primary']),
-            ("📱 Nequi", "Nequi", c['primary']),
-            ("📲 Daviplata", "Daviplata", c['warning']),
-            ("🏦 Transferencia", "Transferencia", c['info']),
+            ("💵 Efectivo", "Efectivo", c["primary"]),
+            ("📱 Nequi", "Nequi", c["primary"]),
+            ("📲 Daviplata", "Daviplata", c["warning"]),
+            ("🏦 Transferencia", "Transferencia", c["info"]),
         ]
         if self.cliente:
             # Fiado con color ÁMBAR (warning) - NO rojo para diferenciar de errores
-            metodos.append(("🟡 Fiado (crédito)", "Fiado", c['warning']))
-        
+            metodos.append(("🟡 Fiado (crédito)", "Fiado", c["warning"]))
+
         for idx, (texto, valor, color) in enumerate(metodos):
             radio = QRadioButton(texto)
             radio.setStyleSheet(f"""
                 QRadioButton {{
-                    background-color: {c['bg_input']};
-                    color: {c['text_primary']};
-                    border: 2px solid {c['border']};
+                    background-color: {c["bg_input"]};
+                    color: {c["text_primary"]};
+                    border: 2px solid {c["border"]};
                     border-radius: 12px;
                     padding: 14px 16px;
                     font-size: 14px;
@@ -149,7 +165,7 @@ class PaymentDialog(QDialog):
                 }}
                 QRadioButton:hover {{
                     border-color: {color};
-                    background-color: {c['bg_card_hover']};
+                    background-color: {c["bg_card_hover"]};
                 }}
                 QRadioButton:checked {{
                     border-color: {color};
@@ -160,8 +176,8 @@ class PaymentDialog(QDialog):
                     width: 20px;
                     height: 20px;
                     border-radius: 10px;
-                    border: 2px solid {c['border']};
-                    background: {c['bg_input']};
+                    border: 2px solid {c["border"]};
+                    background: {c["bg_input"]};
                 }}
                 QRadioButton::indicator:hover {{
                     border-color: {color};
@@ -177,7 +193,7 @@ class PaymentDialog(QDialog):
             radio.toggled.connect(self.on_metodo_changed)
             self.metodo_buttons.append(radio)
             metodos_layout.addWidget(radio, idx // 2, idx % 2)
-        
+
         layout.addWidget(metodos_container)
 
         self.metodo_group.buttons()[0].setChecked(True)
@@ -189,14 +205,16 @@ class PaymentDialog(QDialog):
         efectivo_layout.setContentsMargins(0, 0, 0, 0)
         self.efectivo_container.setStyleSheet(f"""
             QWidget {{
-                background-color: {c['bg_surface']};
+                background-color: {c["bg_surface"]};
                 border-radius: 12px;
                 padding: 16px;
             }}
         """)
 
         pago_label = QLabel("Monto recibido:")
-        pago_label.setStyleSheet(f"font-size: 13px; color: {c['text_secondary']}; font-weight: 500; background: transparent;")
+        pago_label.setStyleSheet(
+            f"font-size: 13px; color: {c['text_secondary']}; font-weight: 500; background: transparent;"
+        )
         efectivo_layout.addWidget(pago_label)
 
         self.pago_input = QDoubleSpinBox()
@@ -204,16 +222,16 @@ class PaymentDialog(QDialog):
         self.pago_input.setDecimals(2)
         self.pago_input.setStyleSheet(f"""
             QDoubleSpinBox {{
-                background-color: {c['bg_input']};
-                color: {c['text_primary']};
-                border: 1.5px solid {c['border']};
+                background-color: {c["bg_input"]};
+                color: {c["text_primary"]};
+                border: 1.5px solid {c["border"]};
                 border-radius: 12px;
                 padding: 12px 16px;
                 font-size: 20px;
                 font-weight: 600;
             }}
             QDoubleSpinBox:focus {{
-                border-color: {c['primary']};
+                border-color: {c["primary"]};
             }}
         """)
         self.pago_input.setMinimumWidth(200)
@@ -233,14 +251,14 @@ class PaymentDialog(QDialog):
         # Botones de acción
         buttons_layout = QHBoxLayout()
         buttons_layout.setSpacing(12)
-        
+
         # Botón Cancelar
         btn_cancel = QPushButton("CANCELAR")
         btn_cancel.setStyleSheet(btn_secondary())
         btn_cancel.setFixedHeight(48)
         btn_cancel.clicked.connect(self.reject)
         buttons_layout.addWidget(btn_cancel)
-        
+
         # Botón Confirmar
         btn_confirm = QPushButton("CONFIRMAR PAGO")
         btn_confirm.setStyleSheet(btn_success())
@@ -248,7 +266,7 @@ class PaymentDialog(QDialog):
         btn_confirm.setFont(btn_confirm.font())
         btn_confirm.clicked.connect(self.accept)
         buttons_layout.addWidget(btn_confirm)
-        
+
         layout.addLayout(buttons_layout)
 
     def on_metodo_changed(self):
@@ -265,8 +283,9 @@ class PaymentDialog(QDialog):
     def calcular_cambio(self):
         """Calculate change from payment"""
         from utils.theme import get_colors
+
         c = get_colors()
-        
+
         pago = self.pago_input.value()
         cambio = pago - self.total
         if cambio >= 0:
@@ -314,7 +333,7 @@ class VentasView(QWidget):
         self.txt_codigo.setFocus()
 
     def init_ui(self):
-        from utils.theme import get_colors
+        from utils.theme import get_colors, btn_secondary
         from utils.formato import fmt_moneda
         from PySide6.QtWidgets import (
             QHBoxLayout,
@@ -501,8 +520,11 @@ class VentasView(QWidget):
                 border-bottom: 1px solid {c["border"]};
             }}
             QTableWidget::item:selected {{
-                background-color: {c["accent_light"]};
-                color: {c["accent"]};
+                background-color: {c["primary"]};
+                color: white;
+            }}
+            QTableWidget::item:hover {{
+                background-color: {c["primary_light"]};
             }}
             QHeaderView::section {{
                 background-color: {c["bg_input"]};
@@ -533,33 +555,41 @@ class VentasView(QWidget):
         actions_l.setSpacing(8)
 
         self.btn_descuento = QPushButton("% Descuento")
-        self.btn_descuento.setFixedHeight(32)
+        self.btn_descuento.setFixedHeight(36)
+        self.btn_descuento.setStyleSheet(btn_secondary())
         self.btn_descuento.setStyleSheet(f"""
             QPushButton {{
                 background: transparent;
                 color: {c["warning"]};
                 border: 1px solid {c["warning"]};
-                border-radius: 8px;
-                padding: 4px 14px;
-                font-size: 12px;
-                font-weight: bold;
+                border-radius: 10px;
+                padding: 8px 20px;
+                font-weight: 600;
+                font-size: 13px;
             }}
-            QPushButton:hover {{ background: {c["warning"]}; color: white; }}
+            QPushButton:hover {{
+                background: {c["warning"]};
+                color: white;
+            }}
         """)
         self.btn_descuento.clicked.connect(self.aplicar_descuento)
 
         self.btn_eliminar = QPushButton("🗑  Eliminar")
-        self.btn_eliminar.setFixedHeight(32)
+        self.btn_eliminar.setFixedHeight(36)
         self.btn_eliminar.setStyleSheet(f"""
             QPushButton {{
                 background: transparent;
                 color: {c["danger"]};
                 border: 1px solid {c["danger"]};
-                border-radius: 8px;
-                padding: 4px 14px;
-                font-size: 12px;
+                border-radius: 10px;
+                padding: 8px 20px;
+                font-weight: 600;
+                font-size: 13px;
             }}
-            QPushButton:hover {{ background: {c["danger"]}; color: white; }}
+            QPushButton:hover {{
+                background: {c["danger"]};
+                color: white;
+            }}
         """)
         self.btn_eliminar.clicked.connect(self.eliminar_item)
 
