@@ -40,182 +40,80 @@ class PaymentDialog(QDialog):
         self.init_ui()
 
     def init_ui(self):
-        """Initialize the payment dialog UI - Premium Design"""
+        """Initialize the payment dialog UI"""
         self.setWindowTitle("Cobro")
-        self.setMinimumSize(450, 550)
+        self.setMinimumSize(420, 500)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        
-        # Estilo glassmorphism para el diálogo
-        from utils.theme import get_colors, glass_style, btn_primary, btn_success, btn_warning, btn_secondary
-        c = get_colors()
-        
-        self.setStyleSheet(f"""
-            QDialog {{
-                {glass_style()}
-            }}
-        """)
 
         layout = QVBoxLayout()
         self.setLayout(layout)
-        layout.setSpacing(16)
-        layout.setContentsMargins(20, 20, 20, 20)
 
         from utils.store_config import get_store_name
 
-        # Header con nombre del negocio
         store_name_label = QLabel(get_store_name())
+        from utils.theme import get_colors
+
+        c = get_colors()
         store_name_label.setStyleSheet(
-            f"font-size: 22px; font-weight: 700; color: {c['text_primary']}; background: transparent;"
+            f"font-size: 20px; font-weight: bold; color: {c['text_primary']};"
         )
         store_name_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(store_name_label)
 
-        # Separador
-        sep = QFrame()
-        sep.setFrameShape(QFrame.Shape.HLine)
-        sep.setStyleSheet(f"background-color: {c['border']}; max-height: 1px; border: none;")
-        layout.addWidget(sep)
-
-        # Total a pagar - Display premium
-        total_container = QWidget()
-        total_container.setStyleSheet(f"""
-            QWidget {{
-                background-color: {c['bg_surface']};
-                border-radius: 16px;
-                border: 1px solid {c['border']};
-                padding: 16px;
-            }}
-        """)
-        total_layout = QVBoxLayout(total_container)
-        total_layout.setSpacing(8)
-        
         total_label = QLabel("TOTAL A PAGAR")
         total_label.setObjectName("total_label")
         total_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        total_label.setStyleSheet(f"color: {c['text_secondary']}; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; background: transparent;")
-        total_layout.addWidget(total_label)
+        layout.addWidget(total_label)
 
         self.lbl_total = QLabel(fmt_moneda(self.total))
         self.lbl_total.setStyleSheet(
-            f"font-size: 36px; font-weight: 700; color: {c['success']}; background: transparent;"
+            f"font-size: 28px; font-weight: bold; color: {c['success']};"
         )
         self.lbl_total.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        total_layout.addWidget(self.lbl_total)
+        layout.addWidget(self.lbl_total)
 
         if self.descuento > 0:
             lbl_desc = QLabel(f"Descuento: -{fmt_moneda(self.descuento)}")
-            lbl_desc.setStyleSheet(f"font-size:14px; color:{c['danger']}; font-weight: 600; background: transparent;")
+            lbl_desc.setStyleSheet(f"font-size:14px;color:{c['danger']};")
             lbl_desc.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            total_layout.addWidget(lbl_desc)
-        
-        layout.addWidget(total_container)
+            layout.addWidget(lbl_desc)
 
-        # Métodos de pago
-        metodo_label = QLabel("MÉTODO DE PAGO")
-        metodo_label.setStyleSheet(f"font-size: 11px; font-weight: 700; color: {c['text_muted']}; text-transform: uppercase; letter-spacing: 0.5px; background: transparent;")
+        metodo_label = QLabel("Método de pago:")
+        metodo_label.setStyleSheet("font-size: 14px; font-weight: bold;")
         layout.addWidget(metodo_label)
 
-        # Container para botones de método
-        metodos_container = QWidget()
-        metodos_layout = QGridLayout(metodos_container)
-        metodos_layout.setSpacing(8)
-        metodos_layout.setContentsMargins(0, 0, 0, 0)
-        
         self.metodo_group = QButtonGroup()
-        self.metodo_buttons = []
-        
         metodos = [
-            ("💵 Efectivo", "Efectivo", c['primary']),
-            ("📱 Nequi", "Nequi", c['primary']),
-            ("📲 Daviplata", "Daviplata", c['warning']),
-            ("🏦 Transferencia", "Transferencia", c['info']),
+            ("Efectivo", "Efectivo"),
+            ("Nequi", "Nequi"),
+            ("Daviplata", "Daviplata"),
+            ("Transferencia", "Transferencia"),
         ]
         if self.cliente:
-            # Fiado con color ÁMBAR (warning) - NO rojo para diferenciar de errores
-            metodos.append(("🟡 Fiado (crédito)", "Fiado", c['warning']))
-        
-        for idx, (texto, valor, color) in enumerate(metodos):
+            metodos.append(("🔴 Fiado (crédito)", "Fiado"))
+        for texto, valor in metodos:
             radio = QRadioButton(texto)
-            radio.setStyleSheet(f"""
-                QRadioButton {{
-                    background-color: {c['bg_input']};
-                    color: {c['text_primary']};
-                    border: 2px solid {c['border']};
-                    border-radius: 12px;
-                    padding: 14px 16px;
-                    font-size: 14px;
-                    font-weight: 500;
-                    spacing: 10px;
-                }}
-                QRadioButton:hover {{
-                    border-color: {color};
-                    background-color: {c['bg_card_hover']};
-                }}
-                QRadioButton:checked {{
-                    border-color: {color};
-                    background-color: {color}20;
-                    font-weight: 600;
-                }}
-                QRadioButton::indicator {{
-                    width: 20px;
-                    height: 20px;
-                    border-radius: 10px;
-                    border: 2px solid {c['border']};
-                    background: {c['bg_input']};
-                }}
-                QRadioButton::indicator:hover {{
-                    border-color: {color};
-                }}
-                QRadioButton::indicator:checked {{
-                    border-color: {color};
-                    background: {color};
-                }}
-            """)
+            radio.setStyleSheet("padding: 6px; font-size: 14px;")
             self.metodo_group.addButton(radio)
-            self.metodo_group.setId(radio, idx)
+            self.metodo_group.setId(radio, len(self.metodo_group.buttons()))
             radio.metodo_valor = valor
             radio.toggled.connect(self.on_metodo_changed)
-            self.metodo_buttons.append(radio)
-            metodos_layout.addWidget(radio, idx // 2, idx % 2)
-        
-        layout.addWidget(metodos_container)
+            layout.addWidget(radio)
 
         self.metodo_group.buttons()[0].setChecked(True)
 
-        # Container para pago en efectivo
         self.efectivo_container = QWidget()
-        efectivo_layout = QVBoxLayout(self.efectivo_container)
-        efectivo_layout.setSpacing(8)
-        efectivo_layout.setContentsMargins(0, 0, 0, 0)
-        self.efectivo_container.setStyleSheet(f"""
-            QWidget {{
-                background-color: {c['bg_surface']};
-                border-radius: 12px;
-                padding: 16px;
-            }}
-        """)
+        efectivo_layout = QVBoxLayout()
+        self.efectivo_container.setLayout(efectivo_layout)
 
         pago_label = QLabel("Monto recibido:")
-        pago_label.setStyleSheet(f"font-size: 13px; color: {c['text_secondary']}; font-weight: 500; background: transparent;")
+        pago_label.setStyleSheet("font-size: 14px;")
         efectivo_layout.addWidget(pago_label)
 
         self.pago_input = QDoubleSpinBox()
         self.pago_input.setRange(0, 999999999)
         self.pago_input.setDecimals(2)
-        self.pago_input.setStyleSheet(f"""
-            QDoubleSpinBox {{
-                background-color: {c['bg_input']};
-                color: {c['text_primary']};
-                border: 1.5px solid {c['border']};
-                border-radius: 12px;
-                padding: 12px 16px;
-                font-size: 20px;
-                font-weight: 600;
-            }}
-            QDoubleSpinBox:focus {{
-                border-color: {c['primary']};
-            }}
-        """)
+        self.pago_input.setStyleSheet("font-size: 18px; padding: 8px;")
         self.pago_input.setMinimumWidth(200)
         self.pago_input.setFocus()
         self.pago_input.valueChanged.connect(self.calcular_cambio)
@@ -223,33 +121,31 @@ class PaymentDialog(QDialog):
 
         self.lbl_cambio = QLabel(f"Cambio: {fmt_moneda(0)}")
         self.lbl_cambio.setStyleSheet(
-            f"font-size: 20px; font-weight: 700; color: {c['success']}; background: transparent;"
+            "font-size: 18px; font-weight: bold; color: #27ae60;"
         )
         self.lbl_cambio.setAlignment(Qt.AlignmentFlag.AlignCenter)
         efectivo_layout.addWidget(self.lbl_cambio)
 
         layout.addWidget(self.efectivo_container)
 
-        # Botones de acción
-        buttons_layout = QHBoxLayout()
-        buttons_layout.setSpacing(12)
-        
-        # Botón Cancelar
-        btn_cancel = QPushButton("CANCELAR")
-        btn_cancel.setStyleSheet(btn_secondary())
-        btn_cancel.setFixedHeight(48)
-        btn_cancel.clicked.connect(self.reject)
-        buttons_layout.addWidget(btn_cancel)
-        
-        # Botón Confirmar
-        btn_confirm = QPushButton("CONFIRMAR PAGO")
-        btn_confirm.setStyleSheet(btn_success())
-        btn_confirm.setFixedHeight(48)
-        btn_confirm.setFont(btn_confirm.font())
-        btn_confirm.clicked.connect(self.accept)
-        buttons_layout.addWidget(btn_confirm)
-        
-        layout.addLayout(buttons_layout)
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Cancel | QDialogButtonBox.StandardButton.Ok
+        )
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        buttons.button(QDialogButtonBox.StandardButton.Ok).setText("CONFIRMAR PAGO")
+        buttons.button(QDialogButtonBox.StandardButton.Ok).setStyleSheet(f"""
+            QPushButton {{
+                background-color: {c["success"]};
+                color: {c["text_inverse"]};
+                font-size: 16px;
+                font-weight: bold;
+                padding: 10px;
+                border-radius: 8px;
+            }}
+        """)
+        buttons.button(QDialogButtonBox.StandardButton.Cancel).setText("CANCELAR")
+        layout.addWidget(buttons)
 
     def on_metodo_changed(self):
         """Handle payment method change"""
@@ -264,21 +160,18 @@ class PaymentDialog(QDialog):
 
     def calcular_cambio(self):
         """Calculate change from payment"""
-        from utils.theme import get_colors
-        c = get_colors()
-        
         pago = self.pago_input.value()
         cambio = pago - self.total
         if cambio >= 0:
             self.lbl_cambio.setText(f"Cambio: {fmt_moneda(cambio)}")
             self.lbl_cambio.setStyleSheet(
-                f"font-size: 20px; font-weight: 700; color: {c['success']}; background: transparent;"
+                "font-size: 18px; font-weight: bold; color: #27ae60;"
             )
             self.payment_amount = pago
         else:
             self.lbl_cambio.setText(f"Faltan: {fmt_moneda(abs(cambio))}")
             self.lbl_cambio.setStyleSheet(
-                f"font-size: 20px; font-weight: 700; color: {c['danger']}; background: transparent;"
+                "font-size: 18px; font-weight: bold; color: #e74c3c;"
             )
             self.payment_amount = 0
 
@@ -305,6 +198,7 @@ class VentasView(QWidget):
         self.carrito = []
         self.productos = []
         self.descuento = {"tipo": None, "valor": 0, "total": 0}
+        self.cotizacion_id = None
         self._initialized = False
         self._loading = False
         self._procesando_pago = False
@@ -1511,6 +1405,12 @@ class VentasView(QWidget):
                 descuento_total=descuento_total,
             )
 
+            if hasattr(self, "cotizacion_id") and self.cotizacion_id:
+                from services.cotizacion_service import CotizacionService
+
+                CotizacionService(self.session).marcar_facturada(self.cotizacion_id)
+                self.cotizacion_id = None
+
             generador = GeneradorTicket()
             generador.imprimir(venta, venta.items)
 
@@ -1610,8 +1510,9 @@ class VentasView(QWidget):
                 self, "Error", f"No se pudo guardar la cotización: {str(e)}"
             )
 
-    def cargar_carrito_desde_cotizacion(self, carrito, cliente):
+    def cargar_carrito_desde_cotizacion(self, carrito, cliente, cotizacion_id=None):
         """Load items from a quotation into the cart"""
+        self.cotizacion_id = cotizacion_id
         self.carrito = []
         for item in carrito:
             self.carrito.append(

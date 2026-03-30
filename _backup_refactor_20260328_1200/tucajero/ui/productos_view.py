@@ -22,7 +22,7 @@ from PySide6.QtCore import Qt, QDate
 from PySide6.QtGui import QColor
 import os
 from utils.formato import fmt_moneda
-from utils.theme import btn_primary, btn_success, btn_warning, btn_danger, btn_secondary
+from utils.theme import btn_primary, btn_danger, btn_secondary
 
 
 class ProductosView(QWidget):
@@ -213,6 +213,9 @@ class ProductosView(QWidget):
 
     def _mostrar_productos(self, productos):
         """Muestra la lista de productos en la tabla"""
+        from utils.theme import get_colors
+
+        c = get_colors()
         self.tabla.setRowCount(len(productos))
 
         for i, p in enumerate(productos):
@@ -490,7 +493,9 @@ class ProductoDialog(QDialog):
         self.fecha_vencimiento = QDateEdit()
         self.fecha_vencimiento.setCalendarPopup(True)
         self.fecha_vencimiento.setDate(QDate.currentDate())
-        self.fecha_vencimiento.setMinimumDate(QDate.currentDate())  # No permitir fechas pasadas
+        self.fecha_vencimiento.setMinimumDate(
+            QDate.currentDate()
+        )  # No permitir fechas pasadas
         self.fecha_vencimiento.setDisplayFormat("yyyy-MM-dd")
         self.fecha_vencimiento.setToolTip(
             "Fecha de vencimiento del producto (no se permiten fechas en el pasado)"
@@ -621,7 +626,7 @@ class ProductoDialog(QDialog):
                 self,
                 "Fecha inválida",
                 "La fecha de vencimiento no puede estar en el pasado.\n\n"
-                "Por favor seleccione una fecha futura o deje la fecha actual."
+                "Por favor seleccione una fecha futura o deje la fecha actual.",
             )
             return
 
@@ -702,15 +707,16 @@ class MovimientoDialog(QDialog):
         self.tipo = tipo
         from utils.theme import get_colors
 
-        c = get_colors()
+        self.c = get_colors()
         self.setWindowTitle(
             f"{'Entrada' if tipo == 'entrada' else 'Salida'} de Inventario"
         )
+        self.init_ui()
 
-    def init_ui(self, color):
+    def init_ui(self):
         from utils.theme import get_colors
 
-        c = get_colors()
+        c = self.c
         self.setStyleSheet(f"""
             QDialog {{ background-color: {c["bg_app"]}; }}
             QLabel {{ color: {c["text_primary"]}; }}

@@ -1,0 +1,516 @@
+from repositories.producto_repo import ProductoRepository
+from repositories.venta_repo import VentaRepository, InventarioRepository
+from models.producto import Categoria
+
+
+class ProductoService:
+    """Servicio para lógica de negocio de productos"""
+
+    def __init__(self, session):
+        self.session = session
+        self.repo = ProductoRepository(session)
+
+    def validar_codigo(self, codigo, exclude_id=None):
+        """Valida que el código no esté repetido"""
+        if self.repo.existe_codigo(codigo, exclude_id):
+            raise ValueError(f"El código '{codigo}' ya está en uso")
+
+    def validar_fecha_vencimiento(self, fecha_vencimiento):
+        """Valida que la fecha de vencimiento no esté en el pasado"""
+        if not fecha_vencimiento:
+            return True
+
+        from datetime import datetime, date
+
+        if isinstance(fecha_vencimiento, datetime):
+            fecha_venc = fecha_vencimiento.date()
+        elif isinstance(fecha_vencimiento, date):
+            fecha_venc = fecha_vencimiento
+        else:
+            raise ValueError("Formato de fecha no válido")
+
+        if fecha_venc < date.today():
+            raise ValueError("La fecha de vencimiento no puede estar en el pasado")
+        return True
+
+    def validar_producto_fraccion(self, producto_id, fraccion_id):
+        """Evita ciclos en relaciones de fraccionamiento"""
+        if not fraccion_id:
+            return True
+
+        if producto_id == fraccion_id:
+            raise ValueError("Un producto no puede ser fracción de sí mismo")
+
+        # Verificar ciclo: si fraccion_id ya apunta a producto_id
+        fraccion = self.repo.get_by_id(fraccion_id)
+        if fraccion and fraccion.producto_fraccion_id == producto_id:
+            raise ValueError("Ciclo detectado: estos productos ya están relacionados")
+
+        return True
+
+    def get_all_productos(self):
+        """Retorna todos los productos"""
+        return self.repo.get_all()
+
+    def get_producto_by_id(self, producto_id):
+        """Retorna un producto por ID"""
+        return self.repo.get_by_id(producto_id)
+
+    def get_producto_by_codigo(self, codigo):
+        """Retorna un producto por código"""
+        return self.repo.get_by_codigo(codigo)
+
+    def get_producto_by_nombre(self, nombre):
+        """Busca productos por nombre parcial"""
+        return self.repo.search_por_nombre(nombre)
+
+    def create_producto(
+        self,
+        codigo,
+        nombre,
+        precio,
+        costo=0,
+        stock=0,
+        aplica_iva=True,
+        categoria_id=None,
+        stock_minimo=0,
+        fecha_vencimiento=None,
+        producto_fraccion_id=None,
+    ):
+        """Crea un nuevo producto"""
+        self.validar_codigo(codigo)
+
+        # Validar fecha de vencimiento no esté en el pasado
+        if fecha_vencimiento:
+            self.validar_fecha_vencimiento(fecha_vencimiento)
+
+        # Validar relación de fraccionamiento para evitar ciclos
+        if producto_fraccion_id:
+            self.validar_producto_fraccion(None, producto_fraccion_id)
+
+        return self.repo.create(
+            codigo,
+            nombre,
+            precio,
+            costo,
+            stock,
+            aplica_iva,
+            categoria_id,
+            stock_minimo,
+            fecha_vencimiento,
+            producto_fraccion_id,
+        )
+
+    def update_producto(self, producto_id, **kwargs):
+        """Actualiza un producto"""
+        if "codigo" in kwargs:
+            self.validar_codigo(kwargs["codigo"], exclude_id=producto_id)
+
+        # Validar fecha de vencimiento no esté en el pasado
+        if "fecha_vencimiento" in kwargs and kwargs["fecha_vencimiento"]:
+            self.validar_fecha_vencimiento(kwargs["fecha_vencimiento"])
+
+        # Validar relación de fraccionamiento para evitar ciclos
+        if "producto_fraccion_id" in kwargs and kwargs["producto_fraccion_id"]:
+            self.validar_producto_fraccion(producto_id, kwargs["producto_fraccion_id"])
+
+        return self.repo.update(producto_id, **kwargs)
+
+    def delete_producto(self, producto_id):
+        """Elimina un producto"""
+        return self.repo.delete(producto_id)
+
+    def search_productos(self, query):
+        """Busca productos"""
+        return self.repo.search(query)
+
+    def get_productos_stock_bajo(self):
+        """Retorna productos cuyo stock está en o debajo del mínimo"""
+        return [
+            p
+            for p in self.repo.get_all()
+            if p.stock_minimo and p.stock_minimo > 0 and p.stock <= p.stock_minimo
+        ]
+
+    def get_productos_stock_critico(self):
+        """Stock = 0 o negativo"""
+        return [p for p in self.repo.get_all() if p.stock <= 0]
+
+    def get_productos_bajo_stock_limite(self, limite=5):
+        """Retorna productos con stock menor o igual al límite"""
+        return [p for p in self.repo.get_all() if p.stock <= limite and p.stock > 0]
+
+    def get_productos_proximos_vencimiento(self, dias=30):
+        """Retorna productos próximos a vencer (dentro de X días)"""
+        from datetime import datetime, timedelta
+
+        fecha_limite = datetime.now() + timedelta(days=dias)
+        return [
+            p
+            for p in self.repo.get_all()
+            if p.fecha_vencimiento
+            and p.fecha_vencimiento <= fecha_limite
+            and p.fecha_vencimiento >= datetime.now()
+        ]
+
+
+class CategoriaService:
+    """Servicio para gestión de categorías"""
+
+    def __init__(self, session):
+        self.session = session
+
+    def get_all(self):
+        """Retorna todas las categorías ordenadas"""
+        return self.session.query(Categoria).order_by(Categoria.nombre).all()
+
+    def get_by_id(self, categoria_id):
+        """Retorna una categoría por ID"""
+        return (
+            self.session.query(Categoria).filter(Categoria.id == categoria_id).first()
+        )
+
+    def create(self, nombre, descripcion=""):
+        """Crea una nueva categoría"""
+        if self.session.query(Categoria).filter(Categoria.nombre == nombre).first():
+            raise ValueError(f"La categoría '{nombre}' ya existe")
+        c = Categoria(nombre=nombre, descripcion=descripcion)
+        self.session.add(c)
+        self.session.commit()
+        return c
+
+    def update(self, categoria_id, nombre, descripcion=""):
+        """Actualiza una categoría"""
+        c = self.get_by_id(categoria_id)
+        if not c:
+            raise ValueError("Categoría no encontrada")
+        if nombre != c.nombre:
+            existente = (
+                self.session.query(Categoria).filter(Categoria.nombre == nombre).first()
+            )
+            if existente:
+                raise ValueError(f"La categoría '{nombre}' ya existe")
+        c.nombre = nombre
+        c.descripcion = descripcion
+        self.session.commit()
+        return c
+
+    def delete(self, categoria_id):
+        """Elimina una categoría (solo si no tiene productos)"""
+        c = self.get_by_id(categoria_id)
+        if not c:
+            raise ValueError("Categoría no encontrada")
+        if c.productos and len([p for p in c.productos if p.activo]) > 0:
+            raise ValueError("No se puede eliminar: hay productos en esta categoría")
+        self.session.delete(c)
+        self.session.commit()
+
+
+class VentaService:
+    """Servicio para lógica de negocio de ventas"""
+
+    def __init__(self, session):
+        self.session = session
+        self.venta_repo = VentaRepository(session)
+        self.producto_repo = ProductoRepository(session)
+        self.inventario_repo = InventarioRepository(session)
+        from services.corte_service import CorteCajaService
+
+        self.corte_service = CorteCajaService(session)
+
+    def registrar_venta(
+        self,
+        items,
+        metodo_pago=None,
+        cliente_id=None,
+        es_credito=False,
+        descuento_tipo=None,
+        descuento_valor=0,
+        descuento_total=0,
+        comprobante=None,
+    ):
+        """Registra una venta y descuenta inventario"""
+        if not self.corte_service.esta_caja_abierta():
+            raise Exception(
+                "No se puede registrar la venta porque la caja está cerrada."
+            )
+
+        for item in items:
+            producto = self.producto_repo.get_by_id(item["producto_id"])
+            if producto.stock < item["cantidad"]:
+                raise ValueError(f"Stock insuficiente para {producto.nombre}")
+
+        subtotal = sum(item["cantidad"] * item["precio"] for item in items)
+        iva = 0
+        for item in items:
+            if item.get("aplica_iva", True):
+                iva += round(item["cantidad"] * item["precio"] * 0.19, 2)
+        total = max(0, (subtotal + iva) - descuento_total)
+
+        venta = self.venta_repo.create_venta(
+            items,
+            metodo_pago=metodo_pago,
+            cliente_id=cliente_id,
+            es_credito=es_credito,
+            descuento_tipo=descuento_tipo,
+            descuento_valor=descuento_valor,
+            descuento_total=descuento_total,
+            comprobante=comprobante,
+        )
+
+        if es_credito and cliente_id:
+            from repositories.cliente_repo import ClienteRepository
+
+            ClienteRepository(self.session).agregar_credito(cliente_id, total)
+
+        return venta
+
+    def anular_venta(self, venta_id):
+        """Anula una venta y restaura el stock"""
+        venta = self.venta_repo.get_venta_by_id(venta_id)
+        if not venta:
+            raise ValueError(f"Venta #{venta_id} no encontrada")
+        if venta.anulada:
+            raise ValueError(f"Venta #{venta_id} ya está anulada")
+
+        for item in venta.items:
+            self.producto_repo.update_stock(item.producto_id, item.cantidad)
+            self.inventario_repo.create_movimiento(
+                item.producto_id, "entrada", item.cantidad
+            )
+
+        self.venta_repo.anular_venta(venta_id)
+        return venta
+
+    def get_ventas_hoy(self):
+        """Retorna las ventas de hoy"""
+        return self.venta_repo.get_ventas_hoy()
+
+    def get_total_hoy(self):
+        """Retorna el total de ventas de hoy"""
+        return self.venta_repo.get_total_hoy()
+
+    def get_count_hoy(self):
+        """Retorna el número de ventas de hoy"""
+        return self.venta_repo.get_count_hoy()
+
+    def get_total_mes(self):
+        """Retorna el total de ventas del mes actual"""
+        from datetime import datetime
+        from sqlalchemy import func
+
+        hoy = datetime.now()
+        inicio_mes = hoy.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+        from models.producto import Venta
+
+        resultado = (
+            self.session.query(func.sum(Venta.total))
+            .filter(Venta.fecha >= inicio_mes, Venta.anulada == False)
+            .scalar()
+        )
+        return resultado or 0
+
+    def get_num_ventas_hoy(self):
+        """Retorna el número de ventas de hoy"""
+        return self.get_count_hoy()
+
+    def get_ventas_ultimos_7_dias(self):
+        """Retorna ventas de los últimos 7 días"""
+        from datetime import datetime, timedelta
+        from models.producto import Venta
+        from sqlalchemy import func
+
+        hoy = datetime.now()
+        hace_7_dias = hoy - timedelta(days=7)
+
+        resultados = (
+            self.session.query(
+                func.date(Venta.fecha).label("fecha"),
+                func.sum(Venta.total).label("total"),
+            )
+            .filter(Venta.fecha >= hace_7_dias, Venta.anulada == False)
+            .group_by(func.date(Venta.fecha))
+            .order_by(func.date(Venta.fecha))
+            .all()
+        )
+
+        labels = [str(r.fecha) for r in resultados]
+        valores = [float(r.total or 0) for r in resultados]
+        return labels, valores
+
+    def get_ventas_por_metodo(self):
+        """Retorna ventas por método de pago"""
+        from models.producto import Venta
+        from sqlalchemy import func
+
+        resultados = (
+            self.session.query(Venta.metodo_pago, func.sum(Venta.total))
+            .filter(Venta.metodo_pago.isnot(None), Venta.anulada == False)
+            .group_by(Venta.metodo_pago)
+            .all()
+        )
+
+        labels = [r[0] or "Efectivo" for r in resultados]
+        valores = [float(r[1] or 0) for r in resultados]
+        return labels, valores
+
+    def get_top_vendidos(self):
+        """Retorna los productos más vendidos"""
+        from models.producto import Venta, VentaItem, Producto
+        from sqlalchemy import func
+
+        resultados = (
+            self.session.query(
+                Producto.nombre,
+                func.sum(VentaItem.cantidad).label("cantidad"),
+                func.sum(VentaItem.cantidad * VentaItem.precio).label("ingreso"),
+            )
+            .join(VentaItem, VentaItem.producto_id == Producto.id)
+            .join(Venta, Venta.id == VentaItem.venta_id)
+            .filter(Venta.anulada == False)
+            .group_by(Producto.id)
+            .order_by(func.sum(VentaItem.cantidad).desc())
+            .limit(10)
+            .all()
+        )
+
+        class ProductoTop:
+            def __init__(self, nombre, cantidad, ingreso):
+                self.nombre = nombre
+                self.cantidad = cantidad
+                self.ingreso = ingreso
+
+        return [ProductoTop(r.nombre, r.cantidad, r.ingreso) for r in resultados]
+
+
+class InventarioService:
+    """Servicio para lógica de negocio de inventario"""
+
+    def __init__(self, session):
+        self.session = session
+        self.producto_repo = ProductoRepository(session)
+        self.inventario_repo = InventarioRepository(session)
+
+    def entrada_inventario(self, producto_id, cantidad):
+        """Registra entrada de inventario"""
+        self.producto_repo.update_stock(producto_id, cantidad)
+        return self.inventario_repo.create_movimiento(producto_id, "entrada", cantidad)
+
+    def salida_inventario(self, producto_id, cantidad):
+        """Registra salida manual de inventario"""
+        producto = self.producto_repo.get_by_id(producto_id)
+        if producto.stock < cantidad:
+            raise ValueError("Stock insuficiente")
+        self.producto_repo.update_stock(producto_id, -cantidad)
+        return self.inventario_repo.create_movimiento(producto_id, "salida", cantidad)
+
+    def descontar_por_venta(self, producto_id, cantidad):
+        """Descuenta inventario por venta (usado desde ventas)"""
+        producto = self.producto_repo.get_by_id(producto_id)
+        if producto.stock < cantidad:
+            raise ValueError(f"Stock insuficiente para {producto.nombre}")
+        self.producto_repo.update_stock(producto_id, -cantidad)
+        return self.inventario_repo.create_movimiento(producto_id, "salida", cantidad)
+
+    def obtener_stock(self, producto_id):
+        """Obtiene el stock actual de un producto"""
+        producto = self.producto_repo.get_by_id(producto_id)
+        return producto.stock if producto else 0
+
+    def get_movimientos_producto(self, producto_id):
+        """Retorna los movimientos de un producto"""
+        return self.inventario_repo.get_movimientos_producto(producto_id)
+
+    def get_all_productos(self):
+        """Retorna todos los productos con su stock"""
+        return self.producto_repo.get_all()
+
+    def get_total_mes(self):
+        """Retorna el total de ventas del mes actual"""
+        from datetime import datetime
+        from sqlalchemy import func
+
+        hoy = datetime.now()
+        inicio_mes = hoy.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+        from models.producto import Venta
+
+        resultado = (
+            self.session.query(func.sum(Venta.total))
+            .filter(Venta.fecha >= inicio_mes, Venta.anulada == False)
+            .scalar()
+        )
+        return resultado or 0
+
+    def get_num_ventas_hoy(self):
+        """Retorna el número de ventas de hoy"""
+        return self.venta_repo.get_count_hoy()
+
+    def get_ventas_ultimos_7_dias(self):
+        """Retorna ventas de los últimos 7 días"""
+        from datetime import datetime, timedelta
+        from models.producto import Venta
+        from sqlalchemy import func
+
+        hoy = datetime.now()
+        hace_7_dias = hoy - timedelta(days=7)
+
+        resultados = (
+            self.session.query(
+                func.date(Venta.fecha).label("fecha"),
+                func.sum(Venta.total).label("total"),
+            )
+            .filter(Venta.fecha >= hace_7_dias, Venta.anulada == False)
+            .group_by(func.date(Venta.fecha))
+            .order_by(func.date(Venta.fecha))
+            .all()
+        )
+
+        labels = [str(r.fecha) for r in resultados]
+        valores = [float(r.total or 0) for r in resultados]
+        return labels, valores
+
+    def get_ventas_por_metodo(self):
+        """Retorna ventas por método de pago"""
+        from models.producto import Venta
+        from sqlalchemy import func
+
+        resultados = (
+            self.session.query(Venta.metodo_pago, func.sum(Venta.total))
+            .filter(Venta.metodo_pago.isnot(None), Venta.anulada == False)
+            .group_by(Venta.metodo_pago)
+            .all()
+        )
+
+        labels = [r[0] or "Efectivo" for r in resultados]
+        valores = [float(r[1] or 0) for r in resultados]
+        return labels, valores
+
+    def get_top_vendidos(self):
+        """Retorna los productos más vendidos"""
+        from models.producto import Venta, VentaItem, Producto
+        from sqlalchemy import func
+
+        resultados = (
+            self.session.query(
+                Producto.nombre,
+                func.sum(VentaItem.cantidad).label("cantidad"),
+                func.sum(VentaItem.cantidad * VentaItem.precio).label("ingreso"),
+            )
+            .join(VentaItem, VentaItem.producto_id == Producto.id)
+            .join(Venta, Venta.id == VentaItem.venta_id)
+            .filter(Venta.anulada == False)
+            .group_by(Producto.id)
+            .order_by(func.sum(VentaItem.cantidad).desc())
+            .limit(10)
+            .all()
+        )
+
+        class ProductoTop:
+            def __init__(self, nombre, cantidad, ingreso):
+                self.nombre = nombre
+                self.cantidad = cantidad
+                self.ingreso = ingreso
+
+        return [ProductoTop(r.nombre, r.cantidad, r.ingreso) for r in resultados]

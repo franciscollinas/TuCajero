@@ -20,7 +20,7 @@ from utils.store_config import (
     get_email,
     get_address,
 )
-from utils.theme import btn_primary, btn_secondary, btn_danger, btn_sidebar, get_colors, header_style
+from utils.theme import btn_primary, btn_secondary, btn_danger
 import os
 
 
@@ -77,7 +77,7 @@ class MainWindow(QMainWindow):
         c = get_colors()
 
         header = QWidget()
-        header.setFixedHeight(70)
+        header.setFixedHeight(60)
         header.setStyleSheet(f"""
             QWidget {{
                 background-color: {c["bg_card"]};
@@ -86,39 +86,39 @@ class MainWindow(QMainWindow):
         """)
         layout = QHBoxLayout(header)
         layout.setContentsMargins(24, 0, 24, 0)
-        layout.setSpacing(16)
+        layout.setSpacing(12)
 
         # Logo del negocio
         logo = QLabel()
-        logo.setFixedSize(42, 42)
+        logo.setFixedSize(38, 38)
         logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         logo_path = get_logo_path()
         if logo_path and os.path.exists(logo_path):
             from PySide6.QtGui import QPixmap
 
             pix = QPixmap(logo_path).scaled(
-                40,
-                40,
+                36,
+                36,
                 Qt.AspectRatioMode.KeepAspectRatioByExpanding,
                 Qt.TransformationMode.SmoothTransformation,
             )
             logo.setPixmap(pix)
-            logo.setStyleSheet(f"border-radius: 21px; border: 2px solid {c['border']};")
+            logo.setStyleSheet(f"border-radius: 19px; border: 2px solid {c['border']};")
         else:
             logo.setText("🏪")
             logo.setStyleSheet(
-                f"background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 {c['primary']}, stop:1 {c['info']}); border-radius: 21px; font-size: 20px; border: none;"
+                f"background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 {c['accent']}, stop:1 {c['info']}); border-radius: 19px; font-size: 18px; border: none;"
             )
         layout.addWidget(logo)
 
         # Info del negocio
         info_col = QVBoxLayout()
-        info_col.setSpacing(2)
+        info_col.setSpacing(1)
         info_col.setContentsMargins(0, 0, 0, 0)
 
         store_lbl = QLabel(get_store_name())
         store_lbl.setStyleSheet(
-            f"color: {c['text_primary']}; font-size: 16px; font-weight: 700; background: transparent; border: none;"
+            f"color: {c['text_primary']}; font-size: 15px; font-weight: bold; background: transparent; border: none;"
         )
         info_col.addWidget(store_lbl)
 
@@ -139,25 +139,24 @@ class MainWindow(QMainWindow):
         layout.addLayout(info_col)
         layout.addStretch()
 
-        # Widget de usuario estilo Premium
+        # Widget de usuario estilo Sovereign
         user_w = QWidget()
         user_w.setStyleSheet(f"""
             QWidget {{
                 background-color: {c["bg_input"]};
-                border-radius: 22px;
+                border-radius: 20px;
                 border: 1px solid {c["border"]};
-                padding: 4px;
             }}
         """)
         ul = QHBoxLayout(user_w)
-        ul.setContentsMargins(12, 4, 16, 4)
-        ul.setSpacing(10)
+        ul.setContentsMargins(10, 5, 14, 5)
+        ul.setSpacing(8)
 
         av = QLabel("👑")
-        av.setFixedSize(32, 32)
+        av.setFixedSize(28, 28)
         av.setAlignment(Qt.AlignmentFlag.AlignCenter)
         av.setStyleSheet(
-            f"background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 {c['primary']}, stop:1 {c['primary_container']}); border-radius: 16px; font-size: 14px; border: none;"
+            f"background: {c['accent']}; border-radius: 14px; font-size: 13px; border: none;"
         )
         ul.addWidget(av)
 
@@ -166,11 +165,11 @@ class MainWindow(QMainWindow):
         u_info.setContentsMargins(0, 0, 0, 0)
         self.lbl_cajero = QLabel("Administrador")
         self.lbl_cajero.setStyleSheet(
-            f"color: {c['text_primary']}; font-size: 13px; font-weight: 600; background: transparent; border: none;"
+            f"color: {c['text_primary']}; font-size: 12px; font-weight: bold; background: transparent; border: none;"
         )
         lbl_rol = QLabel("EXECUTIVE LEVEL")
         lbl_rol.setStyleSheet(
-            f"color: {c['text_muted']}; font-size: 9px; letter-spacing: 0.5px; background: transparent; border: none; text-transform: uppercase;"
+            f"color: {c['text_muted']}; font-size: 9px; letter-spacing: 0.5px; background: transparent; border: none;"
         )
         u_info.addWidget(self.lbl_cajero)
         u_info.addWidget(lbl_rol)
@@ -180,16 +179,16 @@ class MainWindow(QMainWindow):
         return header
 
     def _build_sidebar(self):
-        from utils.theme import get_colors, btn_sidebar
+        from utils.theme import get_colors
         from utils.store_config import get_logo_path
         import os
 
         c = get_colors()
 
         sidebar = QWidget()
-        sidebar.setFixedWidth(240)
+        sidebar.setFixedWidth(220)
         sidebar.setStyleSheet(
-            f"QWidget {{ background-color: {c['bg_sidebar']}; border: none; }}"
+            f"QWidget {{ background-color: {c['bg_sidebar'] if 'bg_sidebar' in c else '#1e293b'}; border: none; }}"
         )
 
         layout = QVBoxLayout(sidebar)
@@ -198,17 +197,17 @@ class MainWindow(QMainWindow):
 
         # ── Header del sidebar ──────────────────────────────────
         header = QWidget()
-        header.setFixedHeight(70)
+        header.setFixedHeight(64)
         header.setStyleSheet(
-            f"background-color: {c['bg_sidebar']}; border-bottom: 1px solid {c['border']};"
+            f"background-color: {c['bg_sidebar'] if 'bg_sidebar' in c else '#1e293b'}; border-bottom: 1px solid {c['border']};"
         )
         h_layout = QHBoxLayout(header)
         h_layout.setContentsMargins(16, 0, 16, 0)
-        h_layout.setSpacing(12)
+        h_layout.setSpacing(10)
 
         # Logo
         logo = QLabel()
-        logo.setFixedSize(38, 38)
+        logo.setFixedSize(34, 34)
         logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         app_icon = os.path.join(
             os.path.dirname(__file__), "..", "assets", "icons", "tucajero.ico"
@@ -218,37 +217,37 @@ class MainWindow(QMainWindow):
             from PySide6.QtGui import QPixmap
 
             pix = QPixmap(app_icon).scaled(
-                34,
-                34,
+                30,
+                30,
                 Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation,
             )
             logo.setPixmap(pix)
             logo.setStyleSheet(
-                "border-radius: 10px; background: transparent; border: none;"
+                "border-radius: 6px; background: transparent; border: none;"
             )
         elif store_logo and os.path.exists(store_logo):
             from PySide6.QtGui import QPixmap
 
             pix = QPixmap(store_logo).scaled(
-                34,
-                34,
+                30,
+                30,
                 Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation,
             )
             logo.setPixmap(pix)
             logo.setStyleSheet(
-                "border-radius: 10px; background: transparent; border: none;"
+                "border-radius: 6px; background: transparent; border: none;"
             )
         else:
             logo.setText("TC")
             logo.setStyleSheet(
-                f"background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 {c['primary']}, stop:1 {c['primary_container']}); color: white; border-radius: 10px; font-size: 13px; font-weight: 700; border: none;"
+                "background-color: #3b82f6; color: white; border-radius: 8px; font-size: 12px; font-weight: bold; border: none;"
             )
 
         app_name = QLabel("TuCajero")
         app_name.setStyleSheet(
-            f"color: {c['text_primary']}; font-size: 17px; font-weight: 700; background: transparent; border: none;"
+            "color: #f1f5f9; font-size: 16px; font-weight: bold; background: transparent; border: none;"
         )
 
         h_layout.addWidget(logo)
@@ -259,7 +258,7 @@ class MainWindow(QMainWindow):
         # ── Label MENÚ ─────────────────────────────────────────
         menu_label = QLabel("MENÚ")
         menu_label.setStyleSheet(
-            f"color: {c['text_muted']}; font-size: 10px; font-weight: 600; letter-spacing: 1px; padding: 20px 20px 6px 20px; background: transparent; text-transform: uppercase;"
+            f"color: {c['text_muted']}; font-size: 10px; font-weight: bold; letter-spacing: 1px; padding: 20px 20px 6px 20px; background: transparent;"
         )
         layout.addWidget(menu_label)
 
@@ -281,9 +280,11 @@ class MainWindow(QMainWindow):
         self._nav_group.setExclusive(True)
         for icon, label, key in nav_items:
             btn = QPushButton(f"  {icon}   {label}")
-            btn.setFixedHeight(44)
+            btn.setFixedHeight(40)
             btn.setCheckable(True)
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            from utils.theme import btn_sidebar
+
             btn.setStyleSheet(btn_sidebar())
             btn.clicked.connect(lambda checked, k=key: self.switch_view_by_name(k))
             self._nav_buttons[key] = btn
@@ -295,13 +296,13 @@ class MainWindow(QMainWindow):
         # ── Separador ──────────────────────────────────────────
         sep = QFrame()
         sep.setFrameShape(QFrame.Shape.HLine)
-        sep.setStyleSheet(f"background-color: {c['border']}; border: none; max-height: 1px;")
+        sep.setStyleSheet("background-color: #334155; border: none; max-height: 1px;")
         layout.addWidget(sep)
 
         # ── Footer ─────────────────────────────────────────────
         self.lbl_cajero_footer = QLabel("👑  Administrador")
         self.lbl_cajero_footer.setStyleSheet(
-            f"color: {c['success']}; font-size: 12px; font-weight: 500; padding: 10px 16px 4px 16px; background: transparent;"
+            f"color: {c['success']}; font-size: 12px; padding: 10px 16px 4px 16px; background: transparent;"
         )
         layout.addWidget(self.lbl_cajero_footer)
 
@@ -348,6 +349,9 @@ class MainWindow(QMainWindow):
             view = VentasView(
                 self.session, parent=self, cajero_activo=self.cajero_activo
             )
+            cot_view = self._views.get("cotizaciones")
+            if cot_view and hasattr(cot_view, "cargar_en_ventas"):
+                cot_view.cargar_en_ventas.connect(view.cargar_carrito_desde_cotizacion)
         elif name == "productos":
             from ui.productos_view import ProductosView
 

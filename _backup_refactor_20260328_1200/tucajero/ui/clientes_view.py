@@ -16,7 +16,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
 from utils.formato import fmt_moneda
-from utils.theme import btn_primary, btn_success, btn_warning, btn_danger, btn_secondary
+from utils.theme import btn_primary, btn_danger, btn_secondary
 
 
 class ClientesView(QWidget):
