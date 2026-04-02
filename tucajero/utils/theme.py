@@ -573,11 +573,11 @@ def btn_primary():
             background-color: {c["primary"]};
             color: white;
             border: none;
-            border-radius: 12px;
-            padding: 11px 20px;
+            border-radius: 8px;
+            padding: 8px 14px;
             font-size: 13px;
             font-weight: 600;
-            min-height: 42px;
+            min-height: 30px;
         }}
         QPushButton:hover {{
             background-color: {c["primary_hover"]};
@@ -600,11 +600,11 @@ def btn_success():
             background-color: {c["success"]};
             color: white;
             border: none;
-            border-radius: 12px;
-            padding: 11px 20px;
+            border-radius: 8px;
+            padding: 8px 14px;
             font-size: 13px;
             font-weight: 600;
-            min-height: 42px;
+            min-height: 30px;
         }}
         QPushButton:hover {{
             background-color: {c["success_hover"]};
@@ -627,11 +627,11 @@ def btn_warning():
             background-color: {c["warning"]};
             color: white;
             border: none;
-            border-radius: 12px;
-            padding: 11px 20px;
+            border-radius: 8px;
+            padding: 8px 14px;
             font-size: 13px;
             font-weight: 600;
-            min-height: 42px;
+            min-height: 30px;
         }}
         QPushButton:hover {{
             background-color: {c["warning_hover"]};
@@ -654,11 +654,11 @@ def btn_danger():
             background-color: {c["danger"]};
             color: white;
             border: none;
-            border-radius: 12px;
-            padding: 11px 20px;
+            border-radius: 8px;
+            padding: 8px 14px;
             font-size: 13px;
             font-weight: 600;
-            min-height: 42px;
+            min-height: 30px;
         }}
         QPushButton:hover {{
             background-color: {c["danger_hover"]};
@@ -681,11 +681,11 @@ def btn_secondary():
             background-color: {c["bg_input"]};
             color: {c["text_primary"]};
             border: 1.5px solid {c["border"]};
-            border-radius: 12px;
-            padding: 11px 20px;
+            border-radius: 8px;
+            padding: 8px 14px;
             font-size: 13px;
             font-weight: 500;
-            min-height: 42px;
+            min-height: 30px;
         }}
         QPushButton:hover {{
             background-color: {c["bg_card_hover"]};

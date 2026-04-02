@@ -87,6 +87,7 @@ class ProductosView(QWidget):
         layout.addWidget(self.input_busqueda)
 
         btn_layout = QHBoxLayout()
+        btn_layout.setContentsMargins(0, 10, 0, 10)  # 10px arriba y abajo
         btn_layout.addStretch()
 
         btn_agregar = QPushButton("+ Agregar Producto")
@@ -149,6 +150,7 @@ class ProductosView(QWidget):
         layout.addWidget(self.tabla)
 
         btn_layout = QHBoxLayout()
+        btn_layout.setContentsMargins(0, 10, 0, 10)  # 10px arriba y abajo
 
         self.btn_desempacar = QPushButton("💊 Desempacar")
         self.btn_desempacar.setStyleSheet(btn_primary())
