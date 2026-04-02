@@ -490,18 +490,19 @@ class VentasView(QWidget):
         cart_l.setSpacing(0)
 
         self.tabla_carrito = QTableWidget()
-        self.tabla_carrito.setColumnCount(6)
+        self.tabla_carrito.setColumnCount(7)
         self.tabla_carrito.setHorizontalHeaderLabels(
-            ["Código", "Producto", "Cant.", "Precio", "IVA", "Subtotal"]
+            ["Código", "Stock", "Producto", "Cant.", "Precio", "IVA", "Subtotal"]
         )
         self.tabla_carrito.horizontalHeader().setSectionResizeMode(
-            1, QHeaderView.ResizeMode.Stretch
+            2, QHeaderView.ResizeMode.Stretch  # Producto
         )
-        self.tabla_carrito.setColumnWidth(0, 100)  # Código
-        self.tabla_carrito.setColumnWidth(2, 160)  # Cant.
-        self.tabla_carrito.setColumnWidth(3, 110)  # Precio
-        self.tabla_carrito.setColumnWidth(4, 90)  # IVA
-        self.tabla_carrito.setColumnWidth(5, 120)  # Subtotal
+        self.tabla_carrito.setColumnWidth(0, 120)  # Código
+        self.tabla_carrito.setColumnWidth(1, 80)   # Stock
+        self.tabla_carrito.setColumnWidth(3, 140)  # Cant. (más ancho para botones)
+        self.tabla_carrito.setColumnWidth(4, 120)  # Precio
+        self.tabla_carrito.setColumnWidth(5, 100)  # IVA
+        self.tabla_carrito.setColumnWidth(6, 130)  # Subtotal
         self.tabla_carrito.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.tabla_carrito.setAlternatingRowColors(False)
         self.tabla_carrito.verticalHeader().setVisible(False)
@@ -518,6 +519,9 @@ class VentasView(QWidget):
             QTableWidget::item {{
                 padding: 2px 8px;
                 border-bottom: 1px solid {c["border"]};
+                text-align: center;
+                min-height: 30px;
+                min-width: 30px;
             }}
             QTableWidget::item:selected {{
                 background-color: {c["primary"]};
@@ -536,6 +540,7 @@ class VentasView(QWidget):
                 border: none;
                 border-bottom: 1px solid {c["border"]};
                 text-transform: uppercase;
+                text-align: center;
             }}
         """)
         cart_l.addWidget(self.tabla_carrito)
@@ -1001,6 +1006,7 @@ class VentasView(QWidget):
                     "nombre": producto.nombre,
                     "precio": float(producto.precio),
                     "cantidad": 1,
+                    "stock": getattr(producto, "stock", 0),
                     "aplica_iva": getattr(producto, "aplica_iva", True),
                 }
             )
@@ -1087,27 +1093,47 @@ class VentasView(QWidget):
             subtotal_total += precio * cantidad
 
             from PySide6.QtWidgets import QTableWidgetItem
+            from PySide6.QtCore import Qt
 
-            self.tabla_carrito.setItem(i, 0, QTableWidgetItem(item["codigo"]))
-            self.tabla_carrito.setItem(i, 1, QTableWidgetItem(item["nombre"]))
+            # Código (centrado)
+            item_codigo = QTableWidgetItem(item["codigo"])
+            item_codigo.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.tabla_carrito.setItem(i, 0, item_codigo)
+            
+            # Stock (centrado)
+            item_stock = QTableWidgetItem(str(item["stock"]))
+            item_stock.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.tabla_carrito.setItem(i, 1, item_stock)
+            
+            # Producto (centrado)
+            item_nombre = QTableWidgetItem(item["nombre"])
+            item_nombre.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.tabla_carrito.setItem(i, 2, item_nombre)
+            
             self.tabla_carrito.setCellWidget(
-                i, 2, self._crear_widget_cantidad(i, cantidad)
+                i, 3, self._crear_widget_cantidad(i, cantidad)
             )
 
+            # Precio (centrado)
             lbl_precio = QTableWidgetItem(fmt_moneda(precio))
             lbl_precio.setFlags(lbl_precio.flags() & ~Qt.ItemFlag.ItemIsEditable)
-            self.tabla_carrito.setItem(i, 3, lbl_precio)
+            lbl_precio.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.tabla_carrito.setItem(i, 4, lbl_precio)
 
+            # IVA (centrado)
             lbl_iva = QTableWidgetItem(fmt_moneda(iva) if aplica_iva else "—")
             lbl_iva.setFlags(lbl_iva.flags() & ~Qt.ItemFlag.ItemIsEditable)
-            self.tabla_carrito.setItem(i, 4, lbl_iva)
+            lbl_iva.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.tabla_carrito.setItem(i, 5, lbl_iva)
 
+            # Subtotal (centrado)
             lbl_subtotal = QTableWidgetItem(fmt_moneda(total_item))
             lbl_subtotal.setFlags(lbl_subtotal.flags() & ~Qt.ItemFlag.ItemIsEditable)
-            self.tabla_carrito.setItem(i, 5, lbl_subtotal)
+            lbl_subtotal.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.tabla_carrito.setItem(i, 6, lbl_subtotal)
 
-            # Aumentado mucho más para evitar clipping en cualquier resolución
-            self.tabla_carrito.setRowHeight(i, 65)
+            # Aumentado para que los botones se vean completos
+            self.tabla_carrito.setRowHeight(i, 70)
 
         self._actualizar_resumen(subtotal_total, iva_total)
         self.tabla_carrito.scrollToBottom()
@@ -1120,33 +1146,33 @@ class VentasView(QWidget):
         c = get_colors()
 
         qty_widget = QWidget()
-        qty_widget.setFixedHeight(50)
+        qty_widget.setFixedSize(130, 55)  # Ancho fijo para centrar en la celda
         qty_widget.setStyleSheet("background: transparent;")
         qty_layout = QHBoxLayout(qty_widget)
-        qty_layout.setContentsMargins(6, 2, 6, 2)
-        qty_layout.setSpacing(8)
+        qty_layout.setContentsMargins(4, 4, 4, 4)
+        qty_layout.setSpacing(6)
         qty_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         btn_m = QPushButton("−")
-        btn_m.setFixedSize(25, 25)
+        btn_m.setFixedSize(32, 32)
         btn_m.setStyleSheet(f"""
             QPushButton {{
                 background: {c["danger"]};
-                color: white; border-radius: 12px;
-                font-size: 14px; font-weight: bold; border: none; padding: 0;
+                color: white; border-radius: 16px;
+                font-size: 16px; font-weight: bold; border: none; padding: 0;
             }}
             QPushButton:hover {{ background: #dc2626; }}
         """)
 
         lbl_qty = QLineEdit(str(cantidad))
         lbl_qty.setValidator(QIntValidator(1, 99999))  # Hasta 5 cifras
-        lbl_qty.setFixedWidth(70)
+        lbl_qty.setFixedWidth(75)
         lbl_qty.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lbl_qty.setStyleSheet(
-            f"color: {c['text_primary']}; font-weight: bold; font-size: 14px; "
+            f"color: {c['text_primary']}; font-weight: bold; font-size: 15px; "
             "background: transparent; border: none; padding: 0px; margin: 0px;"
         )
-        lbl_qty.setFixedHeight(30)
+        lbl_qty.setFixedHeight(35)
 
         def update_qty():
             text = lbl_qty.text()
@@ -1157,12 +1183,12 @@ class VentasView(QWidget):
         lbl_qty.editingFinished.connect(update_qty)
 
         btn_p = QPushButton("+")
-        btn_p.setFixedSize(25, 25)
+        btn_p.setFixedSize(32, 32)
         btn_p.setStyleSheet(f"""
             QPushButton {{
                 background: {c["success"]};
-                color: white; border-radius: 12px;
-                font-size: 14px; font-weight: bold; border: none; padding: 0;
+                color: white; border-radius: 16px;
+                font-size: 16px; font-weight: bold; border: none; padding: 0;
             }}
             QPushButton:hover {{ background: #059669; }}
         """)
@@ -1197,6 +1223,10 @@ class VentasView(QWidget):
         self.lbl_subtotal.setText(fmt_moneda(subtotal))
         self.lbl_iva.setText(fmt_moneda(iva))
         self.lbl_total.setText(fmt_moneda(total))
+        
+        # Actualizar también el label del panel de cobro si está visible
+        if hasattr(self, "lbl_total_cobro") and self.lbl_total_cobro:
+            self.lbl_total_cobro.setText(fmt_moneda(total))
 
         if hasattr(self, "lbl_descuento_val"):
             if descuento_val > 0:
@@ -1451,28 +1481,47 @@ class VentasView(QWidget):
 
             if self._metodo_seleccionado == "Mixto":
                 restante = total - recibido
-                if restante > 0:
+                if recibido < 0:
+                    self.lbl_cambio_inline.setText("⚠️ El monto no puede ser negativo")
+                    self.lbl_cambio_inline.setStyleSheet(
+                        f"color: {c['danger']}; font-size: 14px; font-weight: bold;"
+                    )
+                elif recibido == 0:
                     self.lbl_cambio_inline.setText(
-                        f"Restante Electrónico: {fmt_moneda(restante)}"
+                        f"💳 Pagadero con electrónico: {fmt_moneda(total)}"
+                    )
+                    self.lbl_cambio_inline.setStyleSheet(
+                        f"color: {c['info']}; font-size: 14px; font-weight: bold;"
+                    )
+                elif recibido >= total:
+                    # El efectivo cubre todo - mostrar cambio
+                    self.lbl_cambio_inline.setText(
+                        f"✓ Pago completo - Cambio: {fmt_moneda(cambio)}"
+                    )
+                    self.lbl_cambio_inline.setStyleSheet(
+                        f"color: {c['success']}; font-size: 14px; font-weight: bold;"
+                    )
+                else:
+                    # Pago mixto válido: muestra cuánto falta por pagar electrónicamente
+                    self.lbl_cambio_inline.setText(
+                        f"💳 Restante Electrónico: {fmt_moneda(restante)}"
                     )
                     self.lbl_cambio_inline.setStyleSheet(
                         f"color: {c['warning']}; font-size: 14px; font-weight: bold;"
                     )
-                else:
-                    self.lbl_cambio_inline.setText(
-                        f"Pago Completo (Cambio: {fmt_moneda(abs(restante))})"
-                    )
-                    self.lbl_cambio_inline.setStyleSheet(
-                        f"color: {c['success']}; font-size: 14px; font-weight: bold;"
-                    )
             else:
-                if cambio >= 0:
-                    self.lbl_cambio_inline.setText(f"Cambio: {fmt_moneda(cambio)}")
+                if recibido < 0:
+                    self.lbl_cambio_inline.setText("⚠️ El monto no puede ser negativo")
+                    self.lbl_cambio_inline.setStyleSheet(
+                        f"color: {c['danger']}; font-size: 14px; font-weight: bold;"
+                    )
+                elif cambio >= 0:
+                    self.lbl_cambio_inline.setText(f"✓ Cambio: {fmt_moneda(cambio)}")
                     self.lbl_cambio_inline.setStyleSheet(
                         f"color: {c['success']}; font-size: 14px; font-weight: bold;"
                     )
                 else:
-                    self.lbl_cambio_inline.setText(f"Faltan: {fmt_moneda(abs(cambio))}")
+                    self.lbl_cambio_inline.setText(f"⚠️ Faltan: {fmt_moneda(abs(cambio))}")
                     self.lbl_cambio_inline.setStyleSheet(
                         f"color: {c['danger']}; font-size: 14px; font-weight: bold;"
                     )
@@ -1522,6 +1571,54 @@ class VentasView(QWidget):
         descuento_total = self.descuento.get("total", 0)
         total = max(0, (subtotal + iva) - descuento_total)
 
+        # VALIDACIÓN PARA PAGO MIXTO
+        if metodo == "Mixto":
+            if monto_recibido < 0:
+                QMessageBox.warning(
+                    self,
+                    "Pago inválido",
+                    "El monto en efectivo no puede ser negativo.",
+                )
+                return
+            if monto_recibido >= total:
+                # El efectivo cubre todo, no es necesario pago mixto
+                QMessageBox.warning(
+                    self,
+                    "Pago innecesario",
+                    f"El efectivo (${monto_recibido:.2f}) cubre el total de la venta.\n"
+                    f"Por favor selecciona 'Efectivo' como método de pago.",
+                )
+                return
+            if monto_recibido == 0:
+                QMessageBox.warning(
+                    self,
+                    "Pago incompleto",
+                    "Ingresa un monto en efectivo para el pago mixto.\n\n"
+                    "El resto se cobrará con método electrónico (Nequi, Daviplata o Transferencia).",
+                )
+                return
+            # En pago mixto, el efectivo + electrónico debe cubrir el total
+            # El monto electrónico es (total - monto_recibido)
+            monto_electronico = total - monto_recibido
+            if monto_electronico < 0:
+                QMessageBox.warning(
+                    self,
+                    "Pago inválido",
+                    f"El monto en efectivo (${monto_recibido:.2f}) excede el total (${total:.2f}).\n"
+                    f"Por favor selecciona 'Efectivo' como método de pago.",
+                )
+                return
+
+        # VALIDACIÓN PARA EFECTIVO (solo si es método puro Efectivo)
+        if metodo == "Efectivo" and monto_recibido < total:
+            QMessageBox.warning(
+                self,
+                "Pago insuficiente",
+                f"El monto recibido (${monto_recibido:.2f}) es menor al total (${total:.2f}).\n"
+                f"Faltan: ${total - monto_recibido:.2f}",
+            )
+            return
+
         try:
             from services.producto_service import VentaService
             from utils.ticket import GeneradorTicket
@@ -1531,6 +1628,7 @@ class VentasView(QWidget):
                 self.cliente_seleccionado.id if self.cliente_seleccionado else None
             )
             es_credito = metodo == "Fiado"
+            cajero_id = self.cajero_activo.id if self.cajero_activo else None
             venta = service.registrar_venta(
                 self.carrito,
                 metodo_pago=metodo,
@@ -1539,6 +1637,7 @@ class VentasView(QWidget):
                 descuento_tipo=self.descuento.get("tipo"),
                 descuento_valor=self.descuento.get("valor", 0),
                 descuento_total=descuento_total,
+                cajero_id=cajero_id,
             )
 
             generador = GeneradorTicket()

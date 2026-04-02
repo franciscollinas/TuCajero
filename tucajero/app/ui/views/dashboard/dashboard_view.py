@@ -103,6 +103,9 @@ class DashboardView(QWidget):
                 padding: 12px;
                 border-bottom: 1px solid rgba(255,255,255,0.05);
             }
+            QTableWidget::item:nth-child(even) {
+                background: rgba(255, 255, 255, 0.03);
+            }
             QTableWidget::item:hover {
                 background: rgba(124, 58, 237, 0.2);
             }
@@ -120,7 +123,7 @@ class DashboardView(QWidget):
             }
         """)
 
-        self.table.setAlternatingRowColors(True)
+        self.table.setAlternatingRowColors(False)
         self.table.verticalHeader().setVisible(False)
         self.table.horizontalHeader().setStretchLastSection(True)
 
@@ -254,7 +257,7 @@ class DashboardView(QWidget):
 
     def get_ventas_recientes(self):
         try:
-            from tucajero.models.producto import Venta, VentaItem
+            from tucajero.models.producto import Venta, VentaItem, Producto
             from sqlalchemy import desc
 
             try:
@@ -285,15 +288,17 @@ class DashboardView(QWidget):
                         .filter(VentaItem.venta_id == venta.id)
                         .all()
                     )
-                    productos_nombres = [
-                        vp.producto_nombre for vp in items_venta if vp.producto_nombre
-                    ]
+                    productos_nombres = []
+                    for vp in items_venta:
+                        if vp.producto:
+                            productos_nombres.append(vp.producto.nombre)
                     productos_str = ", ".join(productos_nombres[:3])
                     if len(productos_nombres) > 3:
                         productos_str += f" +{len(productos_nombres) - 3}"
                     if not productos_str:
                         productos_str = "Sin detalle"
-                except:
+                except Exception as e:
+                    print(f"Error obteniendo productos: {e}")
                     productos_str = "Sin detalle"
 
                 items = [fecha, cliente, total, metodo, productos_str]

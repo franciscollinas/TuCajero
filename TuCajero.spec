@@ -4,7 +4,7 @@ block_cipher = None
 
 a = Analysis(
     ['tucajero/main.py'],
-    pathex=[],
+    pathex=['.'],
     binaries=[],
     datas=[
         ('tucajero/ui', 'ui'),

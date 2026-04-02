@@ -101,12 +101,15 @@ class Venta(Base):
     cajero_id = Column(Integer, ForeignKey("cajeros.id"), nullable=True)
     comprobante = Column(String(100), nullable=True)
     numero_factura = Column(String(20), nullable=True)
+    motivo_anulacion = Column(String(500), nullable=True)
+    usuario_anulacion_id = Column(Integer, ForeignKey("cajeros.id"), nullable=True)
 
     items = relationship(
         "VentaItem", back_populates="venta", cascade="all, delete-orphan"
     )
     cliente = relationship("Cliente", back_populates="ventas")
-    cajero = relationship("Cajero")
+    cajero = relationship("Cajero", foreign_keys=[cajero_id])
+    usuario_anulacion = relationship("Cajero", foreign_keys=[usuario_anulacion_id])
 
     def __repr__(self):
         return f"<Venta {self.id} - {self.total}>"

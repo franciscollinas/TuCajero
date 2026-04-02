@@ -16,6 +16,7 @@ class VentaRepository:
         consecutivo = (
             self.session.query(ConsecutivoFactura)
             .filter(ConsecutivoFactura.prefijo == prefijo)
+            .with_for_update()
             .first()
         )
         
@@ -39,6 +40,7 @@ class VentaRepository:
         descuento_valor=0,
         descuento_total=0,
         comprobante=None,
+        cajero_id=None,
     ):
         """Crea una venta con sus items (incluye IVA)"""
 
@@ -65,6 +67,9 @@ class VentaRepository:
 
         total_final = max(0, total_bruto - descuento_total)
 
+        # Obtener número de factura único usando el consecutivo
+        numero_factura = self.obtener_siguiente_consecutivo("FAC")
+
         venta = Venta(
             total=round(total_final, 2),
             fecha=datetime.now(),
@@ -75,6 +80,8 @@ class VentaRepository:
             descuento_valor=descuento_valor,
             descuento_total=descuento_total,
             comprobante=comprobante,
+            cajero_id=cajero_id,
+            numero_factura=numero_factura,
         )
         self.session.add(venta)
         self.session.flush()
@@ -93,12 +100,6 @@ class VentaRepository:
                 iva_monto=iva_monto,
             )
             self.session.add(venta_item)
-
-        # Descontar el stock después de crear la venta
-        for item in items:
-            producto = self.session.query(Producto).get(item["producto_id"])
-            if producto:
-                producto.stock -= item["cantidad"]
 
         self.session.commit()
         return venta
@@ -129,7 +130,7 @@ class VentaRepository:
         """Retorna una venta por su ID"""
         return self.session.query(Venta).filter(Venta.id == venta_id).first()
 
-    def anular_venta(self, venta_id):
+    def anular_venta(self, venta_id, motivo=None, usuario_id=None):
         """Anula una venta y la marca como cancelada"""
         venta = self.get_venta_by_id(venta_id)
         if not venta:
@@ -137,6 +138,8 @@ class VentaRepository:
         if venta.anulada:
             raise ValueError(f"Venta #{venta_id} ya está anulada")
         venta.anulada = True
+        venta.motivo_anulacion = motivo
+        venta.usuario_anulacion_id = usuario_id
         self.session.commit()
         return venta
 

@@ -5,6 +5,17 @@ Sistema simple de caja registradora para pequeños negocios.
 
 import sys
 import os
+
+# Agregar el directorio base al PYTHONPATH para que funcione el EXE
+if getattr(sys, 'frozen', False):
+    # Si se ejecuta como EXE compilado
+    application_path = os.path.dirname(sys.executable)
+    sys.path.insert(0, application_path)
+else:
+    # Si se ejecuta como script Python
+    application_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    sys.path.insert(0, application_path)
+
 import logging
 import traceback
 from logging.handlers import RotatingFileHandler

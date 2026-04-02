@@ -150,16 +150,6 @@ class ProductosView(QWidget):
 
         btn_layout = QHBoxLayout()
 
-        btn_entrada = QPushButton("+ Entrada")
-        btn_entrada.setStyleSheet(btn_primary())
-        btn_entrada.clicked.connect(lambda: self.movimiento_inventario("entrada"))
-        btn_layout.addWidget(btn_entrada)
-
-        btn_salida = QPushButton("- Salida")
-        btn_salida.setStyleSheet(btn_danger())
-        btn_salida.clicked.connect(lambda: self.movimiento_inventario("salida"))
-        btn_layout.addWidget(btn_salida)
-
         self.btn_desempacar = QPushButton("💊 Desempacar")
         self.btn_desempacar.setStyleSheet(btn_primary())
         self.btn_desempacar.setToolTip(
@@ -214,7 +204,7 @@ class ProductosView(QWidget):
     def _mostrar_productos(self, productos):
         """Muestra la lista de productos en la tabla"""
         from tucajero.utils.theme import get_colors
-        
+
         c = get_colors()
         self.tabla.setRowCount(len(productos))
 

@@ -11,7 +11,16 @@
       "Bash(start *)",
       "Bash(tasklist)",
       "Bash(git checkout *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(git tag *)",
+      "Bash(dir *)",
+      "Bash(powershell *)",
+      "Bash(set *)",
+      "Bash(get-content *)",
+      "Bash(tucajero.exe)",
+      "Bash(taskkill *)"
     ]
   },
   "$version": 3

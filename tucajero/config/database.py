@@ -133,6 +133,8 @@ def agregar_columnas_si_existen(engine):
         ("productos", "fecha_vencimiento", "DATETIME"),
         ("ventas", "comprobante", "VARCHAR(100)"),
         ("ventas", "numero_factura", "VARCHAR(20)"),
+        ("ventas", "motivo_anulacion", "VARCHAR(500)"),
+        ("ventas", "usuario_anulacion_id", "INTEGER"),
     ]
     with engine.connect() as conn:
         for tabla, columna, tipo in columnas:
@@ -207,12 +209,12 @@ def crear_indices():
             try:
                 conn.execute(text(idx_sql))
                 nombre_idx = idx_sql.split('idx_')[1].split(' ON')[0]
-                print(f"  ✅ Índice creado: {nombre_idx}")
+                print(f"  [OK] Índice creado: {nombre_idx}")
             except Exception as e:
-                print(f"  ⚠️ Error creando índice: {e}")
+                print(f"  [WARN] Error creando índice: {e}")
         conn.commit()
-    
-    print("✨ Índices de base de datos creados correctamente")
+
+    print("[INFO] Índices de base de datos creados correctamente")
 
 
 def close_db():

@@ -434,10 +434,27 @@ class CorteView(QWidget):
 
         venta_id = int(venta_id_str)
 
+        # Solicitar motivo de anulación
+        motivo, ok = QInputDialog.getText(
+            self,
+            "Motivo de Anulación",
+            "Ingrese el motivo de la anulación (obligatorio):",
+        )
+
+        if not ok or not motivo.strip():
+            QMessageBox.warning(
+                self,
+                "Motivo requerido",
+                "Es obligatorio ingresar el motivo de la anulación.",
+            )
+            return
+
+        # Confirmación antes de anular
         respuesta = QMessageBox.question(
             self,
             "Confirmar Anulación",
             f"¿Está seguro de anular la venta #{venta_id}?\n"
+            f"Motivo: {motivo}\n"
             "El stock de los productos será restaurado.",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
@@ -447,11 +464,15 @@ class CorteView(QWidget):
 
         try:
             venta_service = VentaService(self.session)
-            venta_service.anular_venta(venta_id)
+            # Obtener usuario activo del cajero
+            usuario_id = self.cajero_activo.id if self.cajero_activo else None
+            venta_service.anular_venta(venta_id, motivo=motivo, usuario_id=usuario_id)
             QMessageBox.information(
                 self,
                 "Venta Anulada",
-                f"Venta #{venta_id} ha sido anulada.\nEl stock ha sido restaurado.",
+                f"Venta #{venta_id} ha sido anulada.\n"
+                f"Motivo: {motivo}\n"
+                "El stock ha sido restaurado.",
             )
             self.cargar_estadisticas()
         except ValueError as e:

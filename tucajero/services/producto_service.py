@@ -230,6 +230,7 @@ class VentaService:
         descuento_valor=0,
         descuento_total=0,
         comprobante=None,
+        cajero_id=None,
     ):
         """Registra una venta y descuenta inventario"""
         if not self.corte_service.esta_caja_abierta():
@@ -258,6 +259,7 @@ class VentaService:
             descuento_valor=descuento_valor,
             descuento_total=descuento_total,
             comprobante=comprobante,
+            cajero_id=cajero_id,
         )
 
         if es_credito and cliente_id:
@@ -273,7 +275,7 @@ class VentaService:
 
         return venta
 
-    def anular_venta(self, venta_id):
+    def anular_venta(self, venta_id, motivo=None, usuario_id=None):
         """Anula una venta y restaura el stock"""
         venta = self.venta_repo.get_venta_by_id(venta_id)
         if not venta:
@@ -287,7 +289,7 @@ class VentaService:
                 item.producto_id, "entrada", item.cantidad
             )
 
-        self.venta_repo.anular_venta(venta_id)
+        self.venta_repo.anular_venta(venta_id, motivo=motivo, usuario_id=usuario_id)
         return venta
 
     def get_ventas_hoy(self):
