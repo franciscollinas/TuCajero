@@ -6,7 +6,7 @@ Legacy theme - redirects to new app.ui.theme
 import winreg
 
 # Redirect to new theme
-from app.ui.theme.theme import (
+from tucajero.app.ui.theme.theme import (
     get_colors,
     app_style,
     card_style,

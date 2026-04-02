@@ -154,7 +154,7 @@ def leer_archivo(filepath):
 
 
 def importar_productos(filepath, session):
-    from models.producto import Producto, Categoria
+    from tucajero.models.producto import Producto, Categoria
 
     filas = leer_archivo(filepath)
 

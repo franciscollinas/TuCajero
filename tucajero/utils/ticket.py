@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from utils.store_config import (
+from tucajero.utils.store_config import (
     get_store_name,
     get_address,
     get_phone,
@@ -237,7 +237,7 @@ class GeneradorTicket:
         ticket = self.generar(venta, items)
         print(ticket)
         try:
-            from utils.factura_diaria import agregar_ticket_a_pdf_diario
+            from tucajero.utils.factura_diaria import agregar_ticket_a_pdf_diario
 
             agregar_ticket_a_pdf_diario(venta, items)
         except Exception as e:
@@ -255,12 +255,12 @@ def generar_facturas_dia(fecha=None):
     Si fecha es None, usa la fecha actual.
     Retorna la ruta del PDF generado.
     """
-    from utils.factura_diaria import (
+    from tucajero.utils.factura_diaria import (
         get_factura_diaria_path,
         get_facturas_dir,
         _generar_pdf_diario,
     )
-    from utils.store_config import (
+    from tucajero.utils.store_config import (
         get_store_name,
         get_address,
         get_phone,

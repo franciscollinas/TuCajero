@@ -10,8 +10,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 from PySide6.QtCore import Qt
-from utils.formato import fmt_moneda
-from utils.theme import btn_danger, btn_secondary, btn_primary, get_colors
+from tucajero.utils.formato import fmt_moneda
+from tucajero.utils.theme import btn_danger, btn_secondary, btn_primary, get_colors
 c = get_colors()
 
 

@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, Index
 from sqlalchemy.orm import relationship
-from config.database import Base
+from tucajero.config.database import Base
 from datetime import datetime
 
 
@@ -10,6 +10,7 @@ class Cliente(Base):
         Index("idx_cliente_documento", "documento"),
         Index("idx_cliente_nombre", "nombre"),
         Index("idx_cliente_activo", "activo"),
+        {"extend_existing": True},
     )
 
     id = Column(Integer, primary_key=True)

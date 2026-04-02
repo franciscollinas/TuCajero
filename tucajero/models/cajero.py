@@ -1,6 +1,6 @@
 import hashlib
 from sqlalchemy import Column, Integer, String, Boolean, Index
-from config.database import Base
+from tucajero.config.database import Base
 
 
 def hash_pin(pin):

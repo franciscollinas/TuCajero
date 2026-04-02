@@ -1,5 +1,5 @@
-from models.producto import CorteCaja, GastoCaja
-from repositories.venta_repo import VentaRepository
+from tucajero.models.producto import CorteCaja, GastoCaja
+from tucajero.repositories.venta_repo import VentaRepository
 from datetime import datetime
 
 
@@ -81,7 +81,7 @@ class CorteCajaService:
         self.session.commit()
 
         try:
-            from utils.backup import backup_database
+            from tucajero.utils.backup import backup_database
 
             backup_database()
         except Exception as e:

@@ -1,6 +1,6 @@
-from repositories.producto_repo import ProductoRepository
-from repositories.venta_repo import VentaRepository, InventarioRepository
-from models.producto import Categoria
+from tucajero.repositories.producto_repo import ProductoRepository
+from tucajero.repositories.venta_repo import VentaRepository, InventarioRepository
+from tucajero.models.producto import Categoria
 
 
 class ProductoService:
@@ -216,7 +216,7 @@ class VentaService:
         self.venta_repo = VentaRepository(session)
         self.producto_repo = ProductoRepository(session)
         self.inventario_repo = InventarioRepository(session)
-        from services.corte_service import CorteCajaService
+        from tucajero.services.corte_service import CorteCajaService
 
         self.corte_service = CorteCajaService(session)
 
@@ -261,7 +261,7 @@ class VentaService:
         )
 
         if es_credito and cliente_id:
-            from repositories.cliente_repo import ClienteRepository
+            from tucajero.repositories.cliente_repo import ClienteRepository
 
             ClienteRepository(self.session).agregar_credito(cliente_id, total)
 

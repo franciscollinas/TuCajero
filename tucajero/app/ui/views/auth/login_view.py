@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 
-from app.ui.theme.theme import app_style, PRIMARY, ACCENT, CARD_BG, CARD_BORDER
+from tucajero.app.ui.theme.theme import app_style, PRIMARY, ACCENT, CARD_BG, CARD_BORDER
 
 
 class LoginView(QDialog):
@@ -275,7 +275,7 @@ class LoginView(QDialog):
         return panel
 
     def cargar_cajeros(self):
-        from services.cajero_service import CajeroService
+        from tucajero.services.cajero_service import CajeroService
 
         cajeros = CajeroService(self.session).get_all()
         cajeros_activos = [c for c in cajeros if c.activo]
@@ -305,7 +305,7 @@ class LoginView(QDialog):
             )
             return
 
-        from services.cajero_service import CajeroService
+        from tucajero.services.cajero_service import CajeroService
 
         if CajeroService(self.session).verificar_login(cajero.id, password):
             self.cajero_seleccionado = cajero

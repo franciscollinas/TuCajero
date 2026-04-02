@@ -1,4 +1,4 @@
-from models.producto import Producto
+from tucajero.models.producto import Producto
 from sqlalchemy import and_
 import logging
 

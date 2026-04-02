@@ -17,7 +17,7 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 
 def get_facturas_dir():
     """Retorna el directorio de facturas diarias"""
-    from config.database import get_data_dir
+    from tucajero.config.database import get_data_dir
 
     facturas_dir = os.path.join(get_data_dir(), "facturas")
     os.makedirs(facturas_dir, exist_ok=True)
@@ -39,7 +39,7 @@ def agregar_ticket_a_pdf_diario(venta, items):
     Si el PDF del día no existe lo crea.
     Si ya existe agrega la nueva factura al final.
     """
-    from utils.store_config import (
+    from tucajero.utils.store_config import (
         get_store_name,
         get_address,
         get_phone,

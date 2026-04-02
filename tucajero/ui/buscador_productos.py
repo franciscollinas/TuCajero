@@ -16,8 +16,8 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QColor
-from utils.formato import fmt_moneda
-from utils.theme import btn_primary, btn_secondary, get_colors
+from tucajero.utils.formato import fmt_moneda
+from tucajero.utils.theme import btn_primary, btn_secondary, get_colors
 c = get_colors()
 
 COLORES_CATEGORIA = [
@@ -50,7 +50,7 @@ class BuscadorProductosDialog(QDialog):
         self._timer.timeout.connect(self._filtrar_debounced)
 
     def init_ui(self):
-        from utils.theme import get_colors
+        from tucajero.utils.theme import get_colors
         c = get_colors()
         self.setStyleSheet(f"QDialog {{ background-color: {c['bg_app']}; }}")
         
@@ -192,7 +192,7 @@ class BuscadorProductosDialog(QDialog):
     def _cargar_categorias(self):
         """Carga los botones de categorías"""
         try:
-            from models.producto import Categoria
+            from tucajero.models.producto import Categoria
 
             if self.session:
                 categorias = (
@@ -247,7 +247,7 @@ class BuscadorProductosDialog(QDialog):
         """Filtra productos por categoría"""
         try:
             if self.session:
-                from repositories.producto_repo import ProductoRepository
+                from tucajero.repositories.producto_repo import ProductoRepository
 
                 repo = ProductoRepository(self.session)
                 productos = repo.search_por_categoria(categoria.id)
@@ -284,7 +284,7 @@ class BuscadorProductosDialog(QDialog):
                         self.accept()
                         return
                 if self.session:
-                    from repositories.producto_repo import ProductoRepository
+                    from tucajero.repositories.producto_repo import ProductoRepository
 
                     repo = ProductoRepository(self.session)
                     p = repo.get_by_codigo(codigo)

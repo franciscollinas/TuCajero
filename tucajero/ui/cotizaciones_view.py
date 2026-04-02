@@ -12,8 +12,8 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor
-from utils.formato import fmt_moneda
-from utils.theme import btn_danger, btn_primary, get_colors
+from tucajero.utils.formato import fmt_moneda
+from tucajero.utils.theme import btn_danger, btn_primary, get_colors
 
 
 class CotizacionesView(QWidget):
@@ -27,7 +27,7 @@ class CotizacionesView(QWidget):
         self.cargar_cotizaciones()
 
     def init_ui(self):
-        from utils.theme import get_colors
+        from tucajero.utils.theme import get_colors
 
         c = get_colors()
 
@@ -88,7 +88,7 @@ class CotizacionesView(QWidget):
         layout.addWidget(info)
 
     def cargar_cotizaciones(self):
-        from services.cotizacion_service import CotizacionService
+        from tucajero.services.cotizacion_service import CotizacionService
 
         service = CotizacionService(self.session)
 
@@ -103,7 +103,7 @@ class CotizacionesView(QWidget):
         self.cotizaciones = service.get_all(estado=estado)
 
         self.tabla.setRowCount(len(self.cotizaciones))
-        from utils.theme import get_colors
+        from tucajero.utils.theme import get_colors
 
         c = get_colors()
         for i, cot in enumerate(self.cotizaciones):
@@ -114,7 +114,7 @@ class CotizacionesView(QWidget):
 
             cliente_nombre = "Sin cliente"
             if cot.cliente_id:
-                from services.cliente_service import ClienteService
+                from tucajero.services.cliente_service import ClienteService
 
                 cliente = ClienteService(self.session).get_by_id(cot.cliente_id)
                 if cliente:
@@ -165,8 +165,8 @@ class CotizacionesView(QWidget):
         if resp != QMessageBox.StandardButton.Yes:
             return
 
-        from services.cotizacion_service import CotizacionService
-        from services.producto_service import ProductoService
+        from tucajero.services.cotizacion_service import CotizacionService
+        from tucajero.services.producto_service import ProductoService
 
         service = CotizacionService(self.session)
         prod_service = ProductoService(self.session)
@@ -188,7 +188,7 @@ class CotizacionesView(QWidget):
 
         cliente = None
         if cotizacion.cliente_id:
-            from services.cliente_service import ClienteService
+            from tucajero.services.cliente_service import ClienteService
 
             cliente = ClienteService(self.session).get_by_id(cotizacion.cliente_id)
 
@@ -216,7 +216,7 @@ class CotizacionesView(QWidget):
         if resp != QMessageBox.StandardButton.Yes:
             return
 
-        from services.cotizacion_service import CotizacionService
+        from tucajero.services.cotizacion_service import CotizacionService
 
         try:
             CotizacionService(self.session).cancelar(cotizacion.id)

@@ -1,4 +1,4 @@
-from models.proveedor import Proveedor, OrdenCompra, OrdenCompraItem
+from tucajero.models.proveedor import Proveedor, OrdenCompra, OrdenCompraItem
 from datetime import datetime
 
 
@@ -96,7 +96,7 @@ class OrdenCompraService:
         if orden.estado == "cancelada":
             raise ValueError("No se puede recibir una orden cancelada")
 
-        from models.producto import Producto, MovimientoInventario
+        from tucajero.models.producto import Producto, MovimientoInventario
 
         for item in orden.items:
             producto = self.session.query(Producto).get(item.producto_id)

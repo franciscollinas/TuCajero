@@ -1,30 +1,46 @@
 import sys
 import os
 import traceback
+import logging
 
-# Agregar tucajero al path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'tucajero'))
+# Configurar logging básico
+logging.basicConfig(level=logging.DEBUG, format='%(levelname)s: %(message)s')
 
-print("=" * 60)
-print("INICIANDO PRUEBA DE TUCAJERO")
-print("=" * 60)
+print("=" * 70)
+print("TEST DE EJECUCIÓN - TuCajeroPOS")
+print("=" * 70)
 
 try:
-    print("\n[1/5] Importando main...")
+    # Importar main
+    print("\n[1/6] Importando tucajero.main...")
     from tucajero.main import main
-    print("    OK - main importado")
+    print("  ✓ main importado")
     
-    print("\n[2/5] Ejecutando main()...")
+    # Ejecutar main (esto iniciará la app)
+    print("\n[2/6] Ejecutando main()...")
+    print("  → Si hay error de licencia/setup, la app saldrá normalmente")
+    
     main()
-    print("    OK - main ejecutado")
     
+    print("\n[3/6] main() completó sin errores")
+    
+except SystemExit as e:
+    print(f"\n⚠ SystemExit: {e.code}")
+    if e.code == 0:
+        print("  → Salida normal (probablemente sin licencia/setup)")
+    else:
+        print("  → Salida con error")
+        traceback.print_exc()
+        
 except Exception as e:
-    print("\n" + "=" * 60)
-    print("ERROR CRÍTICO DETECTADO")
-    print("=" * 60)
-    print(f"\nExcepción: {e}")
-    print(f"\nTraceback completo:\n")
+    print(f"\n❌ ERROR CRÍTICO: {e}")
+    print("\nTraceback:")
     traceback.print_exc()
-    print("\n" + "=" * 60)
-    input("Presiona Enter para salir...")
-    sys.exit(1)
+    
+    # Guardar log
+    log_file = 'error_test_ejecucion.log'
+    with open(log_file, 'w', encoding='utf-8') as f:
+        f.write(traceback.format_exc())
+    print(f"\n📄 Error guardado en: {log_file}")
+
+print("\n" + "=" * 70)

@@ -6,7 +6,7 @@ import sys
 
 def get_backups_dir():
     """Retorna el directorio de backups"""
-    from config.database import get_data_dir
+    from tucajero.config.database import get_data_dir
 
     data_dir = get_data_dir()
     backups_dir = os.path.join(data_dir, "backups")
@@ -16,7 +16,7 @@ def get_backups_dir():
 
 def backup_database():
     """Crea un backup de la base de datos"""
-    from config.database import get_db_path
+    from tucajero.config.database import get_db_path
 
     db_path = get_db_path()
 
@@ -53,7 +53,7 @@ def cleanup_old_backups(keep_days=7):
 
 def backup_semanal():
     """Crea backup automático semanal (solo lunes) y mantiene 4 backups"""
-    from config.database import get_db_path
+    from tucajero.config.database import get_db_path
 
     db_path = get_db_path()
 
@@ -99,7 +99,7 @@ def limpiar_backups(max_backups=4):
 
 def restaurar_backup(ruta_backup):
     """Restaura un backup, reemplazando la DB actual (hace backup de seguridad primero)"""
-    from config.database import get_db_path, close_db
+    from tucajero.config.database import get_db_path, close_db
 
     db_path = get_db_path()
 

@@ -11,7 +11,7 @@ def fix_file(file_path):
 
     original = content
 
-    # 1. Fix imports from utils.theme
+    # 1. Fix imports from tucajero.utils.theme
     # sometimes it's multiline, so we can just replace 'btn_success' and 'btn_style'
     content = re.sub(r',\s*btn_success', '', content)
     content = re.sub(r',\s*btn_style', '', content)

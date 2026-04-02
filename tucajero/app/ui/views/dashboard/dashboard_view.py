@@ -10,8 +10,8 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 
-from app.ui.theme.theme import app_style, PRIMARY, SECONDARY, SUCCESS, WARNING, ACCENT
-from ui.chart_widget import ChartWidget
+from tucajero.app.ui.theme.theme import app_style, PRIMARY, SECONDARY, SUCCESS, WARNING, ACCENT
+from tucajero.ui.chart_widget import ChartWidget
 
 
 class DashboardView(QWidget):
@@ -214,7 +214,7 @@ class DashboardView(QWidget):
 
     def get_kpis(self):
         try:
-            from services.venta_service import VentaService
+            from tucajero.services.venta_service import VentaService
 
             venta_service = VentaService(self.session)
 
@@ -232,7 +232,7 @@ class DashboardView(QWidget):
 
     def get_ventas_7_dias(self):
         try:
-            from services.venta_service import VentaService
+            from tucajero.services.venta_service import VentaService
 
             venta_service = VentaService(self.session)
             labels, valores = venta_service.get_ventas_ultimos_7_dias()
@@ -243,7 +243,7 @@ class DashboardView(QWidget):
 
     def get_metodos_pago(self):
         try:
-            from services.venta_service import VentaService
+            from tucajero.services.venta_service import VentaService
 
             venta_service = VentaService(self.session)
             metodos_labels, metodos_valores = venta_service.get_ventas_por_metodo()
@@ -254,7 +254,7 @@ class DashboardView(QWidget):
 
     def get_ventas_recientes(self):
         try:
-            from models.producto import Venta, VentaItem
+            from tucajero.models.producto import Venta, VentaItem
             from sqlalchemy import desc
 
             try:

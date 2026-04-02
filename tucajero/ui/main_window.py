@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon, QPixmap
-from utils.store_config import (
+from tucajero.utils.store_config import (
     get_store_name,
     get_logo_path,
     get_nit,
@@ -20,7 +20,7 @@ from utils.store_config import (
     get_email,
     get_address,
 )
-from utils.theme import btn_primary, btn_secondary, btn_danger, btn_sidebar, get_colors, header_style
+from tucajero.utils.theme import btn_primary, btn_secondary, btn_danger, btn_sidebar, get_colors, header_style
 import os
 
 
@@ -29,6 +29,11 @@ class MainWindow(QMainWindow):
 
     def __init__(self):
         super().__init__()
+        
+        # Fondo oscuro premium
+        from tucajero.ui.design_tokens import Colors
+        self.setStyleSheet(f"background: {Colors.BG_APP};")
+        
         store_name = get_store_name()
         self.setWindowTitle(f"TuCajero POS - {store_name}")
         self.setMinimumSize(1024, 768)
@@ -316,7 +321,7 @@ class MainWindow(QMainWindow):
 
     def mostrar_acerca(self):
         """Muestra la ventana Acerca de"""
-        from ui.about_view import AboutView
+        from tucajero.ui.about_view import AboutView
 
         dialog = AboutView(self)
         dialog.exec()
@@ -343,51 +348,51 @@ class MainWindow(QMainWindow):
 
         view = None
         if name == "ventas":
-            from ui.ventas_view import VentasView
+            from tucajero.ui.ventas_view import VentasView
 
             view = VentasView(
                 self.session, parent=self, cajero_activo=self.cajero_activo
             )
         elif name == "productos":
-            from ui.productos_view import ProductosView
+            from tucajero.ui.productos_view import ProductosView
 
             view = ProductosView(self.session, parent=self)
         elif name == "corte":
-            from ui.corte_view import CorteView
+            from tucajero.ui.corte_view import CorteView
 
             view = CorteView(
                 self.session, cajero_activo=self.cajero_activo, parent=self
             )
         elif name == "historial":
-            from ui.historial_view import HistorialView
+            from tucajero.ui.historial_view import HistorialView
 
             view = HistorialView(self.session, parent=self)
         elif name == "clientes":
-            from ui.clientes_view import ClientesView
+            from tucajero.ui.clientes_view import ClientesView
 
             view = ClientesView(self.session, parent=self)
         elif name == "cotizaciones":
-            from ui.cotizaciones_view import CotizacionesView
+            from tucajero.ui.cotizaciones_view import CotizacionesView
 
             view = CotizacionesView(self.session, parent=self)
         elif name == "proveedores":
-            from ui.proveedores_view import ProveedoresView
+            from tucajero.ui.proveedores_view import ProveedoresView
 
             view = ProveedoresView(self.session, parent=self)
         elif name == "setup":
-            from ui.setup_view import SetupView
+            from tucajero.ui.setup_view import SetupView
 
             view = SetupView(self.session, parent=self)
         elif name == "dashboard":
-            from ui.dashboard_view import DashboardView
+            from tucajero.ui.dashboard_view import DashboardView
 
             view = DashboardView(self.session, parent=self)
         elif name == "cajeros":
-            from ui.cajeros_view import CajerosView
+            from tucajero.ui.cajeros_view import CajerosView
 
             view = CajerosView(self.session, parent=self)
         elif name == "config":  # Alias for backward compatibility
-            from ui.setup_view import SetupView
+            from tucajero.ui.setup_view import SetupView
 
             view = SetupView(self.session, parent=self)
 
@@ -448,7 +453,7 @@ class MainWindow(QMainWindow):
             return
 
         try:
-            from services.producto_service import ProductoService
+            from tucajero.services.producto_service import ProductoService
 
             ps = ProductoService(self.session)
             criticos = ps.get_productos_stock_critico()
@@ -500,7 +505,7 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event):
         """Cierra la aplicación correctamente"""
         try:
-            from config.database import close_db
+            from tucajero.config.database import close_db
 
             close_db()
         except Exception as e:

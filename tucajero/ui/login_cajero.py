@@ -23,8 +23,8 @@ from PySide6.QtGui import (
     QIcon,
 )
 
-from models.cajero import Cajero
-from services.cajero_service import CajeroService
+from tucajero.models.cajero import Cajero
+from tucajero.services.cajero_service import CajeroService
 
 
 class GradientWidget(QWidget):

@@ -1,6 +1,15 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Boolean, Index
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Float,
+    DateTime,
+    ForeignKey,
+    Boolean,
+    Index,
+)
 from sqlalchemy.orm import relationship
-from config.database import Base
+from tucajero.config.database import Base
 from datetime import datetime
 
 
@@ -10,6 +19,7 @@ class Cotizacion(Base):
         Index("idx_cotizacion_fecha", "fecha"),
         Index("idx_cotizacion_cliente", "cliente_id"),
         Index("idx_cotizacion_estado", "estado"),
+        {"extend_existing": True},
     )
 
     id = Column(Integer, primary_key=True)
@@ -33,6 +43,7 @@ class CotizacionItem(Base):
     __table_args__ = (
         Index("idx_cotizacion_item_cotizacion", "cotizacion_id"),
         Index("idx_cotizacion_item_producto", "producto_id"),
+        {"extend_existing": True},
     )
 
     id = Column(Integer, primary_key=True)

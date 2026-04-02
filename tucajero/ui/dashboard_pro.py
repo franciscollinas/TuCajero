@@ -9,9 +9,9 @@ from PySide6.QtWidgets import (
     QTableWidgetItem,
 )
 from PySide6.QtCore import Qt
-from services.producto_service import ProductoService
-from services.venta_service import VentaService
-from ui.chart_widget import ChartWidget
+from tucajero.services.producto_service import ProductoService
+from tucajero.services.venta_service import VentaService
+from tucajero.ui.chart_widget import ChartWidget
 
 
 COLORS = {

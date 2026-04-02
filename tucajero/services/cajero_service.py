@@ -1,4 +1,4 @@
-from models.cajero import Cajero, hash_pin
+from tucajero.models.cajero import Cajero, hash_pin
 
 
 class CajeroService:

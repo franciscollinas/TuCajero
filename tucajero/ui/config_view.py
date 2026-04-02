@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap
-from utils.theme import get_colors, btn_primary, btn_secondary
+from tucajero.utils.theme import get_colors, btn_primary, btn_secondary
 
 
 class ConfigNegocioDialog(QDialog):
@@ -33,7 +33,7 @@ class ConfigNegocioDialog(QDialog):
 
     def init_ui(self):
         layout = QVBoxLayout()
-        from utils.theme import get_colors
+        from tucajero.utils.theme import get_colors
         c = get_colors()
         self.setStyleSheet(f"QDialog {{ background-color: {c['bg_app']}; }}")
         self.setLayout(layout)
@@ -126,7 +126,7 @@ class ConfigNegocioDialog(QDialog):
         layout.addStretch()
 
         # ── Sección Backup ────────────────────────
-        from utils.theme import get_colors
+        from tucajero.utils.theme import get_colors
         from PySide6.QtWidgets import QGroupBox, QHBoxLayout, QLabel
 
         c = get_colors()
@@ -197,7 +197,7 @@ class ConfigNegocioDialog(QDialog):
         layout.addLayout(btn_layout)
 
     def cargar_datos_existentes(self):
-        from utils.store_config import (
+        from tucajero.utils.store_config import (
             load_store_config,
             get_store_name,
             get_address,
@@ -256,7 +256,7 @@ class ConfigNegocioDialog(QDialog):
         if self.logo_path_seleccionado:
             try:
                 import shutil
-                from utils.store_config import get_config_dir
+                from tucajero.utils.store_config import get_config_dir
 
                 assets_dir = os.path.join(os.path.dirname(get_config_dir()), "assets")
                 os.makedirs(assets_dir, exist_ok=True)
@@ -277,7 +277,7 @@ class ConfigNegocioDialog(QDialog):
             "nit": self.nit_input.text().strip(),
         }
 
-        from utils.store_config import save_store_config
+        from tucajero.utils.store_config import save_store_config
 
         if save_store_config(config):
             if not self.primera_vez:
@@ -293,7 +293,7 @@ class ConfigNegocioDialog(QDialog):
 
     def _exportar_datos(self):
         from PySide6.QtWidgets import QFileDialog, QMessageBox
-        from utils.data_manager import exportar_datos
+        from tucajero.utils.data_manager import exportar_datos
         from datetime import datetime
 
         nombre_sugerido = (
@@ -329,7 +329,7 @@ class ConfigNegocioDialog(QDialog):
 
     def _importar_datos(self):
         from PySide6.QtWidgets import QFileDialog, QMessageBox
-        from utils.data_manager import importar_datos
+        from tucajero.utils.data_manager import importar_datos
 
         # Advertencia antes de importar
         confirm = QMessageBox.warning(

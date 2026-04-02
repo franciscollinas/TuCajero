@@ -2,7 +2,7 @@
 
 from datetime import datetime, timedelta
 from sqlalchemy import func, extract, and_
-from models.producto import Venta, VentaItem
+from tucajero.models.producto import Venta, VentaItem
 
 
 class VentaService:

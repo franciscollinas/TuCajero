@@ -135,7 +135,7 @@ def exportar_historial_excel(
             ws.column_dimensions[col[0].column_letter].width = min(max_len + 4, 40)
 
     if not ruta_destino:
-        from config.database import get_data_dir
+        from tucajero.config.database import get_data_dir
 
         exports_dir = os.path.join(get_data_dir(), "exports")
         os.makedirs(exports_dir, exist_ok=True)

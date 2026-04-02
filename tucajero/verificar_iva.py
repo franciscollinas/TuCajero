@@ -1,7 +1,7 @@
 import sys
 
 sys.path.insert(0, "tucajero")
-from config.database import init_db, get_session
+from tucajero.config.database import init_db, get_session
 
 init_db()
 session = get_session()
@@ -17,8 +17,9 @@ assert "iva_monto" in cols_items, "Falta iva_monto en venta_items"
 assert "total_iva" in cols_corte, "Falta total_iva en cortes_caja"
 print("Columnas verificadas OK")
 
-from services.corte_service import CorteCajaService
-from services.producto_service import ProductoService, VentaService
+from tucajero.services.corte_service import CorteCajaService
+from tucajero.services.producto_service import ProductoService
+from tucajero.services.venta_service import VentaService
 
 cs = CorteCajaService(session)
 if not cs.esta_caja_abierta():

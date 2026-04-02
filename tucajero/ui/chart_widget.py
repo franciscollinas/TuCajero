@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QPainter, QColor, QPen, QBrush, QFont, QFontMetrics
-from utils.theme import get_colors
+from tucajero.utils.theme import get_colors
 
 
 class ChartWidget(QWidget):
@@ -221,7 +221,7 @@ class ChartWidget(QWidget):
 def get_ventas_por_periodo(session, periodo="mes"):
     """Obtiene datos de ventas por periodo"""
     from datetime import datetime, timedelta
-    from models.producto import Venta
+    from tucajero.models.producto import Venta
     from sqlalchemy import func, extract
 
     hoy = datetime.now()
@@ -277,7 +277,7 @@ def get_ventas_por_periodo(session, periodo="mes"):
 
 def get_ventas_por_metodo(session):
     """Obtiene ventas por método de pago"""
-    from models.producto import Venta
+    from tucajero.models.producto import Venta
     from sqlalchemy import func
 
     resultados = (
@@ -295,8 +295,8 @@ def get_ventas_por_metodo(session):
 
 def get_ventas_por_cliente(session):
     """Obtiene sumatoria de ventas por cliente para el KPI"""
-    from models.producto import Venta
-    from models.cliente import Cliente
+    from tucajero.models.producto import Venta
+    from tucajero.models.cliente import Cliente
     from sqlalchemy import func
 
     resultados = (

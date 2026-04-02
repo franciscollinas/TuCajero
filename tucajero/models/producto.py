@@ -9,7 +9,7 @@ from sqlalchemy import (
     Index,
 )
 from sqlalchemy.orm import relationship
-from config.database import Base
+from tucajero.config.database import Base
 from datetime import datetime
 
 
@@ -40,6 +40,7 @@ class Producto(Base):
         Index("idx_producto_categoria", "categoria_id"),
         Index("idx_producto_activo", "activo"),
         Index("idx_producto_fraccion", "producto_fraccion_id"),
+        {"extend_existing": True},
     )
 
     id = Column(Integer, primary_key=True)
@@ -54,20 +55,18 @@ class Producto(Base):
 
     unidades_por_empaque = Column(Integer, nullable=True)
     producto_fraccion_id = Column(
-        Integer, 
-        ForeignKey("productos.id", ondelete="SET NULL"), 
-        nullable=True
+        Integer, ForeignKey("productos.id", ondelete="SET NULL"), nullable=True
     )
     es_fraccion = Column(Boolean, default=False)
     stock_minimo = Column(Integer, default=0, nullable=True)
     fecha_vencimiento = Column(DateTime, nullable=True)
 
     producto_fraccion = relationship(
-        "Producto", 
+        "Producto",
         foreign_keys=[producto_fraccion_id],
         remote_side="Producto.id",  # ← IMPORTANTE: evita ambigüedad
         uselist=False,
-        lazy="joined"  # Reduce N+1 queries
+        lazy="joined",  # Reduce N+1 queries
     )
 
     venta_items = relationship("VentaItem", back_populates="producto")
@@ -86,6 +85,7 @@ class Venta(Base):
         Index("idx_venta_fecha", "fecha"),
         Index("idx_venta_cliente", "cliente_id"),
         Index("idx_venta_cajero", "cajero_id"),
+        {"extend_existing": True},
     )
 
     id = Column(Integer, primary_key=True)
@@ -116,7 +116,9 @@ class ConsecutivoFactura(Base):
     """Modelo para controlar el consecutivo de facturas"""
 
     __tablename__ = "consecutivos_factura"
-    __table_args__ = (Index("idx_consecutivo_prefijo", "prefijo"),)
+    __table_args__ = (
+        Index("idx_consecutivo_prefijo", "prefijo"),
+    )
 
     id = Column(Integer, primary_key=True)
     prefijo = Column(String(10), nullable=False, unique=True)  # Ej: "FAC", "BOL"
@@ -134,6 +136,7 @@ class VentaItem(Base):
     __table_args__ = (
         Index("idx_venta_item_venta", "venta_id"),
         Index("idx_venta_item_producto", "producto_id"),
+        {"extend_existing": True},
     )
 
     id = Column(Integer, primary_key=True)
@@ -161,6 +164,7 @@ class MovimientoInventario(Base):
     __table_args__ = (
         Index("idx_movimiento_producto", "producto_id"),
         Index("idx_movimiento_fecha", "fecha"),
+        {"extend_existing": True},
     )
 
     id = Column(Integer, primary_key=True)
@@ -179,7 +183,10 @@ class CorteCaja(Base):
     """Modelo de Corte de Caja"""
 
     __tablename__ = "cortes_caja"
-    __table_args__ = (Index("idx_corte_cajero", "cajero_id"),)
+    __table_args__ = (
+        Index("idx_corte_cajero", "cajero_id"),
+        {"extend_existing": True},
+    )
 
     id = Column(Integer, primary_key=True)
     fecha_apertura = Column(DateTime, default=datetime.now)

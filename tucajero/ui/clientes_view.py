@@ -15,8 +15,8 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
-from utils.formato import fmt_moneda
-from utils.theme import btn_primary, btn_success, btn_warning, btn_danger, btn_secondary
+from tucajero.utils.formato import fmt_moneda
+from tucajero.utils.theme import btn_primary, btn_success, btn_warning, btn_danger, btn_secondary
 
 
 class ClientesView(QWidget):
@@ -27,7 +27,7 @@ class ClientesView(QWidget):
         self.cargar_clientes()
 
     def init_ui(self):
-        from utils.theme import get_colors
+        from tucajero.utils.theme import get_colors
         c = get_colors()
         self.setStyleSheet(f"background-color: {c['bg_app']};")
         
@@ -97,7 +97,7 @@ class ClientesView(QWidget):
         layout.addWidget(self.lbl_deudas)
 
     def cargar_clientes(self, clientes=None):
-        from services.cliente_service import ClienteService
+        from tucajero.services.cliente_service import ClienteService
 
         service = ClienteService(self.session)
         if clientes is None:
@@ -130,7 +130,7 @@ class ClientesView(QWidget):
             self.lbl_deudas.setText("")
 
     def buscar_cliente(self, texto):
-        from services.cliente_service import ClienteService
+        from tucajero.services.cliente_service import ClienteService
 
         service = ClienteService(self.session)
         if texto.strip():
@@ -166,7 +166,7 @@ class ClientesView(QWidget):
         if not cliente_id:
             QMessageBox.warning(self, "Error", "Seleccione un cliente")
             return
-        from services.cliente_service import ClienteService
+        from tucajero.services.cliente_service import ClienteService
 
         service = ClienteService(self.session)
         cliente = service.get_by_id(cliente_id)
@@ -184,7 +184,7 @@ class ClientesView(QWidget):
         if not cliente_id:
             QMessageBox.warning(self, "Error", "Seleccione un cliente")
             return
-        from services.cliente_service import ClienteService
+        from tucajero.services.cliente_service import ClienteService
 
         service = ClienteService(self.session)
         cliente = service.get_by_id(cliente_id)
@@ -199,7 +199,7 @@ class ClientesView(QWidget):
             return
         resp = QMessageBox.question(self, "Confirmar", "¿Eliminar este cliente?")
         if resp == QMessageBox.StandardButton.Yes:
-            from services.cliente_service import ClienteService
+            from tucajero.services.cliente_service import ClienteService
 
             ClienteService(self.session).delete(cliente_id)
             self.cargar_clientes()
@@ -208,7 +208,7 @@ class ClientesView(QWidget):
 class ClienteDialog(QDialog):
     def __init__(self, session, parent=None, cliente_id=None):
         super().__init__(parent)
-        from utils.theme import get_colors
+        from tucajero.utils.theme import get_colors
         c = get_colors()
         self.session = session
         self.cliente_id = cliente_id
@@ -241,7 +241,7 @@ class ClienteDialog(QDialog):
         layout.addRow("Dirección:", self.direccion)
 
         if cliente_id:
-            from services.cliente_service import ClienteService
+            from tucajero.services.cliente_service import ClienteService
 
             c = ClienteService(session).get_by_id(cliente_id)
             if c:
@@ -267,7 +267,7 @@ class ClienteDialog(QDialog):
         if not nombre:
             QMessageBox.warning(self, "Error", "El nombre es requerido")
             return
-        from services.cliente_service import ClienteService
+        from tucajero.services.cliente_service import ClienteService
 
         service = ClienteService(self.session)
         try:
@@ -296,7 +296,7 @@ class ClienteDialog(QDialog):
 class AbonoDialog(QDialog):
     def __init__(self, session, cliente, parent=None):
         super().__init__(parent)
-        from utils.theme import get_colors
+        from tucajero.utils.theme import get_colors
         c = get_colors()
         self.session = session
         self.cliente = cliente
@@ -348,7 +348,7 @@ class AbonoDialog(QDialog):
         self.lbl_preview.setText(f"Saldo después del abono: {fmt_moneda(nuevo_saldo)}")
 
     def confirmar(self):
-        from services.cliente_service import ClienteService
+        from tucajero.services.cliente_service import ClienteService
 
         try:
             ClienteService(self.session).abonar(
@@ -368,7 +368,7 @@ class AbonoDialog(QDialog):
 class HistorialClienteDialog(QDialog):
     def __init__(self, cliente, ventas, parent=None):
         super().__init__(parent)
-        from utils.theme import get_colors
+        from tucajero.utils.theme import get_colors
         c = get_colors()
         self.setWindowTitle(f"Historial — {cliente.nombre}")
         self.setMinimumSize(600, 450)

@@ -102,11 +102,11 @@ def init_db():
     """Initializes the database creating all tables"""
     crear_carpetas()
 
-    from models.producto import Producto
-    from models.cliente import Cliente
-    from models.cajero import Cajero
-    from models.cotizacion import Cotizacion, CotizacionItem
-    from models.proveedor import Proveedor, OrdenCompra, OrdenCompraItem
+    from tucajero.models.producto import Producto
+    from tucajero.models.cliente import Cliente
+    from tucajero.models.cajero import Cajero
+    from tucajero.models.cotizacion import Cotizacion, CotizacionItem
+    from tucajero.models.proveedor import Proveedor, OrdenCompra, OrdenCompraItem
 
     engine = get_engine()
     Base.metadata.create_all(engine)

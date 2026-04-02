@@ -21,8 +21,8 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QDate
 from PySide6.QtGui import QColor
 import os
-from utils.formato import fmt_moneda
-from utils.theme import btn_primary, btn_success, btn_warning, btn_danger, btn_secondary
+from tucajero.utils.formato import fmt_moneda
+from tucajero.utils.theme import btn_primary, btn_success, btn_warning, btn_danger, btn_secondary
 
 
 class ProductosView(QWidget):
@@ -36,7 +36,7 @@ class ProductosView(QWidget):
 
     def init_ui(self):
         """Inicializa la interfaz"""
-        from utils.theme import get_colors
+        from tucajero.utils.theme import get_colors
 
         c = get_colors()
         self.setStyleSheet(f"background-color: {c['bg_app']};")
@@ -179,11 +179,11 @@ class ProductosView(QWidget):
 
     def cargar_productos(self):
         """Carga los productos desde la base de datos"""
-        from utils.theme import get_colors
+        from tucajero.utils.theme import get_colors
 
         c = get_colors()
 
-        from services.producto_service import ProductoService
+        from tucajero.services.producto_service import ProductoService
 
         service = ProductoService(self.session)
         productos = service.get_all_productos()
@@ -213,6 +213,9 @@ class ProductosView(QWidget):
 
     def _mostrar_productos(self, productos):
         """Muestra la lista de productos en la tabla"""
+        from tucajero.utils.theme import get_colors
+        
+        c = get_colors()
         self.tabla.setRowCount(len(productos))
 
         for i, p in enumerate(productos):
@@ -251,7 +254,7 @@ class ProductosView(QWidget):
 
     def filtrar_stock_bajo(self):
         """Muestra solo productos con stock bajo o crítico"""
-        from services.producto_service import ProductoService
+        from tucajero.services.producto_service import ProductoService
 
         service = ProductoService(self.session)
         bajos = service.get_productos_stock_bajo()
@@ -266,7 +269,7 @@ class ProductosView(QWidget):
             item = self.tabla.item(row, 0)
             if item is not None:
                 codigo = item.text()
-                from services.producto_service import ProductoService
+                from tucajero.services.producto_service import ProductoService
 
                 service = ProductoService(self.session)
                 return service.get_producto_by_codigo(codigo)
@@ -337,7 +340,7 @@ class ProductosView(QWidget):
         )
 
         if respuesta == QMessageBox.StandardButton.Yes:
-            from services.producto_service import ProductoService
+            from tucajero.services.producto_service import ProductoService
 
             service = ProductoService(self.session)
             service.delete_producto(producto.id)
@@ -351,7 +354,7 @@ class ProductosView(QWidget):
 
     def importar_productos(self):
         from PySide6.QtWidgets import QFileDialog
-        from utils.importador import leer_archivo
+        from tucajero.utils.importador import leer_archivo
 
         filepath, _ = QFileDialog.getOpenFileName(
             self,
@@ -391,7 +394,7 @@ class ProductoDialog(QDialog):
 
     def init_ui(self):
         """Inicializa la interfaz"""
-        from utils.theme import get_colors
+        from tucajero.utils.theme import get_colors
 
         c = get_colors()
         self.setStyleSheet(f"""
@@ -515,7 +518,7 @@ class ProductoDialog(QDialog):
         """Carga las categorías en el combo"""
         self.cat_combo.clear()
         self.cat_combo.addItem("Sin categoría", None)
-        from services.producto_service import CategoriaService
+        from tucajero.services.producto_service import CategoriaService
 
         service = CategoriaService(self.session)
         cats = service.get_all()
@@ -529,7 +532,7 @@ class ProductoDialog(QDialog):
         )
         if ok and nombre.strip():
             try:
-                from services.producto_service import CategoriaService
+                from tucajero.services.producto_service import CategoriaService
 
                 service = CategoriaService(self.session)
                 service.create(nombre.strip())
@@ -556,7 +559,7 @@ class ProductoDialog(QDialog):
 
     def cargar_producto(self):
         """Carga los datos del producto a editar"""
-        from services.producto_service import ProductoService
+        from tucajero.services.producto_service import ProductoService
 
         service = ProductoService(self.session)
         producto = service.get_producto_by_id(self.producto_id)
@@ -598,7 +601,7 @@ class ProductoDialog(QDialog):
 
     def guardar(self):
         """Guarda el producto"""
-        from services.producto_service import ProductoService
+        from tucajero.services.producto_service import ProductoService
         from PySide6.QtCore import QDate
 
         codigo = self.codigo_input.text().strip()
@@ -661,7 +664,7 @@ class ProductoDialog(QDialog):
                 )
 
             if self.chk_fraccionable.isChecked() and producto_guardado:
-                from services.fraccion_service import FraccionService
+                from tucajero.services.fraccion_service import FraccionService
 
                 frac_service = FraccionService(self.session)
                 if self.producto_id:
@@ -700,7 +703,7 @@ class MovimientoDialog(QDialog):
         self.session = session
         self.producto = producto
         self.tipo = tipo
-        from utils.theme import get_colors
+        from tucajero.utils.theme import get_colors
 
         c = get_colors()
         self.setWindowTitle(
@@ -708,7 +711,7 @@ class MovimientoDialog(QDialog):
         )
 
     def init_ui(self, color):
-        from utils.theme import get_colors
+        from tucajero.utils.theme import get_colors
 
         c = get_colors()
         self.setStyleSheet(f"""
@@ -760,7 +763,7 @@ class MovimientoDialog(QDialog):
         layout.addRow("", btn_layout)
 
     def aceptar(self):
-        from services.producto_service import InventarioService
+        from tucajero.services.producto_service import InventarioService
 
         cantidad = self.cantidad_input.value()
 
@@ -785,7 +788,7 @@ class MovimientoDialog(QDialog):
 class DesempaqueDialog(QDialog):
     def __init__(self, session, producto, parent=None):
         super().__init__(parent)
-        from utils.theme import get_colors
+        from tucajero.utils.theme import get_colors
 
         c = get_colors()
         self.session = session
@@ -798,7 +801,7 @@ class DesempaqueDialog(QDialog):
         layout = QVBoxLayout()
         self.setLayout(layout)
 
-        from models.producto import Producto
+        from tucajero.models.producto import Producto
 
         hijo = session.query(Producto).get(producto.producto_fraccion_id)
         und = producto.unidades_por_empaque or 1
@@ -857,7 +860,7 @@ class DesempaqueDialog(QDialog):
         self.lbl_preview.setText(f"{cajas} caja(s) → {unidades} unidades")
 
     def confirmar(self):
-        from services.fraccion_service import FraccionService
+        from tucajero.services.fraccion_service import FraccionService
 
         try:
             resultado = FraccionService(self.session).desempacar(
@@ -879,7 +882,7 @@ class DesempaqueDialog(QDialog):
 
     def __init__(self, filas, filepath, session, parent=None):
         super().__init__(parent)
-        from utils.theme import get_colors
+        from tucajero.utils.theme import get_colors
 
         c = get_colors()
         self.filas = filas
@@ -932,7 +935,7 @@ class DesempaqueDialog(QDialog):
         layout.addLayout(btns)
 
     def ejecutar(self):
-        from utils.importador import importar_productos
+        from tucajero.utils.importador import importar_productos
 
         try:
             r = importar_productos(self.filepath, self.session)
@@ -965,7 +968,7 @@ class CategoriaDialog(QDialog):
 
     def init_ui(self):
         """Inicializa la interfaz"""
-        from utils.theme import get_colors
+        from tucajero.utils.theme import get_colors
 
         c = get_colors()
         self.setStyleSheet(
@@ -1008,7 +1011,7 @@ class CategoriaDialog(QDialog):
 
     def cargar_categorias(self):
         """Carga las categorías"""
-        from services.producto_service import CategoriaService
+        from tucajero.services.producto_service import CategoriaService
 
         service = CategoriaService(self.session)
         cats = service.get_all()
@@ -1031,7 +1034,7 @@ class CategoriaDialog(QDialog):
         desc = desc.strip() if ok2 else ""
 
         try:
-            from services.producto_service import CategoriaService
+            from tucajero.services.producto_service import CategoriaService
 
             service = CategoriaService(self.session)
             service.create(nombre.strip(), desc)
@@ -1057,7 +1060,7 @@ class CategoriaDialog(QDialog):
             return
 
         try:
-            from services.producto_service import CategoriaService
+            from tucajero.services.producto_service import CategoriaService
 
             service = CategoriaService(self.session)
             service.delete(cat_id)

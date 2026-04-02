@@ -7,7 +7,11 @@
       "Bash(pyinstaller *)",
       "Bash(findstr *)",
       "Bash(timeout *)",
-      "Bash(type)"
+      "Bash(type)",
+      "Bash(start *)",
+      "Bash(tasklist)",
+      "Bash(git checkout *)",
+      "Bash(git add *)"
     ]
   },
   "$version": 3

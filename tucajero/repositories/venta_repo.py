@@ -1,4 +1,4 @@
-from models.producto import Venta, VentaItem, MovimientoInventario, Producto, ConsecutivoFactura
+from tucajero.models.producto import Venta, VentaItem, MovimientoInventario, Producto, ConsecutivoFactura
 from sqlalchemy import and_
 from datetime import datetime, timedelta
 

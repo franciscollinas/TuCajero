@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
     QHeaderView,
 )
 from PySide6.QtCore import Qt
-from utils.theme import btn_primary, btn_danger
+from tucajero.utils.theme import btn_primary, btn_danger
 
 
 class CajerosView(QWidget):
@@ -21,7 +21,7 @@ class CajerosView(QWidget):
         self.cargar_cajeros()
 
     def init_ui(self):
-        from utils.theme import get_colors
+        from tucajero.utils.theme import get_colors
         c = get_colors()
         self.setStyleSheet(f"background-color: {c['bg_app']};")
         
@@ -71,7 +71,7 @@ class CajerosView(QWidget):
         layout.addWidget(self.tabla)
 
     def cargar_cajeros(self):
-        from services.cajero_service import CajeroService
+        from tucajero.services.cajero_service import CajeroService
 
         cajeros = CajeroService(self.session).get_all()
         self.cajeros = cajeros
@@ -102,7 +102,7 @@ class CajerosView(QWidget):
         )
         if not ok2:
             return
-        from services.cajero_service import CajeroService
+        from tucajero.services.cajero_service import CajeroService
 
         try:
             CajeroService(self.session).crear(nombre.strip(), pin)
@@ -128,7 +128,7 @@ class CajerosView(QWidget):
         )
         if not ok:
             return
-        from services.cajero_service import CajeroService
+        from tucajero.services.cajero_service import CajeroService
 
         try:
             CajeroService(self.session).cambiar_pin(cajero.id, nuevo_pin)
@@ -148,7 +148,7 @@ class CajerosView(QWidget):
             self, "Confirmar", f"¿Eliminar al cajero '{cajero.nombre}'?"
         )
         if resp == QMessageBox.StandardButton.Yes:
-            from services.cajero_service import CajeroService
+            from tucajero.services.cajero_service import CajeroService
 
             CajeroService(self.session).eliminar(cajero.id)
             self.cargar_cajeros()

@@ -8,8 +8,8 @@ import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from security.license_manager import get_machine_id, generar_licencia
-from utils.store_config import get_store_name
+from tucajero.security.license_manager import get_machine_id, generar_licencia
+from tucajero.utils.store_config import get_store_name
 
 
 def main():

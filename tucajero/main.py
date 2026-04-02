@@ -30,21 +30,21 @@ def global_exception_handler(exc_type, exc_value, exc_traceback):
 
 
 sys.excepthook = global_exception_handler
-from config.database import init_db, get_session, crear_carpetas
-from services.corte_service import CorteCajaService
-from ui.main_window import MainWindow
-from ui.ventas_view import VentasView
-from models.cliente import Cliente
-from ui.activate_view import ActivationDialog
-from security.license_manager import validar_licencia
-from utils.store_config import load_store_config, is_setup_complete
-from ui.setup_view import SetupDialog
-from app.ui.theme.theme import app_style
+from tucajero.config.database import init_db, get_session, crear_carpetas
+from tucajero.services.corte_service import CorteCajaService
+from tucajero.ui.main_window import MainWindow
+from tucajero.ui.ventas_view import VentasView
+from tucajero.models.cliente import Cliente
+from tucajero.ui.activate_view import ActivationDialog
+from tucajero.security.license_manager import validar_licencia
+from tucajero.utils.store_config import load_store_config, is_setup_complete
+from tucajero.ui.setup_view import SetupDialog
+from tucajero.app.ui.theme.theme import app_style
 
 
 def configurar_logging():
     """Configura el logging global con rotación"""
-    from utils.logging_config import setup_logging, get_logs_path
+    from tucajero.utils.logging_config import setup_logging, get_logs_path
 
     log_path = setup_logging()
     logging.info(f"Logging inicializado en: {log_path}")
@@ -52,11 +52,21 @@ def configurar_logging():
 
 def main():
     """Función principal de la aplicación"""
+    # Inicializar BD primero para evitar conflictos de imports de modelos
+    try:
+        init_db()
+    except Exception as e:
+        import traceback
+        error_detail = traceback.format_exc()
+        logging.error(f"Error al inicializar BD: {e}\n{error_detail}")
+        QMessageBox.critical(None, "Error", f"Error en BD:\n{e}\n\n{error_detail}")
+        sys.exit(1)
+
     crear_carpetas()
     configurar_logging()
     load_store_config()
 
-    from utils.backup import backup_semanal
+    from tucajero.utils.backup import backup_semanal
 
     backup_semanal()
 
@@ -75,8 +85,6 @@ def main():
         dialog.exec()
         if not dialog.activation_success:
             sys.exit(0)
-        # Si se activó con éxito, el bucle terminará en la siguiente iteración
-        # ya que validar_licencia() ahora retornará True
 
     if not is_setup_complete():
         setup = SetupDialog()
@@ -84,29 +92,15 @@ def main():
             sys.exit(0)
         load_store_config()
 
-    try:
-        init_db()
-    except Exception as e:
-        import traceback
-
-        error_detail = traceback.format_exc()
-        logging.error(f"Error al inicializar base de datos: {e}\n{error_detail}")
-        QMessageBox.critical(
-            None,
-            "Error",
-            f"Error al inicializar la base de datos:\n{str(e)}\n\n{error_detail}",
-        )
-        sys.exit(1)
-
     session = get_session()
 
-    from services.cajero_service import CajeroService
-    from models.cajero import Cajero
+    from tucajero.services.cajero_service import CajeroService
+    from tucajero.models.cajero import Cajero
 
     cajero_service = CajeroService(session)
     cajero_service.crear_admin_default()
 
-    from app.ui.views.auth.login_view import LoginView
+    from tucajero.app.ui.views.auth.login_view import LoginView
 
     login = LoginView(session)
     result = login.exec()
@@ -128,7 +122,7 @@ def main():
     logging.info("Iconos configurados")
 
     # Nuevo dashboard estilo SaaS
-    from app.ui.views.dashboard.dashboard_view import DashboardView
+    from tucajero.app.ui.views.dashboard.dashboard_view import DashboardView
 
     dashboard_view = DashboardView(session)
     window.add_view(dashboard_view, "dashboard")
@@ -138,7 +132,7 @@ def main():
     ventas_view.sale_completed.connect(dashboard_view.refresh)
 
     try:
-        from ui.setup_view import SetupView
+        from tucajero.ui.setup_view import SetupView
 
         config_view = SetupView(session, parent=window)
         window.add_view(config_view, "setup")

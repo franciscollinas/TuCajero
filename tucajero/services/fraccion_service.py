@@ -1,4 +1,4 @@
-from models.producto import Producto, MovimientoInventario
+from tucajero.models.producto import Producto, MovimientoInventario
 from datetime import datetime
 
 

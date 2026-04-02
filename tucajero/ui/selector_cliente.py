@@ -9,8 +9,8 @@ from PySide6.QtWidgets import (
     QHeaderView,
 )
 from PySide6.QtCore import Qt
-from utils.formato import fmt_moneda
-from utils.theme import btn_primary, btn_secondary, get_colors
+from tucajero.utils.formato import fmt_moneda
+from tucajero.utils.theme import btn_primary, btn_secondary, get_colors
 c = get_colors()
 
 
@@ -21,7 +21,7 @@ class SelectorClienteDialog(QDialog):
         self.cliente = None
         self.setWindowTitle("Seleccionar Cliente")
         self.setMinimumSize(500, 400)
-        from utils.theme import get_colors
+        from tucajero.utils.theme import get_colors
         c = get_colors()
         self.setStyleSheet(f"QDialog {{ background-color: {c['bg_app']}; }}")
         
@@ -65,7 +65,7 @@ class SelectorClienteDialog(QDialog):
         self.cargar()
 
     def cargar(self, clientes=None):
-        from services.cliente_service import ClienteService
+        from tucajero.services.cliente_service import ClienteService
 
         if clientes is None:
             clientes = ClienteService(self.session).get_all()
@@ -78,7 +78,7 @@ class SelectorClienteDialog(QDialog):
             self.tabla.setItem(i, 3, QTableWidgetItem(fmt_moneda(c.saldo_credito)))
 
     def buscar(self, texto):
-        from services.cliente_service import ClienteService
+        from tucajero.services.cliente_service import ClienteService
 
         service = ClienteService(self.session)
         clientes = service.search(texto) if texto.strip() else service.get_all()

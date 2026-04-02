@@ -1,4 +1,4 @@
-from models.producto import Categoria, Producto
+from tucajero.models.producto import Categoria, Producto
 from sqlalchemy.exc import IntegrityError
 
 COLORES_DEFAULT = [

@@ -1,4 +1,4 @@
-from models.cliente import Cliente
+from tucajero.models.cliente import Cliente
 from sqlalchemy import or_
 
 

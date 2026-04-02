@@ -16,8 +16,8 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 from datetime import datetime
-from utils.formato import fmt_moneda
-from utils.theme import btn_primary, btn_secondary, btn_danger, get_colors
+from tucajero.utils.formato import fmt_moneda
+from tucajero.utils.theme import btn_primary, btn_secondary, btn_danger, get_colors
 
 
 class CorteView(QWidget):
@@ -32,7 +32,7 @@ class CorteView(QWidget):
 
     def init_ui(self):
         """Inicializa la interfaz"""
-        from utils.theme import get_colors
+        from tucajero.utils.theme import get_colors
 
         c = get_colors()
         self.setStyleSheet(f"background-color: {c['bg_app']};")
@@ -44,7 +44,7 @@ class CorteView(QWidget):
         titulo.setStyleSheet("font-size: 24px; font-weight: bold;")
         layout.addWidget(titulo)
 
-        from utils.theme import card_style
+        from tucajero.utils.theme import card_style
 
         self.info_widget = QWidget()
         self.info_widget.setObjectName("infoCard")
@@ -185,7 +185,7 @@ class CorteView(QWidget):
 
     def cargar_estadisticas(self):
         """Carga las estadísticas del día"""
-        from services.corte_service import CorteCajaService
+        from tucajero.services.corte_service import CorteCajaService
 
         service = CorteCajaService(self.session)
         stats = service.get_estadisticas_hoy()
@@ -239,7 +239,7 @@ class CorteView(QWidget):
 
     def abrir_caja(self):
         """Abre la caja"""
-        from services.corte_service import CorteCajaService
+        from tucajero.services.corte_service import CorteCajaService
 
         service = CorteCajaService(self.session)
         service.abrir_caja()
@@ -294,7 +294,7 @@ class CorteView(QWidget):
                 QMessageBox.warning(self, "Error", "El monto debe ser mayor a cero")
                 return
             try:
-                from services.corte_service import CorteCajaService
+                from tucajero.services.corte_service import CorteCajaService
 
                 service = CorteCajaService(self.session)
                 service.registrar_gasto(concepto, monto)
@@ -309,7 +309,7 @@ class CorteView(QWidget):
 
     def cerrar_caja(self):
         """Cierra la caja con validación de diferencias"""
-        from services.corte_service import CorteCajaService
+        from tucajero.services.corte_service import CorteCajaService
 
         service = CorteCajaService(self.session)
         stats = service.get_estadisticas_hoy()
@@ -405,9 +405,9 @@ class CorteView(QWidget):
 
     def anular_venta(self):
         """Anula una venta del día"""
-        from services.corte_service import CorteCajaService
-        from services.producto_service import VentaService
-        from ui.ventas_view import VentasView
+        from tucajero.services.corte_service import CorteCajaService
+        from tucajero.services.producto_service import VentaService
+        from tucajero.ui.ventas_view import VentasView
 
         service = CorteCajaService(self.session)
         stats = service.get_estadisticas_hoy()
@@ -461,7 +461,7 @@ class CorteView(QWidget):
 
     def ver_facturas_dia(self):
         """Abre o genera el PDF de facturas del día"""
-        from utils.factura_diaria import get_factura_diaria_path
+        from tucajero.utils.factura_diaria import get_factura_diaria_path
         import subprocess
         import os
 
@@ -483,8 +483,8 @@ class CorteView(QWidget):
             QMessageBox.warning(self, "Error", f"No se pudo abrir el archivo: {str(e)}")
 
     def reimprimir_ultimo(self):
-        from services.corte_service import CorteCajaService
-        from utils.store_config import get_printer_enabled
+        from tucajero.services.corte_service import CorteCajaService
+        from tucajero.utils.store_config import get_printer_enabled
 
         if not get_printer_enabled():
             QMessageBox.warning(
@@ -504,7 +504,7 @@ class CorteView(QWidget):
                 )
                 return
             ultima = ventas[-1]
-            from utils.impresora import get_impresora
+            from tucajero.utils.impresora import get_impresora
 
             imp = get_impresora()
             imp.imprimir_ticket(ultima, ultima.items)

@@ -1,4 +1,4 @@
-from models.cotizacion import Cotizacion, CotizacionItem
+from tucajero.models.cotizacion import Cotizacion, CotizacionItem
 from datetime import datetime
 
 IVA_RATE = 0.19

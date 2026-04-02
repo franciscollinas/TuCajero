@@ -13,9 +13,9 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, QDate
 from datetime import datetime, timedelta
-from utils.theme import btn_primary
+from tucajero.utils.theme import btn_primary
 import os
-from utils.formato import fmt_moneda
+from tucajero.utils.formato import fmt_moneda
 
 
 class HistorialView(QWidget):
@@ -29,7 +29,7 @@ class HistorialView(QWidget):
 
     def init_ui(self):
         """Inicializa la interfaz"""
-        from utils.theme import get_colors
+        from tucajero.utils.theme import get_colors
 
         c = get_colors()
         self.setStyleSheet(f"background-color: {c['bg_app']};")
@@ -181,7 +181,7 @@ class HistorialView(QWidget):
         hasta = self.hasta_edit.date().toPython()
         hasta = datetime.combine(hasta, datetime.max.time())
 
-        from models.producto import CorteCaja, VentaItem, Venta, Producto
+        from tucajero.models.producto import CorteCaja, VentaItem, Venta, Producto
         from sqlalchemy import and_
 
         cierres = (
@@ -243,7 +243,7 @@ class HistorialView(QWidget):
         desde_dt = datetime.combine(desde, datetime.min.time())
         hasta_dt = datetime.combine(hasta, datetime.max.time())
 
-        from models.producto import VentaItem, Venta, Producto
+        from tucajero.models.producto import VentaItem, Venta, Producto
         from sqlalchemy import func
 
         ranking = (

@@ -16,7 +16,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QPixmap
-from utils.store_config import (
+from tucajero.utils.store_config import (
     save_store_config,
     load_store_config,
     get_store_name,
@@ -26,7 +26,7 @@ from utils.store_config import (
     get_nit,
     get_logo_path,
 )
-from utils.theme import btn_primary, btn_secondary, get_colors
+from tucajero.utils.theme import btn_primary, btn_secondary, get_colors
 
 
 class SetupDialog(QDialog):
@@ -390,7 +390,7 @@ class SetupView(QWidget):
         layout.addWidget(self.btn_guardar)
 
     def cargar_config(self):
-        from utils.store_config import get_printer_config
+        from tucajero.utils.store_config import get_printer_config
 
         self.nombre_input.setText(get_store_name())
         self.nit_input.setText(get_nit())
@@ -504,7 +504,7 @@ class SetupView(QWidget):
         self.serial_widget.setVisible("Serial" in tipo)
 
     def prueba_impresion(self):
-        from utils.impresora import ImpresoraTermica
+        from tucajero.utils.impresora import ImpresoraTermica
 
         config = self._build_printer_config()
         if not config:

@@ -1,4 +1,4 @@
-from models.producto import CorteCaja, Venta, VentaItem, Producto, GastoCaja
+from tucajero.models.producto import CorteCaja, Venta, VentaItem, Producto, GastoCaja
 from sqlalchemy import and_, func
 from datetime import datetime
 

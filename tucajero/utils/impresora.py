@@ -1,12 +1,12 @@
 import logging
-from utils.store_config import (
+from tucajero.utils.store_config import (
     get_store_name,
     get_address,
     get_phone,
     get_nit,
     get_email,
 )
-from utils.formato import fmt_moneda
+from tucajero.utils.formato import fmt_moneda
 
 
 class ImpresoraTermica:
@@ -174,7 +174,7 @@ class ImpresoraTermica:
 
 def get_impresora():
     """Retorna una impresora configurada desde store_config"""
-    from utils.store_config import get_printer_config
+    from tucajero.utils.store_config import get_printer_config
 
     config = get_printer_config()
     return ImpresoraTermica(config)

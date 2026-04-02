@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QDialog
 from PySide6.QtCore import Qt
-from utils.store_config import get_store_name, get_address, get_phone, get_nit
-from utils.theme import btn_primary, get_colors
+from tucajero.utils.store_config import get_store_name, get_address, get_phone, get_nit
+from tucajero.utils.theme import btn_primary, get_colors
 c = get_colors()
 
 

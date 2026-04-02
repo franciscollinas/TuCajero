@@ -1,4 +1,4 @@
-from repositories.cliente_repo import ClienteRepository
+from tucajero.repositories.cliente_repo import ClienteRepository
 
 
 class ClienteService:
@@ -31,7 +31,7 @@ class ClienteService:
 
     def get_ventas_cliente(self, cliente_id):
         """Retorna todas las ventas de un cliente"""
-        from models.producto import Venta
+        from tucajero.models.producto import Venta
 
         return (
             self.session.query(Venta)
@@ -42,7 +42,7 @@ class ClienteService:
 
     def get_clientes_con_deuda(self):
         """Retorna clientes con saldo pendiente"""
-        from models.cliente import Cliente
+        from tucajero.models.cliente import Cliente
 
         return (
             self.session.query(Cliente)

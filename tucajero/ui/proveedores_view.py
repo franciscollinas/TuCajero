@@ -19,8 +19,8 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
-from utils.formato import fmt_moneda
-from utils.theme import btn_primary, btn_danger, btn_secondary, get_colors
+from tucajero.utils.formato import fmt_moneda
+from tucajero.utils.theme import btn_primary, btn_danger, btn_secondary, get_colors
 
 
 class ProveedoresView(QWidget):
@@ -86,7 +86,7 @@ class ProveedoresView(QWidget):
         return widget
 
     def cargar_proveedores(self):
-        from services.proveedor_service import ProveedorService
+        from tucajero.services.proveedor_service import ProveedorService
 
         self.proveedores = ProveedorService(self.session).get_all()
         self.tabla_prov.setRowCount(len(self.proveedores))
@@ -126,7 +126,7 @@ class ProveedoresView(QWidget):
             self, "Confirmar", f"¿Eliminar al proveedor '{p.nombre}'?"
         )
         if resp == QMessageBox.StandardButton.Yes:
-            from services.proveedor_service import ProveedorService
+            from tucajero.services.proveedor_service import ProveedorService
 
             ProveedorService(self.session).eliminar(p.id)
             self.cargar_proveedores()
@@ -178,7 +178,7 @@ class ProveedoresView(QWidget):
         layout.addWidget(self.tabla_ord)
 
         info = QLabel("💡 Doble clic en una orden para ver el detalle de productos")
-        from utils.theme import get_colors
+        from tucajero.utils.theme import get_colors
 
         c = get_colors()
         info.setStyleSheet(
@@ -191,8 +191,8 @@ class ProveedoresView(QWidget):
         return widget
 
     def cargar_ordenes(self):
-        from services.proveedor_service import OrdenCompraService
-        from utils.theme import get_colors
+        from tucajero.services.proveedor_service import OrdenCompraService
+        from tucajero.utils.theme import get_colors
 
         c = get_colors()
 
@@ -249,7 +249,7 @@ class ProveedoresView(QWidget):
         if resp != QMessageBox.StandardButton.Yes:
             return
 
-        from services.proveedor_service import OrdenCompraService
+        from tucajero.services.proveedor_service import OrdenCompraService
 
         try:
             OrdenCompraService(self.session).recibir_orden(orden.id)
@@ -277,7 +277,7 @@ class ProveedoresView(QWidget):
         if resp != QMessageBox.StandardButton.Yes:
             return
 
-        from services.proveedor_service import OrdenCompraService
+        from tucajero.services.proveedor_service import OrdenCompraService
 
         try:
             OrdenCompraService(self.session).cancelar(orden.id)
@@ -321,7 +321,7 @@ class ProveedorDialog(QDialog):
         layout.addRow("Dirección:", self.direccion)
 
         if proveedor_id:
-            from services.proveedor_service import ProveedorService
+            from tucajero.services.proveedor_service import ProveedorService
 
             p = ProveedorService(session).get_by_id(proveedor_id)
             if p:
@@ -347,7 +347,7 @@ class ProveedorDialog(QDialog):
         if not nombre:
             QMessageBox.warning(self, "Error", "El nombre es requerido")
             return
-        from services.proveedor_service import ProveedorService
+        from tucajero.services.proveedor_service import ProveedorService
 
         service = ProveedorService(self.session)
         try:
@@ -383,7 +383,7 @@ class OrdenCompraDialog(QDialog):
         self.init_ui()
 
     def init_ui(self):
-        from utils.theme import get_colors
+        from tucajero.utils.theme import get_colors
 
         c = get_colors()
 
@@ -460,14 +460,14 @@ class OrdenCompraDialog(QDialog):
         layout.addLayout(btns)
 
     def _cargar_proveedores(self):
-        from services.proveedor_service import ProveedorService
+        from tucajero.services.proveedor_service import ProveedorService
 
         self.proveedores = ProveedorService(self.session).get_all()
         for p in self.proveedores:
             self.combo_prov.addItem(p.nombre, p.id)
 
     def _cargar_productos(self):
-        from services.producto_service import ProductoService
+        from tucajero.services.producto_service import ProductoService
 
         self.productos = ProductoService(self.session).get_all_productos()
         for p in self.productos:
@@ -538,7 +538,7 @@ class OrdenCompraDialog(QDialog):
             return
 
         proveedor_id = self.combo_prov.currentData()
-        from services.proveedor_service import OrdenCompraService
+        from tucajero.services.proveedor_service import OrdenCompraService
 
         try:
             orden = OrdenCompraService(self.session).crear(
@@ -562,7 +562,7 @@ class DetalleOrdenDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle(f"Detalle — Orden #{orden.id}")
         self.setMinimumSize(550, 400)
-        from utils.theme import get_colors
+        from tucajero.utils.theme import get_colors
 
         c = get_colors()
         layout = QVBoxLayout()
@@ -587,7 +587,7 @@ class DetalleOrdenDialog(QDialog):
         tabla.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         tabla.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
 
-        from models.producto import Producto
+        from tucajero.models.producto import Producto
 
         session = None
         if parent and hasattr(parent, "session"):

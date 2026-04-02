@@ -10,15 +10,15 @@ from PySide6.QtWidgets import (
     QApplication,
 )
 from PySide6.QtCore import Qt, QTimer
-from utils.theme import btn_primary, btn_secondary, get_colors
+from tucajero.utils.theme import btn_primary, btn_secondary, get_colors
 c = get_colors()
-from security.license_manager import (
+from tucajero.security.license_manager import (
     get_machine_id,
     generar_licencia,
     guardar_licencia,
     validar_licencia,
 )
-from utils.store_config import get_store_name
+from tucajero.utils.store_config import get_store_name
 
 
 class ActivateView(QWidget):

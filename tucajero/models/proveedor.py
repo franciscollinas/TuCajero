@@ -1,6 +1,15 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, ForeignKey, Index
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Float,
+    Boolean,
+    DateTime,
+    ForeignKey,
+    Index,
+)
 from sqlalchemy.orm import relationship
-from config.database import Base
+from tucajero.config.database import Base
 from datetime import datetime
 
 
@@ -28,6 +37,7 @@ class OrdenCompra(Base):
         Index("idx_orden_fecha", "fecha"),
         Index("idx_orden_proveedor", "proveedor_id"),
         Index("idx_orden_estado", "estado"),
+        {"extend_existing": True},
     )
 
     id = Column(Integer, primary_key=True)
@@ -51,6 +61,7 @@ class OrdenCompraItem(Base):
     __table_args__ = (
         Index("idx_orden_item_orden", "orden_id"),
         Index("idx_orden_item_producto", "producto_id"),
+        {"extend_existing": True},
     )
 
     id = Column(Integer, primary_key=True)
