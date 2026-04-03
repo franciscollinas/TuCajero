@@ -1,6 +1,7 @@
 """Login Screen - TuCajero POS
-Minimalist SaaS design (Stripe/Linear style)
-Light mode only - Clean, calm, professional
+PIN-based authentication for cashiers
+Minimalist SaaS + POS hybrid design
+Light mode with subtle gradient
 """
 
 from PySide6.QtWidgets import (
@@ -14,11 +15,11 @@ from PySide6.QtWidgets import (
     QGraphicsDropShadowEffect,
 )
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QFont, QColor
+from PySide6.QtGui import QColor
 
 
 class LoginView(QDialog):
-    """Minimalist login screen for TuCajero POS"""
+    """PIN-based login screen for TuCajero POS"""
 
     def __init__(self, session, parent=None):
         super().__init__(parent)
@@ -31,10 +32,11 @@ class LoginView(QDialog):
         self.setFixedSize(1200, 800)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
 
-        # Background
+        # Background with subtle gradient
         self.setStyleSheet("""
             QDialog {
-                background-color: #F8FAFC;
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #F8FAFC, stop:1 #EEF2FF);
             }
         """)
 
@@ -45,7 +47,7 @@ class LoginView(QDialog):
 
         # Login card
         card = QWidget()
-        card.setFixedSize(380, 520)
+        card.setFixedSize(360, 420)
         card.setStyleSheet("""
             QWidget {
                 background-color: #FFFFFF;
@@ -54,11 +56,11 @@ class LoginView(QDialog):
             }
         """)
 
-        # Subtle shadow
+        # Soft shadow
         shadow = QGraphicsDropShadowEffect()
-        shadow.setBlurRadius(20)
-        shadow.setOffset(0, 2)
-        shadow.setColor(QColor(0, 0, 0, 12))  # Very subtle black with low alpha
+        shadow.setBlurRadius(24)
+        shadow.setOffset(0, 4)
+        shadow.setColor(QColor(0, 0, 0, 15))
         card.setGraphicsEffect(shadow)
 
         card_layout = QVBoxLayout(card)
@@ -71,45 +73,29 @@ class LoginView(QDialog):
         app_name.setStyleSheet("""
             QLabel {
                 color: #0F172A;
-                font-size: 19px;
+                font-size: 18px;
                 font-weight: 600;
                 background: transparent;
             }
         """)
         card_layout.addWidget(app_name)
 
-        # 2. Title
-        title = QLabel("Iniciar sesión")
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title.setStyleSheet("""
-            QLabel {
-                color: #0F172A;
-                font-size: 23px;
-                font-weight: 600;
-                background: transparent;
-            }
-        """)
-        card_layout.addWidget(title)
-
-        # 3. Subtitle
-        subtitle = QLabel("Accede a tu sistema de ventas")
-        subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        subtitle.setStyleSheet("""
+        # 2. Active user
+        user_label = QLabel("Admin")
+        user_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        user_label.setStyleSheet("""
             QLabel {
                 color: #64748B;
                 font-size: 14px;
                 background: transparent;
             }
         """)
-        card_layout.addWidget(subtitle)
+        card_layout.addWidget(user_label)
 
-        # 4. Input fields
-        inputs_layout = QVBoxLayout()
-        inputs_layout.setSpacing(16)
-
-        # Email input
-        email_label = QLabel("Correo electrónico")
-        email_label.setStyleSheet("""
+        # 3. PIN input
+        pin_label = QLabel("Ingresa tu PIN")
+        pin_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        pin_label.setStyleSheet("""
             QLabel {
                 color: #0F172A;
                 font-size: 14px;
@@ -117,62 +103,33 @@ class LoginView(QDialog):
                 background: transparent;
             }
         """)
-        inputs_layout.addWidget(email_label)
+        card_layout.addWidget(pin_label)
 
-        self.email_input = QLineEdit()
-        self.email_input.setPlaceholderText("tu@correo.com")
-        self.email_input.setFixedHeight(48)
-        self.email_input.setStyleSheet("""
+        self.pin_input = QLineEdit()
+        self.pin_input.setPlaceholderText("••••")
+        self.pin_input.setMaxLength(4)
+        self.pin_input.setEchoMode(QLineEdit.EchoMode.Password)
+        self.pin_input.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.pin_input.setFixedHeight(56)
+        self.pin_input.setStyleSheet("""
             QLineEdit {
                 background-color: #FFFFFF;
                 border: 1px solid #E2E8F0;
-                border-radius: 8px;
-                padding: 0 14px;
-                font-size: 14px;
+                border-radius: 10px;
+                font-size: 20px;
+                font-weight: 600;
                 color: #0F172A;
+                letter-spacing: 8px;
             }
             QLineEdit:focus {
                 border: 1px solid #2563EB;
             }
         """)
-        inputs_layout.addWidget(self.email_input)
+        self.pin_input.returnPressed.connect(self.login)
+        card_layout.addWidget(self.pin_input)
 
-        # Password input
-        password_label = QLabel("Contraseña")
-        password_label.setStyleSheet("""
-            QLabel {
-                color: #0F172A;
-                font-size: 14px;
-                font-weight: 500;
-                background: transparent;
-            }
-        """)
-        inputs_layout.addWidget(password_label)
-
-        self.password_input = QLineEdit()
-        self.password_input.setPlaceholderText("••••••••")
-        self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
-        self.password_input.setFixedHeight(48)
-        self.password_input.setStyleSheet("""
-            QLineEdit {
-                background-color: #FFFFFF;
-                border: 1px solid #E2E8F0;
-                border-radius: 8px;
-                padding: 0 14px;
-                font-size: 14px;
-                color: #0F172A;
-            }
-            QLineEdit:focus {
-                border: 1px solid #2563EB;
-            }
-        """)
-        self.password_input.returnPressed.connect(self.login)
-        inputs_layout.addWidget(self.password_input)
-
-        card_layout.addLayout(inputs_layout)
-
-        # 5. Primary button
-        self.login_btn = QPushButton("Ingresar")
+        # 4. Primary button
+        self.login_btn = QPushButton("Acceder")
         self.login_btn.setFixedHeight(48)
         self.login_btn.setStyleSheet("""
             QPushButton {
@@ -193,21 +150,8 @@ class LoginView(QDialog):
         self.login_btn.clicked.connect(self.login)
         card_layout.addWidget(self.login_btn)
 
-        # 6. Secondary link
-        forgot_link = QLabel("¿Olvidaste tu contraseña?")
-        forgot_link.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        forgot_link.setStyleSheet("""
-            QLabel {
-                color: #2563EB;
-                font-size: 14px;
-                background: transparent;
-            }
-        """)
-        forgot_link.setCursor(Qt.CursorShape.PointingHandCursor)
-        card_layout.addWidget(forgot_link)
-
-        # 7. Footer text
-        footer = QLabel("Sistema seguro para gestión de ventas")
+        # 5. Footer
+        footer = QLabel("Acceso seguro al sistema de ventas")
         footer.setAlignment(Qt.AlignmentFlag.AlignCenter)
         footer.setStyleSheet("""
             QLabel {
@@ -220,16 +164,18 @@ class LoginView(QDialog):
 
         main_layout.addWidget(card)
 
-    def login(self):
-        """Handle login"""
-        email = self.email_input.text().strip()
-        password = self.password_input.text().strip()
+        # Focus on PIN input
+        self.pin_input.setFocus()
 
-        if not email or not password:
+    def login(self):
+        """Handle PIN login"""
+        pin = self.pin_input.text().strip()
+
+        if not pin or len(pin) != 4:
             from PySide6.QtWidgets import QMessageBox
-            QMessageBox.warning(self, "Error", "Completa todos los campos")
+            QMessageBox.warning(self, "Error", "Ingresa un PIN de 4 dígitos")
             return
 
-        # TODO: Implement authentication logic
-        # For now, accept any login
+        # TODO: Implement PIN authentication logic
+        # For now, accept any 4-digit PIN
         self.accept()
