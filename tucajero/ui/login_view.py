@@ -1,6 +1,6 @@
 """Login Screen - TuCajero POS
-Premium PIN-based authentication with refined visual depth
-High-end SaaS aesthetic with subtle tactile interactions
+Premium PIN-based authentication with enhanced contrast and depth
+High-end SaaS aesthetic with clear visual hierarchy
 """
 
 import os
@@ -12,18 +12,17 @@ from PySide6.QtWidgets import (
     QPushButton,
     QWidget,
     QGraphicsDropShadowEffect,
-    QGraphicsOpacityEffect,
 )
 from PySide6.QtCore import Qt, QEvent
-from PySide6.QtGui import QColor, QPixmap, QPalette, QLinearGradient, QRadialGradient, QBrush
+from PySide6.QtGui import QColor, QPixmap
 
 
 class PINBox(QPushButton):
-    """Tactile PIN digit input box with hover/focus states"""
+    """Tactile PIN digit input box with enhanced contrast states"""
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setFixedSize(56, 56)
+        self.setFixedSize(60, 60)
         self.setCheckable(True)
         self._value = ""
         self._focused = False
@@ -40,48 +39,48 @@ class PINBox(QPushButton):
     def update_style(self):
         """Update visual style based on state"""
         if self._focused:
-            # Focus state - blue border with subtle inner glow
+            # Focus state - strong blue border with subtle scale effect
             self.setStyleSheet("""
                 QPushButton {
                     background-color: #FFFFFF;
                     border: 2px solid #2563EB;
                     border-radius: 10px;
-                    font-size: 22px;
-                    font-weight: 600;
+                    font-size: 24px;
+                    font-weight: 700;
                     color: #0F172A;
                     padding: 0px;
                 }
                 QPushButton:hover {
-                    background-color: #F8FAFC;
+                    background-color: #F1F5F9;
                 }
             """)
         elif self._hovered:
-            # Hover state - slight border darkening
+            # Hover state - clear border darkening
             self.setStyleSheet("""
                 QPushButton {
                     background-color: #FFFFFF;
-                    border: 1px solid #CBD5E1;
+                    border: 1px solid #94A3B8;
                     border-radius: 10px;
-                    font-size: 22px;
-                    font-weight: 600;
+                    font-size: 24px;
+                    font-weight: 700;
                     color: #0F172A;
                     padding: 0px;
                 }
             """)
         else:
-            # Default state
+            # Default state - clear border
             self.setStyleSheet("""
                 QPushButton {
                     background-color: #FFFFFF;
-                    border: 1px solid #E2E8F0;
+                    border: 1px solid #CBD5E1;
                     border-radius: 10px;
-                    font-size: 22px;
-                    font-weight: 600;
+                    font-size: 24px;
+                    font-weight: 700;
                     color: #0F172A;
                     padding: 0px;
                 }
                 QPushButton:hover {
-                    border: 1px solid #CBD5E1;
+                    border: 1px solid #94A3B8;
                 }
             """)
 
@@ -111,7 +110,7 @@ class PINBox(QPushButton):
 
 
 class LoginView(QDialog):
-    """Premium PIN-based login screen for TuCajero POS"""
+    """Premium PIN-based login screen with enhanced contrast and depth"""
 
     def __init__(self, session, parent=None):
         super().__init__(parent)
@@ -126,12 +125,12 @@ class LoginView(QDialog):
         self.setFixedSize(1200, 800)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
 
-        # Premium background with subtle radial gradient
+        # Enhanced background with clear radial gradient
         self.setStyleSheet("""
             QDialog {
-                background: qradialgradient(cx:0.5, cy:0.45, radius:0.6,
+                background: qradialgradient(cx:0.5, cy:0.45, radius:0.7,
                     fx:0.5, fy:0.45,
-                    stop:0 #F1F5F9, stop:0.5 #F8FAFC, stop:1 #EEF2FF);
+                    stop:0 #EEF2FF, stop:0.6 #F1F5F9, stop:1 #F8FAFC);
             }
         """)
 
@@ -140,9 +139,9 @@ class LoginView(QDialog):
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        # Login card with premium depth
+        # Login card with enhanced depth and contrast
         card = QWidget()
-        card.setFixedSize(380, 500)
+        card.setFixedSize(400, 540)
         card.setStyleSheet("""
             QWidget {
                 background-color: #FFFFFF;
@@ -151,32 +150,32 @@ class LoginView(QDialog):
             }
         """)
 
-        # Layered shadow for floating effect
+        # Stronger layered shadow for clear separation
         shadow1 = QGraphicsDropShadowEffect()
-        shadow1.setBlurRadius(40)
-        shadow1.setOffset(0, 12)
-        shadow1.setColor(QColor(0, 0, 0, 15))
+        shadow1.setBlurRadius(50)
+        shadow1.setOffset(0, 16)
+        shadow1.setColor(QColor(0, 0, 0, 25))
         
         shadow2 = QGraphicsDropShadowEffect()
-        shadow2.setBlurRadius(20)
-        shadow2.setOffset(0, 4)
-        shadow2.setColor(QColor(0, 0, 0, 10))
+        shadow2.setBlurRadius(25)
+        shadow2.setOffset(0, 6)
+        shadow2.setColor(QColor(0, 0, 0, 15))
         
         card.setGraphicsEffect(shadow1)
 
         card_layout = QVBoxLayout(card)
-        card_layout.setContentsMargins(32, 32, 32, 32)
+        card_layout.setContentsMargins(36, 36, 36, 36)
         card_layout.setSpacing(0)
 
-        # 1. Logo with increased top spacing
-        card_layout.addSpacing(8)
+        # 1. Logo with increased presence
+        card_layout.addSpacing(12)
         
         logo_path = os.path.join(os.path.dirname(__file__), "assets", "icons", "logo.png")
         if os.path.exists(logo_path):
             logo_label = QLabel()
             logo_pixmap = QPixmap(logo_path)
             scaled_logo = logo_pixmap.scaled(
-                44, 44,
+                48, 48,
                 Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation
             )
@@ -185,8 +184,8 @@ class LoginView(QDialog):
             logo_label.setStyleSheet("background: transparent;")
             card_layout.addWidget(logo_label)
             
-            # More separation between logo and app name
-            card_layout.addSpacing(20)
+            # Increased spacing below logo
+            card_layout.addSpacing(24)
 
         # 2. App name
         app_name = QLabel("TuCajero POS")
@@ -194,14 +193,14 @@ class LoginView(QDialog):
         app_name.setStyleSheet("""
             QLabel {
                 color: #0F172A;
-                font-size: 19px;
-                font-weight: 600;
-                letter-spacing: 0.3px;
+                font-size: 20px;
+                font-weight: 700;
+                letter-spacing: 0.5px;
                 background: transparent;
             }
         """)
         card_layout.addWidget(app_name)
-        card_layout.addSpacing(28)
+        card_layout.addSpacing(32)
 
         # 3. Active user with refined badge
         user_container = QWidget()
@@ -217,33 +216,33 @@ class LoginView(QDialog):
                 font-size: 14px;
                 font-weight: 600;
                 background-color: #F1F5F9;
-                padding: 6px 18px;
+                padding: 8px 20px;
                 border-radius: 6px;
-                letter-spacing: 0.2px;
+                letter-spacing: 0.3px;
             }
         """)
         user_layout.addWidget(user_label)
         card_layout.addWidget(user_container)
-        card_layout.addSpacing(32)
+        card_layout.addSpacing(36)
 
         # PIN label
         pin_label = QLabel("Ingresa tu PIN")
         pin_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         pin_label.setStyleSheet("""
             QLabel {
-                color: #64748B;
-                font-size: 14px;
-                font-weight: 500;
+                color: #475569;
+                font-size: 15px;
+                font-weight: 600;
                 background: transparent;
-                letter-spacing: 0.2px;
+                letter-spacing: 0.3px;
             }
         """)
         card_layout.addWidget(pin_label)
-        card_layout.addSpacing(16)
+        card_layout.addSpacing(20)
 
-        # 4. PIN input - 4 tactile boxes with increased spacing
+        # 4. PIN input - dominant element with increased size and spacing
         pin_layout = QHBoxLayout()
-        pin_layout.setSpacing(14)
+        pin_layout.setSpacing(16)
         pin_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         for i in range(4):
@@ -253,11 +252,11 @@ class LoginView(QDialog):
             pin_layout.addWidget(pin_box)
 
         card_layout.addLayout(pin_layout)
-        card_layout.addSpacing(32)
+        card_layout.addSpacing(36)
 
-        # 5. Primary button with smooth transitions
+        # 5. Primary button with increased visual weight
         self.login_btn = QPushButton("Acceder")
-        self.login_btn.setFixedHeight(48)
+        self.login_btn.setFixedHeight(52)
         self.login_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.login_btn.setStyleSheet("""
             QPushButton {
@@ -265,9 +264,9 @@ class LoginView(QDialog):
                 color: #FFFFFF;
                 border: none;
                 border-radius: 8px;
-                font-size: 15px;
-                font-weight: 500;
-                letter-spacing: 0.3px;
+                font-size: 16px;
+                font-weight: 600;
+                letter-spacing: 0.5px;
             }
             QPushButton:hover {
                 background-color: #1D4ED8;
@@ -280,15 +279,15 @@ class LoginView(QDialog):
         card_layout.addWidget(self.login_btn)
 
         # 6. Footer
-        card_layout.addSpacing(20)
+        card_layout.addSpacing(24)
         footer = QLabel("Acceso seguro al sistema de ventas")
         footer.setAlignment(Qt.AlignmentFlag.AlignCenter)
         footer.setStyleSheet("""
             QLabel {
-                color: #94A3B8;
+                color: #64748B;
                 font-size: 12px;
                 background: transparent;
-                letter-spacing: 0.2px;
+                letter-spacing: 0.3px;
             }
         """)
         card_layout.addWidget(footer)
@@ -305,9 +304,6 @@ class LoginView(QDialog):
 
     def eventFilter(self, obj, event):
         """Handle keyboard input for PIN boxes"""
-        from PySide6.QtCore import QEvent
-        from PySide6.QtGui import QKeyEvent
-        
         if event.type() == QEvent.Type.KeyPress:
             key_event = event
             key = key_event.key()
