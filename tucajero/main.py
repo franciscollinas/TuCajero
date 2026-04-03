@@ -111,7 +111,7 @@ def main():
     cajero_service = CajeroService(session)
     cajero_service.crear_admin_default()
 
-    from tucajero.app.ui.views.auth.login_view import LoginView
+    from tucajero.ui.login_view import LoginView
 
     login = LoginView(session)
     result = login.exec()
