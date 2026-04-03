@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon, QPixmap
+from tucajero.ui.design_tokens import Colors, Typography, Spacing, BorderRadius
 from tucajero.utils.store_config import (
     get_store_name,
     get_logo_path,
@@ -193,9 +194,12 @@ class MainWindow(QMainWindow):
 
         sidebar = QWidget()
         sidebar.setFixedWidth(240)
-        sidebar.setStyleSheet(
-            f"QWidget {{ background-color: {c['bg_sidebar']}; border: none; }}"
-        )
+        sidebar.setStyleSheet(f"""
+            QWidget {{
+                background: {Colors.BG_PANEL};
+                border-right: 1px solid {Colors.BORDER_SUBTLE};
+            }}
+        """)
 
         layout = QVBoxLayout(sidebar)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -204,9 +208,12 @@ class MainWindow(QMainWindow):
         # ── Header del sidebar ──────────────────────────────────
         header = QWidget()
         header.setFixedHeight(70)
-        header.setStyleSheet(
-            f"background-color: {c['bg_sidebar']}; border-bottom: 1px solid {c['border']};"
-        )
+        header.setStyleSheet(f"""
+            QWidget {{
+                background: {Colors.BG_PANEL};
+                border-bottom: 1px solid {Colors.BORDER_SUBTLE};
+            }}
+        """)
         h_layout = QHBoxLayout(header)
         h_layout.setContentsMargins(16, 0, 16, 0)
         h_layout.setSpacing(12)
@@ -252,9 +259,15 @@ class MainWindow(QMainWindow):
             )
 
         app_name = QLabel("TuCajero")
-        app_name.setStyleSheet(
-            f"color: {c['text_primary']}; font-size: 17px; font-weight: 700; background: transparent; border: none;"
-        )
+        app_name.setStyleSheet(f"""
+            QLabel {{
+                color: {Colors.TEXT_PRIMARY};
+                font-size: {Typography.H3}px;
+                font-weight: {Typography.BOLD};
+                background: transparent;
+                border: none;
+            }}
+        """)
 
         h_layout.addWidget(logo)
         h_layout.addWidget(app_name)
@@ -263,9 +276,17 @@ class MainWindow(QMainWindow):
 
         # ── Label MENÚ ─────────────────────────────────────────
         menu_label = QLabel("MENÚ")
-        menu_label.setStyleSheet(
-            f"color: {c['text_muted']}; font-size: 10px; font-weight: 600; letter-spacing: 1px; padding: 20px 20px 6px 20px; background: transparent; text-transform: uppercase;"
-        )
+        menu_label.setStyleSheet(f"""
+            QLabel {{
+                color: {Colors.TEXT_TERTIARY};
+                font-size: {Typography.TINY}px;
+                font-weight: {Typography.SEMIBOLD};
+                letter-spacing: 1px;
+                padding: {Spacing.XXL}px {Spacing.XXL}px {Spacing.XS}px {Spacing.XXL}px;
+                background: transparent;
+                text-transform: uppercase;
+            }}
+        """)
         layout.addWidget(menu_label)
 
         # ── Botones de navegación ──────────────────────────────
@@ -289,7 +310,27 @@ class MainWindow(QMainWindow):
             btn.setFixedHeight(44)
             btn.setCheckable(True)
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
-            btn.setStyleSheet(btn_sidebar())
+            btn.setStyleSheet(f"""
+                QPushButton {{
+                    background: transparent;
+                    color: {Colors.TEXT_SECONDARY};
+                    border: none;
+                    border-radius: {BorderRadius.MD}px;
+                    padding: {Spacing.LG}px {Spacing.XL}px;
+                    text-align: left;
+                    font-size: {Typography.BODY}px;
+                    font-weight: {Typography.MEDIUM};
+                }}
+                QPushButton:hover {{
+                    background: {Colors.BG_HOVER};
+                    color: {Colors.TEXT_PRIMARY};
+                }}
+                QPushButton:checked {{
+                    background: {Colors.PRIMARY};
+                    color: white;
+                    font-weight: {Typography.SEMIBOLD};
+                }}
+            """)
             btn.clicked.connect(lambda checked, k=key: self.switch_view_by_name(k))
             self._nav_buttons[key] = btn
             self._nav_group.addButton(btn)
@@ -304,18 +345,43 @@ class MainWindow(QMainWindow):
         layout.addWidget(sep)
 
         # ── Footer ─────────────────────────────────────────────
+        footer_widget = QWidget()
+        footer_widget.setStyleSheet(f"""
+            QWidget {{
+                background: {Colors.BG_ELEVATED};
+                border-top: 1px solid {Colors.BORDER_SUBTLE};
+                padding: {Spacing.LG}px;
+            }}
+        """)
+        footer_layout = QVBoxLayout(footer_widget)
+        footer_layout.setContentsMargins(Spacing.LG, Spacing.LG, Spacing.LG, Spacing.LG)
+        footer_layout.setSpacing(Spacing.XXS)
+
         self.lbl_cajero_footer = QLabel("👑  Administrador")
-        self.lbl_cajero_footer.setStyleSheet(
-            f"color: {c['success']}; font-size: 12px; font-weight: 500; padding: 10px 16px 4px 16px; background: transparent;"
-        )
-        layout.addWidget(self.lbl_cajero_footer)
+        self.lbl_cajero_footer.setStyleSheet(f"""
+            QLabel {{
+                color: {Colors.SUCCESS};
+                font-size: {Typography.BODY_SM}px;
+                font-weight: {Typography.MEDIUM};
+                background: transparent;
+                border: none;
+            }}
+        """)
+        footer_layout.addWidget(self.lbl_cajero_footer)
 
         copyright_label = QLabel("© Ing. Francisco Llinas P.")
-        copyright_label.setStyleSheet(
-            f"color: {c['text_muted']}; font-size: 10px; padding: 2px 16px 14px 16px; background: transparent;"
-        )
+        copyright_label.setStyleSheet(f"""
+            QLabel {{
+                color: {Colors.TEXT_TERTIARY};
+                font-size: {Typography.TINY}px;
+                background: transparent;
+                border: none;
+            }}
+        """)
         copyright_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        layout.addWidget(copyright_label)
+        footer_layout.addWidget(copyright_label)
+
+        layout.addWidget(footer_widget)
 
         return sidebar
 
