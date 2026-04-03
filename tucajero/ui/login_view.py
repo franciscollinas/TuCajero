@@ -147,9 +147,9 @@ class LoginView(QDialog):
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        # 4. CONTENT CONTAINER - Max width control
+        # 4. CONTENT CONTAINER - Max width control (reduced for elegance)
         container = QWidget()
-        container.setFixedWidth(400)
+        container.setFixedWidth(370)
         container.setStyleSheet("background: transparent;")
 
         container_layout = QVBoxLayout(container)
@@ -178,79 +178,96 @@ class LoginView(QDialog):
         card_layout.setSpacing(0)
 
         # ═══════════════════════════════════════
-        # SPACING SYSTEM - Modern SaaS pattern
+        # SPACING SYSTEM - Refined SaaS pattern
         # ═══════════════════════════════════════
 
-        # LOGO (48x48)
-        card_layout.addSpacing(12)
+        # LOGO (54x54) - Primary visual anchor
+        card_layout.addSpacing(8)
         logo_path = os.path.join(os.path.dirname(__file__), "assets", "icons", "logo.png")
         if os.path.exists(logo_path):
             logo_label = QLabel()
             logo_pixmap = QPixmap(logo_path)
             scaled_logo = logo_pixmap.scaled(
-                48, 48, 
-                Qt.AspectRatioMode.KeepAspectRatio, 
+                54, 54,
+                Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation
             )
             logo_label.setPixmap(scaled_logo)
             logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            logo_label.setStyleSheet("background: transparent;")
+            logo_label.setStyleSheet("background: transparent; border: none;")
             card_layout.addWidget(logo_label)
-            card_layout.addSpacing(24)
+            card_layout.addSpacing(22)
 
-        # TITLE
-        app_name = QLabel("TuCajero POS")
+        # TITLE - Refined branding
+        title_layout = QVBoxLayout()
+        title_layout.setSpacing(4)
+        
+        app_name = QLabel("TuCajero")
         app_name.setAlignment(Qt.AlignmentFlag.AlignCenter)
         app_name.setStyleSheet(
             "QLabel { "
             "color: #0F172A; "
-            "font-size: 20px; "
-            "font-weight: 700; "
-            "letter-spacing: 0.5px; "
+            "font-size: 22px; "
+            "font-weight: 600; "
+            "letter-spacing: 0.2px; "
             "background: transparent; "
             "}"
         )
-        card_layout.addWidget(app_name)
+        title_layout.addWidget(app_name)
+        
+        # Subtitle
+        subtitle = QLabel("Point of Sale")
+        subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        subtitle.setStyleSheet(
+            "QLabel { "
+            "color: #64748B; "
+            "font-size: 13px; "
+            "font-weight: 400; "
+            "background: transparent; "
+            "}"
+        )
+        title_layout.addWidget(subtitle)
+        
+        card_layout.addLayout(title_layout)
         card_layout.addSpacing(28)
 
-        # USER BADGE
+        # USER BADGE - Refined
         user_container = QWidget()
         user_container.setStyleSheet("background: transparent;")
         user_layout = QHBoxLayout(user_container)
         user_layout.setContentsMargins(0, 0, 0, 0)
         user_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        user_label = QLabel("Admin")
+        user_label = QLabel("👤 Admin")
         user_label.setStyleSheet(
             "QLabel { "
             "color: #0F172A; "
-            "font-size: 14px; "
-            "font-weight: 600; "
+            "font-size: 13px; "
+            "font-weight: 500; "
             "background-color: #F1F5F9; "
-            "padding: 8px 20px; "
-            "border-radius: 6px; "
-            "letter-spacing: 0.3px; "
+            "border: 1px solid #E2E8F0; "
+            "padding: 6px 12px; "
+            "border-radius: 8px; "
             "}"
         )
         user_layout.addWidget(user_label)
         card_layout.addWidget(user_container)
         card_layout.addSpacing(32)
 
-        # PIN LABEL
-        pin_label = QLabel("Ingresa tu PIN")
+        # PIN LABEL - Hero section
+        pin_label = QLabel("Enter your PIN")
         pin_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         pin_label.setStyleSheet(
             "QLabel { "
-            "color: #475569; "
-            "font-size: 15px; "
-            "font-weight: 600; "
+            "color: #64748B; "
+            "font-size: 13px; "
+            "font-weight: 400; "
             "background: transparent; "
-            "letter-spacing: 0.3px; "
             "}"
         )
         card_layout.addWidget(pin_label)
         card_layout.addSpacing(20)
 
-        # PIN BOXES (4 digits)
+        # PIN BOXES (4 digits) - Main interaction
         pin_layout = QHBoxLayout()
         pin_layout.setSpacing(16)
         pin_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -262,36 +279,42 @@ class LoginView(QDialog):
         card_layout.addLayout(pin_layout)
         card_layout.addSpacing(32)
 
-        # ACCESS BUTTON
+        # ACCESS BUTTON - Premium feel
         self.login_btn = QPushButton("Acceder")
         self.login_btn.setFixedHeight(52)
         self.login_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.login_btn.setStyleSheet("""
             QPushButton {
-                background-color: #2563EB;
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #2563EB, stop:1 #1D4ED8);
                 color: #FFFFFF;
                 border: none;
-                border-radius: 8px;
+                border-radius: 10px;
                 font-size: 16px;
                 font-weight: 600;
-                letter-spacing: 0.5px;
+                letter-spacing: 0.3px;
             }
-            QPushButton:hover { background-color: #1D4ED8; }
-            QPushButton:pressed { background-color: #1E40AF; }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #1D4ED8, stop:1 #1E40AF);
+            }
+            QPushButton:pressed {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #1E40AF, stop:1 #1E3A8A);
+            }
         """)
         self.login_btn.clicked.connect(self.login)
         card_layout.addWidget(self.login_btn)
 
         # FOOTER
-        card_layout.addSpacing(20)
-        footer = QLabel("Acceso seguro al sistema de ventas")
+        card_layout.addSpacing(24)
+        footer = QLabel("Secure access to your sales system")
         footer.setAlignment(Qt.AlignmentFlag.AlignCenter)
         footer.setStyleSheet(
             "QLabel { "
-            "color: #64748B; "
+            "color: #94A3B8; "
             "font-size: 12px; "
             "background: transparent; "
-            "letter-spacing: 0.3px; "
             "}"
         )
         card_layout.addWidget(footer)
