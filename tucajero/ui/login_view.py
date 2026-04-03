@@ -287,8 +287,34 @@ class LoginView(QDialog):
             QMessageBox.warning(self, "Error", "Ingresa un PIN de 4 dígitos")
             return
 
-        # TODO: Implement PIN authentication
+        # Authenticate PIN against database
         from tucajero.services.cajero_service import CajeroService
+        from tucajero.models.cajero import Cajero
+
         cajero_service = CajeroService(self.session)
-        self.cajero_seleccionado = cajero_service.crear_admin_default()
+
+        # Ensure default admin exists
+        cajero_service.crear_admin_default()
+
+        # Try to find a cajero with matching PIN
+        cajeros = cajero_service.get_all()
+        cajero_encontrado = None
+
+        for cajero in cajeros:
+            if cajero.verificar_pin(pin):
+                cajero_encontrado = cajero
+                break
+
+        if not cajero_encontrado:
+            QMessageBox.warning(self, "Error", "PIN incorrecto. Intenta de nuevo.")
+            # Clear PIN boxes
+            for box in self.pin_boxes:
+                box.clear()
+            self.current_box = 0
+            self.pin_boxes[0]._focused = True
+            self.pin_boxes[0].update_style()
+            return
+
+        # Login successful
+        self.cajero_seleccionado = cajero_encontrado
         self.accept()
