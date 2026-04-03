@@ -22,7 +22,8 @@ from PySide6.QtCore import Qt, QDate
 from PySide6.QtGui import QColor
 import os
 from tucajero.utils.formato import fmt_moneda
-from tucajero.utils.theme import btn_primary, btn_success, btn_warning, btn_danger, btn_secondary
+from tucajero.ui.design_tokens import Colors, Typography, Spacing, BorderRadius
+from tucajero.ui.components_premium import ButtonPremium, TABLE_STYLE_PREMIUM
 
 
 class ProductosView(QWidget):
@@ -36,17 +37,14 @@ class ProductosView(QWidget):
 
     def init_ui(self):
         """Inicializa la interfaz"""
-        from tucajero.utils.theme import get_colors
-
-        c = get_colors()
-        self.setStyleSheet(f"background-color: {c['bg_app']};")
+        self.setStyleSheet(f"background: {Colors.BG_APP};")
 
         layout = QVBoxLayout()
         self.setLayout(layout)
 
         titulo = QLabel("Productos")
         titulo.setStyleSheet(
-            f"font-size: 24px; font-weight: bold; color: {c['text_primary']};"
+            f"color: {Colors.TEXT_PRIMARY}; font-size: {Typography.H2}px; font-weight: {Typography.BOLD}; background: transparent;"
         )
         layout.addWidget(titulo)
 
@@ -55,22 +53,20 @@ class ProductosView(QWidget):
         banner_layout = QHBoxLayout()
         self.banner_stock.setLayout(banner_layout)
         self.banner_stock.setStyleSheet(
-            f"background-color: {c['warning']}; border-radius: 6px; padding: 8px;"
+            f"background: {Colors.WARNING}; border-radius: {BorderRadius.LG}px; padding: {Spacing.MD}px;"
         )
 
         self.lbl_banner = QLabel("")
         self.lbl_banner.setStyleSheet(
-            "color: white; font-weight: bold; font-size: 13px;"
+            f"color: white; font-weight: {Typography.BOLD}; font-size: {Typography.BODY}px; background: transparent;"
         )
         banner_layout.addWidget(self.lbl_banner)
 
-        btn_ver_bajos = QPushButton("Ver solo críticos")
-        btn_ver_bajos.setStyleSheet(btn_secondary())
+        btn_ver_bajos = ButtonPremium("Ver solo críticos", style="secondary")
         btn_ver_bajos.clicked.connect(self.filtrar_stock_bajo)
         banner_layout.addWidget(btn_ver_bajos)
 
-        btn_ver_todos = QPushButton("Ver todos")
-        btn_ver_todos.setStyleSheet(btn_secondary())
+        btn_ver_todos = ButtonPremium("Ver todos", style="secondary")
         btn_ver_todos.clicked.connect(self.cargar_productos)
         banner_layout.addWidget(btn_ver_todos)
 
@@ -80,9 +76,24 @@ class ProductosView(QWidget):
         self.input_busqueda.setPlaceholderText(
             "🔍 Buscar producto por código o nombre..."
         )
-        self.input_busqueda.setStyleSheet(
-            f"padding: 10px; font-size: 14px; background: {c['bg_input']}; color: {c['text_primary']}; border: 1.5px solid {c['border']}; border-radius: 8px;"
-        )
+        self.input_busqueda.setStyleSheet(f"""
+            QLineEdit {{
+                background: {Colors.BG_INPUT};
+                color: {Colors.TEXT_PRIMARY};
+                border: 2px solid {Colors.BORDER_DEFAULT};
+                border-radius: {BorderRadius.LG}px;
+                padding: {Spacing.LG}px {Spacing.XL}px;
+                font-size: {Typography.H4}px;
+                min-height: 30px;
+            }}
+            QLineEdit:focus {{
+                border-color: {Colors.PRIMARY};
+                background: {Colors.BG_ELEVATED};
+            }}
+            QLineEdit::placeholder {{
+                color: {Colors.TEXT_MUTED};
+            }}
+        """)
         self.input_busqueda.textChanged.connect(self.filtrar_productos)
         layout.addWidget(self.input_busqueda)
 
@@ -90,28 +101,23 @@ class ProductosView(QWidget):
         btn_layout.setContentsMargins(0, 10, 0, 10)  # 10px arriba y abajo
         btn_layout.addStretch()
 
-        btn_agregar = QPushButton("+ Agregar Producto")
-        btn_agregar.setStyleSheet(btn_primary())
+        btn_agregar = ButtonPremium("+ Agregar Producto", style="primary")
         btn_agregar.clicked.connect(self.abrir_dialogo_agregar)
         btn_layout.addWidget(btn_agregar)
 
-        btn_editar = QPushButton("Editar")
-        btn_editar.setStyleSheet(btn_primary())
+        btn_editar = ButtonPremium("Editar", style="primary")
         btn_editar.clicked.connect(self.editar_producto)
         btn_layout.addWidget(btn_editar)
 
-        btn_eliminar = QPushButton("Eliminar")
-        btn_eliminar.setStyleSheet(btn_danger())
+        btn_eliminar = ButtonPremium("Eliminar", style="danger")
         btn_eliminar.clicked.connect(self.eliminar_producto)
         btn_layout.addWidget(btn_eliminar)
 
-        btn_categorias = QPushButton("Categorías")
-        btn_categorias.setStyleSheet(btn_primary())
+        btn_categorias = ButtonPremium("Categorías", style="primary")
         btn_categorias.clicked.connect(self.abrir_gestor_categorias)
         btn_layout.addWidget(btn_categorias)
 
-        btn_importar = QPushButton("⬆ Importar Excel/CSV")
-        btn_importar.setStyleSheet(btn_primary())
+        btn_importar = ButtonPremium("⬆ Importar Excel/CSV", style="primary")
         btn_importar.clicked.connect(self.importar_productos)
         btn_layout.addWidget(btn_importar)
 
@@ -124,36 +130,14 @@ class ProductosView(QWidget):
             1, QHeaderView.ResizeMode.Stretch
         )
         self.tabla.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-        self.tabla.setStyleSheet(f"""
-            QTableWidget {{
-                background-color: {c["bg_card"]};
-                border: 1px solid {c["border"]};
-                border-radius: 8px;
-                gridline-color: {c["border"]};
-                font-size: 14px;
-                color: {c["text_primary"]};
-            }}
-            QHeaderView::section {{
-                background-color: {c["bg_input"]};
-                color: {c["text_muted"]};
-                padding: 8px;
-                border: none;
-                border-bottom: 1px solid {c["border"]};
-                font-weight: bold;
-            }}
-            QTableWidget::item {{
-                padding: 10px;
-                border-bottom: 1px solid {c["border"]};
-            }}
-        """)
+        self.tabla.setStyleSheet(TABLE_STYLE_PREMIUM)
         self.tabla.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         layout.addWidget(self.tabla)
 
         btn_layout = QHBoxLayout()
         btn_layout.setContentsMargins(0, 10, 0, 10)  # 10px arriba y abajo
 
-        self.btn_desempacar = QPushButton("💊 Desempacar")
-        self.btn_desempacar.setStyleSheet(btn_primary())
+        self.btn_desempacar = ButtonPremium("💊 Desempacar", style="primary")
         self.btn_desempacar.setToolTip(
             "Convierte cajas/empaques en unidades individuales"
         )
@@ -162,8 +146,7 @@ class ProductosView(QWidget):
 
         btn_layout.addStretch()
 
-        btn_actualizar = QPushButton("Actualizar")
-        btn_actualizar.setStyleSheet(btn_secondary())
+        btn_actualizar = ButtonPremium("Actualizar", style="secondary")
         btn_actualizar.clicked.connect(self.cargar_productos)
         btn_layout.addWidget(btn_actualizar)
 
@@ -171,10 +154,6 @@ class ProductosView(QWidget):
 
     def cargar_productos(self):
         """Carga los productos desde la base de datos"""
-        from tucajero.utils.theme import get_colors
-
-        c = get_colors()
-
         from tucajero.services.producto_service import ProductoService
 
         service = ProductoService(self.session)
@@ -193,10 +172,10 @@ class ProductosView(QWidget):
             )
             if len(criticos) > 0:
                 self.banner_stock.setStyleSheet(
-                    f"background-color: {c['danger']}; border-radius: 6px; padding: 8px;"
+                    f"background: {Colors.DANGER}; border-radius: {BorderRadius.LG}px; padding: {Spacing.MD}px;"
                 )
                 self.lbl_banner.setStyleSheet(
-                    f"color: white; font-weight: bold; font-size: 13px;"
+                    f"color: white; font-weight: {Typography.BOLD}; font-size: {Typography.BODY}px; background: transparent;"
                 )
         else:
             self.banner_stock.setVisible(False)
@@ -205,9 +184,6 @@ class ProductosView(QWidget):
 
     def _mostrar_productos(self, productos):
         """Muestra la lista de productos en la tabla"""
-        from tucajero.utils.theme import get_colors
-
-        c = get_colors()
         self.tabla.setRowCount(len(productos))
 
         for i, p in enumerate(productos):
@@ -218,13 +194,13 @@ class ProductosView(QWidget):
             stock_item = QTableWidgetItem(str(p.stock))
 
             if p.stock <= 0:
-                stock_item.setBackground(QColor(c["danger"]))
+                stock_item.setBackground(QColor(Colors.DANGER))
                 stock_item.setForeground(QColor("white"))
             elif stock_minimo > 0 and p.stock <= stock_minimo:
-                stock_item.setBackground(QColor(c["warning"]))
+                stock_item.setBackground(QColor(Colors.WARNING))
                 stock_item.setForeground(QColor("white"))
             elif stock_minimo > 0 and p.stock <= stock_minimo * 2:
-                stock_item.setBackground(QColor(c["info"]))
+                stock_item.setBackground(QColor(Colors.INFO))
                 stock_item.setForeground(QColor("white"))
 
             self.tabla.setItem(i, 2, stock_item)
@@ -386,19 +362,17 @@ class ProductoDialog(QDialog):
 
     def init_ui(self):
         """Inicializa la interfaz"""
-        from tucajero.utils.theme import get_colors
-
-        c = get_colors()
         self.setStyleSheet(f"""
-            QDialog {{ background-color: {c["bg_app"]}; }}
-            QLabel {{ color: {c["text_primary"]}; }}
-            QLineEdit, QDoubleSpinBox, QSpinBox, QComboBox {{ 
-                background-color: {c["bg_input"]}; 
-                color: {c["text_primary"]};
-                border: 1px solid {c["border"]};
+            QDialog {{ background: {Colors.BG_APP}; }}
+            QLabel {{ color: {Colors.TEXT_PRIMARY}; background: transparent; }}
+            QLineEdit, QDoubleSpinBox, QSpinBox, QComboBox {{
+                background-color: {Colors.BG_INPUT};
+                color: {Colors.TEXT_PRIMARY};
+                border: 1px solid {Colors.BORDER_DEFAULT};
                 padding: 5px;
+                border-radius: {BorderRadius.SM}px;
             }}
-            QLabel#separador {{ color: {c["text_muted"]}; font-weight: bold; margin-top: 10px; }}
+            QLabel#separador {{ color: {Colors.TEXT_TERTIARY}; font-weight: {Typography.BOLD}; margin-top: 10px; }}
         """)
 
         layout = QFormLayout()
@@ -450,15 +424,14 @@ class ProductoDialog(QDialog):
         self.und_por_empaque.setValue(10)
         fraccion_layout.addRow("Unidades por empaque:", self.und_por_empaque)
 
-        self.btn_crear_fraccion = QPushButton(
-            "✨ Crear producto unitario automáticamente"
+        self.btn_crear_fraccion = ButtonPremium(
+            "✨ Crear producto unitario automáticamente", style="primary"
         )
-        self.btn_crear_fraccion.setStyleSheet(btn_primary())
         self.btn_crear_fraccion.clicked.connect(self.crear_fraccion_automatica)
         fraccion_layout.addRow("", self.btn_crear_fraccion)
 
         self.lbl_fraccion_info = QLabel("")
-        self.lbl_fraccion_info.setStyleSheet(f"color: {c['success']}; font-size: 12px;")
+        self.lbl_fraccion_info.setStyleSheet(f"color: {Colors.SUCCESS}; font-size: {Typography.CAPTION}px; background: transparent;")
         fraccion_layout.addRow("", self.lbl_fraccion_info)
 
         layout.addRow("", self.fraccion_widget)
@@ -469,9 +442,8 @@ class ProductoDialog(QDialog):
         self._cargar_categorias()
         cat_layout.addWidget(self.cat_combo)
 
-        btn_nueva_cat = QPushButton("+")
+        btn_nueva_cat = ButtonPremium("+", style="secondary")
         btn_nueva_cat.setFixedWidth(40)
-        btn_nueva_cat.setStyleSheet(btn_secondary() + " padding: 0px; min-height: 0px;")
         btn_nueva_cat.setToolTip("Crear nueva categoría")
         btn_nueva_cat.clicked.connect(self._crear_categoria_rapida)
         cat_layout.addWidget(btn_nueva_cat)
@@ -494,13 +466,11 @@ class ProductoDialog(QDialog):
 
         btn_layout = QHBoxLayout()
 
-        btn_guardar = QPushButton("Guardar")
-        btn_guardar.setStyleSheet(btn_primary())
+        btn_guardar = ButtonPremium("Guardar", style="primary")
         btn_guardar.clicked.connect(self.guardar)
         btn_layout.addWidget(btn_guardar)
 
-        btn_cancelar = QPushButton("Cancelar")
-        btn_cancelar.setStyleSheet(btn_secondary())
+        btn_cancelar = ButtonPremium("Cancelar", style="secondary")
         btn_cancelar.clicked.connect(self.reject)
         btn_layout.addWidget(btn_cancelar)
 
@@ -695,25 +665,21 @@ class MovimientoDialog(QDialog):
         self.session = session
         self.producto = producto
         self.tipo = tipo
-        from tucajero.utils.theme import get_colors
-
-        c = get_colors()
         self.setWindowTitle(
             f"{'Entrada' if tipo == 'entrada' else 'Salida'} de Inventario"
         )
+        self.init_ui(Colors.PRIMARY)
 
     def init_ui(self, color):
-        from tucajero.utils.theme import get_colors
-
-        c = get_colors()
         self.setStyleSheet(f"""
-            QDialog {{ background-color: {c["bg_app"]}; }}
-            QLabel {{ color: {c["text_primary"]}; }}
-            QSpinBox {{ 
-                background-color: {c["bg_input"]}; 
-                color: {c["text_primary"]};
-                border: 1px solid {c["border"]};
+            QDialog {{ background: {Colors.BG_APP}; }}
+            QLabel {{ color: {Colors.TEXT_PRIMARY}; background: transparent; }}
+            QSpinBox {{
+                background-color: {Colors.BG_INPUT};
+                color: {Colors.TEXT_PRIMARY};
+                border: 1px solid {Colors.BORDER_DEFAULT};
                 padding: 5px;
+                border-radius: {BorderRadius.SM}px;
             }}
         """)
         layout = QFormLayout()
@@ -721,7 +687,7 @@ class MovimientoDialog(QDialog):
 
         info_box = QWidget()
         info_box.setStyleSheet(
-            f"background-color: {c['bg_card']}; padding: 10px; border-radius: 5px; border: 1px solid {c['border']};"
+            f"background: {Colors.BG_CARD}; padding: {Spacing.MD}px; border-radius: {BorderRadius.MD}px; border: 1px solid {Colors.BORDER_DEFAULT};"
         )
         info_layout = QVBoxLayout()
         info_box.setLayout(info_layout)
@@ -735,20 +701,18 @@ class MovimientoDialog(QDialog):
         self.cantidad_input = QSpinBox()
         self.cantidad_input.setRange(1, 999999)
         self.cantidad_input.setStyleSheet(
-            f"padding: 8px; font-size: 16px; background-color: {c['bg_input']}; color: {c['text_primary']}; border: 1.5px solid {c['border']};"
+            f"padding: {Spacing.MD}px; font-size: {Typography.H4}px; background: {Colors.BG_INPUT}; color: {Colors.TEXT_PRIMARY}; border: 2px solid {Colors.BORDER_DEFAULT}; border-radius: {BorderRadius.MD}px;"
         )
         self.cantidad_input.setFocus()
         layout.addRow("Cantidad:", self.cantidad_input)
 
         btn_layout = QHBoxLayout()
 
-        btn_aceptar = QPushButton("Aceptar")
-        btn_aceptar.setStyleSheet(btn_primary())
+        btn_aceptar = ButtonPremium("Aceptar", style="primary")
         btn_aceptar.clicked.connect(self.aceptar)
         btn_layout.addWidget(btn_aceptar)
 
-        btn_cancelar = QPushButton("Cancelar")
-        btn_cancelar.setStyleSheet(btn_secondary())
+        btn_cancelar = ButtonPremium("Cancelar", style="secondary")
         btn_cancelar.clicked.connect(self.reject)
         btn_layout.addWidget(btn_cancelar)
 
@@ -780,15 +744,12 @@ class MovimientoDialog(QDialog):
 class DesempaqueDialog(QDialog):
     def __init__(self, session, producto, parent=None):
         super().__init__(parent)
-        from tucajero.utils.theme import get_colors
-
-        c = get_colors()
         self.session = session
         self.producto = producto
         self.setWindowTitle("Desempacar producto")
         self.setMinimumWidth(420)
         self.setStyleSheet(
-            f"QDialog {{ background-color: {c['bg_app']}; }} QLabel {{ color: {c['text_primary']}; }}"
+            f"QDialog {{ background: {Colors.BG_APP}; }} QLabel {{ color: {Colors.TEXT_PRIMARY}; background: transparent; }}"
         )
         layout = QVBoxLayout()
         self.setLayout(layout)
@@ -800,7 +761,7 @@ class DesempaqueDialog(QDialog):
 
         info = QWidget()
         info.setStyleSheet(
-            f"background:{c['bg_card']};padding:12px;border-radius:6px; border: 1px solid {c['border']};"
+            f"background:{Colors.BG_CARD};padding:{Spacing.MD}px;border-radius:{BorderRadius.MD}px; border: 1px solid {Colors.BORDER_DEFAULT};"
         )
         info_layout = QVBoxLayout()
         info.setLayout(info_layout)
@@ -820,7 +781,7 @@ class DesempaqueDialog(QDialog):
         self.spin_cajas.setRange(1, producto.stock or 1)
         self.spin_cajas.setValue(1)
         self.spin_cajas.setStyleSheet(
-            f"background-color: {c['bg_input']}; color: {c['text_primary']}; border: 1px solid {c['border']}; font-size:16px;padding:8px;"
+            f"background: {Colors.BG_INPUT}; color: {Colors.TEXT_PRIMARY}; border: 1px solid {Colors.BORDER_DEFAULT}; font-size:{Typography.H4}px;padding:{Spacing.MD}px; border-radius: {BorderRadius.SM}px;"
         )
         self.spin_cajas.valueChanged.connect(self.actualizar_preview)
         form.addRow("¿Cuántas cajas desempacar?", self.spin_cajas)
@@ -828,19 +789,17 @@ class DesempaqueDialog(QDialog):
 
         self.lbl_preview = QLabel("")
         self.lbl_preview.setStyleSheet(
-            f"font-size:14px;color:{c['success']};font-weight:bold;padding:8px;"
+            f"font-size:{Typography.BODY}px;color:{Colors.SUCCESS};font-weight:{Typography.BOLD};padding:{Spacing.MD}px; background: transparent;"
         )
         self.lbl_preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.lbl_preview)
         self.actualizar_preview()
 
         btns = QHBoxLayout()
-        btn_ok = QPushButton("✓ CONFIRMAR DESEMPAQUE")
-        btn_ok.setStyleSheet(btn_primary())
+        btn_ok = ButtonPremium("✓ CONFIRMAR DESEMPAQUE", style="primary")
         btn_ok.clicked.connect(self.confirmar)
         btns.addWidget(btn_ok)
-        btn_cancel = QPushButton("Cancelar")
-        btn_cancel.setStyleSheet(btn_secondary())
+        btn_cancel = ButtonPremium("Cancelar", style="secondary")
         btn_cancel.clicked.connect(self.reject)
         btns.addWidget(btn_cancel)
         layout.addLayout(btns)
@@ -870,20 +829,19 @@ class DesempaqueDialog(QDialog):
         except ValueError as e:
             QMessageBox.warning(self, "Error", str(e))
 
-    # --- Se movieron los métodos a ProductoDialog más abajo ---
+
+class ImportPreviewDialog(QDialog):
+    """Diálogo de vista previa para importación de productos"""
 
     def __init__(self, filas, filepath, session, parent=None):
         super().__init__(parent)
-        from tucajero.utils.theme import get_colors
-
-        c = get_colors()
         self.filas = filas
         self.filepath = filepath
         self.session = session
         self.setWindowTitle("Vista previa — Importar productos")
         self.setMinimumSize(750, 520)
         self.setStyleSheet(
-            f"QDialog {{ background-color: {c['bg_app']}; }} QLabel {{ color: {c['text_primary']}; }}"
+            f"QDialog {{ background: {Colors.BG_APP}; }} QLabel {{ color: {Colors.TEXT_PRIMARY}; background: transparent; }}"
         )
         layout = QVBoxLayout()
         self.setLayout(layout)
@@ -892,7 +850,7 @@ class DesempaqueDialog(QDialog):
             f"📄  {len(self.filas)} filas detectadas  |  {os.path.basename(filepath)}"
         )
         info.setStyleSheet(
-            f"font-size:13px;padding:8px;background:{c['bg_card']};color:{c['text_primary']};border-radius:4px; border: 1px solid {c['border']};"
+            f"font-size:{Typography.CAPTION}px;padding:{Spacing.MD}px;background:{Colors.BG_CARD};color:{Colors.TEXT_PRIMARY};border-radius:{BorderRadius.SM}px; border: 1px solid {Colors.BORDER_DEFAULT};"
         )
         layout.addWidget(info)
 
@@ -902,6 +860,7 @@ class DesempaqueDialog(QDialog):
         tabla.setHorizontalHeaderLabels(headers)
         tabla.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         tabla.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        tabla.setStyleSheet(TABLE_STYLE_PREMIUM)
         for i, fila in enumerate(preview):
             for j, key in enumerate(headers):
                 val = fila.get(key, "") or ""
@@ -912,16 +871,14 @@ class DesempaqueDialog(QDialog):
 
         if len(self.filas) > 20:
             nota = QLabel(f"⚠ Mostrando 20 de {len(self.filas)} filas")
-            nota.setStyleSheet("color:#e67e22;font-size:12px;padding:4px;")
+            nota.setStyleSheet(f"color:{Colors.WARNING};font-size:{Typography.CAPTION}px;padding:{Spacing.XS}px; background: transparent;")
             layout.addWidget(nota)
 
         btns = QHBoxLayout()
-        btn_imp = QPushButton("⬆ IMPORTAR TODO")
-        btn_imp.setStyleSheet(btn_primary())
+        btn_imp = ButtonPremium("⬆ IMPORTAR TODO", style="primary")
         btn_imp.clicked.connect(self.ejecutar)
         btns.addWidget(btn_imp)
-        btn_cancel = QPushButton("Cancelar")
-        btn_cancel.setStyleSheet(btn_secondary())
+        btn_cancel = ButtonPremium("Cancelar", style="secondary")
         btn_cancel.clicked.connect(self.reject)
         btns.addWidget(btn_cancel)
         layout.addLayout(btns)
@@ -960,11 +917,8 @@ class CategoriaDialog(QDialog):
 
     def init_ui(self):
         """Inicializa la interfaz"""
-        from tucajero.utils.theme import get_colors
-
-        c = get_colors()
         self.setStyleSheet(
-            f"QDialog {{ background-color: {c['bg_app']}; }} QLabel {{ color: {c['text_primary']}; }}"
+            f"QDialog {{ background: {Colors.BG_APP}; }} QLabel {{ color: {Colors.TEXT_PRIMARY}; background: transparent; }}"
         )
 
         layout = QVBoxLayout()
@@ -977,25 +931,22 @@ class CategoriaDialog(QDialog):
             1, QHeaderView.ResizeMode.Stretch
         )
         self.tabla.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-        self.tabla.setStyleSheet("font-size: 14px;")
+        self.tabla.setStyleSheet(TABLE_STYLE_PREMIUM)
         layout.addWidget(self.tabla)
 
         btn_layout = QHBoxLayout()
 
-        btn_agregar = QPushButton("+ Agregar")
-        btn_agregar.setStyleSheet(btn_primary())
+        btn_agregar = ButtonPremium("+ Agregar", style="primary")
         btn_agregar.clicked.connect(self.agregar_categoria)
         btn_layout.addWidget(btn_agregar)
 
-        btn_eliminar = QPushButton("Eliminar")
-        btn_eliminar.setStyleSheet(btn_danger())
+        btn_eliminar = ButtonPremium("Eliminar", style="danger")
         btn_eliminar.clicked.connect(self.eliminar_categoria)
         btn_layout.addWidget(btn_eliminar)
 
         btn_layout.addStretch()
 
-        btn_cerrar = QPushButton("Cerrar")
-        btn_cerrar.setStyleSheet(btn_secondary())
+        btn_cerrar = ButtonPremium("Cerrar", style="secondary")
         btn_cerrar.clicked.connect(self.accept)
         btn_layout.addWidget(btn_cerrar)
 
