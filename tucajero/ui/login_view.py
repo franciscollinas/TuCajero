@@ -176,14 +176,14 @@ class LoginView(QDialog):
         # SPACING SYSTEM - Refined SaaS pattern
         # ═══════════════════════════════════════
 
-        # LOGO (52x52) - Primary visual anchor
-        card_layout.addSpacing(12)
-        logo_path = os.path.join(os.path.dirname(__file__), "assets", "icons", "logo.png")
+        # BRAND BLOCK - Logo at top (includes brand name + tagline)
+        card_layout.addSpacing(24)
+        logo_path = os.path.join(os.path.dirname(__file__), "..", "assets", "icons", "logo.png")
         if os.path.exists(logo_path):
             logo_label = QLabel()
             logo_pixmap = QPixmap(logo_path)
             scaled_logo = logo_pixmap.scaled(
-                52, 52,
+                220, 100,
                 Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation
             )
@@ -191,40 +191,7 @@ class LoginView(QDialog):
             logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             logo_label.setStyleSheet("background: transparent; border: none;")
             card_layout.addWidget(logo_label)
-            card_layout.addSpacing(24)
-
-        # TITLE - Clean branding, no box feeling
-        title_layout = QVBoxLayout()
-        title_layout.setSpacing(4)
-        
-        app_name = QLabel("TuCajero")
-        app_name.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        app_name.setStyleSheet(
-            "QLabel { "
-            "color: #0F172A; "
-            "font-size: 53px; "
-            "font-weight: 600; "
-            "letter-spacing: 0.2px; "
-            "background: transparent; "
-            "}"
-        )
-        title_layout.addWidget(app_name)
-        
-        # Subtitle
-        subtitle = QLabel("Point of Sale")
-        subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        subtitle.setStyleSheet(
-            "QLabel { "
-            "color: #64748B; "
-            "font-size: 12px; "
-            "font-weight: 400; "
-            "background: transparent; "
-            "}"
-        )
-        title_layout.addWidget(subtitle)
-        
-        card_layout.addLayout(title_layout)
-        card_layout.addSpacing(24)
+            card_layout.addSpacing(28)
 
         # USER BADGE - Refined
         user_container = QWidget()
