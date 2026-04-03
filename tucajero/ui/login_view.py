@@ -23,9 +23,9 @@ from PySide6.QtGui import QColor, QPixmap
 def get_logo_path():
     """Get logo path that works in both dev and compiled EXE"""
     if getattr(sys, "frozen", False):
-        # Running as compiled EXE
+        # Running as compiled EXE - assets are at _MEIPASS/assets/
         base = getattr(sys, "_MEIPASS", os.path.dirname(sys.executable))
-        logo = os.path.join(base, "tucajero", "assets", "icons", "logo.png")
+        logo = os.path.join(base, "assets", "icons", "logo.png")
     else:
         # Running as script
         base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -209,7 +209,7 @@ class LoginView(QDialog):
 
         # USER BADGE - Refined
         user_container = QWidget()
-        user_container.setStyleSheet("background: transparent;")
+        user_container.setStyleSheet("background: transparent; border: none;")
         user_layout = QHBoxLayout(user_container)
         user_layout.setContentsMargins(0, 0, 0, 0)
         user_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -220,7 +220,6 @@ class LoginView(QDialog):
             "font-size: 13px; "
             "font-weight: 500; "
             "background-color: #F1F5F9; "
-            "border: 1px solid #E2E8F0; "
             "padding: 6px 12px; "
             "border-radius: 8px; "
             "}"
@@ -230,14 +229,15 @@ class LoginView(QDialog):
         card_layout.addSpacing(32)
 
         # PIN LABEL - Hero section
-        pin_label = QLabel("Enter your PIN")
+        pin_label = QLabel("Ingresa tu PIN")
         pin_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         pin_label.setStyleSheet(
             "QLabel { "
             "color: #64748B; "
-            "font-size: 13px; "
+            "font-size: 14px; "
             "font-weight: 400; "
             "background: transparent; "
+            "border: none; "
             "}"
         )
         card_layout.addWidget(pin_label)
@@ -284,7 +284,7 @@ class LoginView(QDialog):
 
         # FOOTER
         card_layout.addSpacing(24)
-        footer = QLabel("Secure access to your sales system")
+        footer = QLabel("Acceso seguro al sistema de ventas")
         footer.setAlignment(Qt.AlignmentFlag.AlignCenter)
         footer.setStyleSheet(
             "QLabel { "
