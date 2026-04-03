@@ -104,7 +104,7 @@ class PINBox(QPushButton):
 
 
 class LoginView(QDialog):
-    """Premium PIN-based login screen with proper rendering"""
+    """Premium PIN-based login screen with modern SaaS layout"""
 
     def __init__(self, session, parent=None):
         super().__init__(parent)
@@ -112,35 +112,52 @@ class LoginView(QDialog):
         self.cajero_seleccionado = None
         self.pin_boxes = []
         self.current_box = 0
-        
-        # Fix rendering: set attributes before UI init
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowSystemMenuHint)
+
+        # Window configuration for modern SaaS layout
+        self.setWindowFlags(
+            Qt.WindowType.FramelessWindowHint | 
+            Qt.WindowType.WindowSystemMenuHint
+        )
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, False)
         self.setModal(True)
-        
+
         self.init_ui()
 
     def init_ui(self):
-        # Full screen size
-        self.setWindowState(Qt.WindowState.WindowFullScreen)
-        
-        # Apply background directly
+        # 1. WINDOW SIZE - Responsive, not fullscreen
+        self.resize(1280, 800)
+        self.setMinimumSize(1024, 720)
+
+        # 2. ROOT BACKGROUND - Gradient covers entire viewport
         self.setStyleSheet("""
             QDialog {
-                background: qradialgradient(cx:0.5, cy:0.45, radius:0.7,
+                background: qradialgradient(
+                    cx:0.5, cy:0.45, radius:0.9,
                     fx:0.5, fy:0.45,
-                    stop:0 #EEF2FF, stop:0.6 #F1F5F9, stop:1 #F8FAFC);
+                    stop:0 #EEF2FF,
+                    stop:0.5 #F1F5F9,
+                    stop:1 #F8FAFC
+                );
+                border: none;
             }
         """)
 
-        # Main layout - centered
+        # 3. MAIN LAYOUT - Centering system
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        # Login card
+        # 4. CONTENT CONTAINER - Max width control
+        container = QWidget()
+        container.setFixedWidth(400)
+        container.setStyleSheet("background: transparent;")
+
+        container_layout = QVBoxLayout(container)
+        container_layout.setContentsMargins(0, 0, 0, 0)
+        container_layout.setSpacing(0)
+
+        # 5. LOGIN CARD - Professional design
         card = QWidget()
-        card.setFixedSize(400, 540)
         card.setStyleSheet("""
             QWidget {
                 background-color: #FFFFFF;
@@ -149,57 +166,91 @@ class LoginView(QDialog):
             }
         """)
 
-        # Shadow
-        shadow1 = QGraphicsDropShadowEffect()
-        shadow1.setBlurRadius(50)
-        shadow1.setOffset(0, 16)
-        shadow1.setColor(QColor(0, 0, 0, 25))
-        card.setGraphicsEffect(shadow1)
+        # Shadow effect
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(50)
+        shadow.setOffset(0, 16)
+        shadow.setColor(QColor(0, 0, 0, 25))
+        card.setGraphicsEffect(shadow)
 
         card_layout = QVBoxLayout(card)
         card_layout.setContentsMargins(36, 36, 36, 36)
         card_layout.setSpacing(0)
 
-        # Logo
+        # ═══════════════════════════════════════
+        # SPACING SYSTEM - Modern SaaS pattern
+        # ═══════════════════════════════════════
+
+        # LOGO (48x48)
         card_layout.addSpacing(12)
         logo_path = os.path.join(os.path.dirname(__file__), "assets", "icons", "logo.png")
         if os.path.exists(logo_path):
             logo_label = QLabel()
             logo_pixmap = QPixmap(logo_path)
-            scaled_logo = logo_pixmap.scaled(48, 48, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+            scaled_logo = logo_pixmap.scaled(
+                48, 48, 
+                Qt.AspectRatioMode.KeepAspectRatio, 
+                Qt.TransformationMode.SmoothTransformation
+            )
             logo_label.setPixmap(scaled_logo)
             logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             logo_label.setStyleSheet("background: transparent;")
             card_layout.addWidget(logo_label)
             card_layout.addSpacing(24)
 
-        # App name
+        # TITLE
         app_name = QLabel("TuCajero POS")
         app_name.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        app_name.setStyleSheet("QLabel { color: #0F172A; font-size: 20px; font-weight: 700; letter-spacing: 0.5px; background: transparent; }")
+        app_name.setStyleSheet(
+            "QLabel { "
+            "color: #0F172A; "
+            "font-size: 20px; "
+            "font-weight: 700; "
+            "letter-spacing: 0.5px; "
+            "background: transparent; "
+            "}"
+        )
         card_layout.addWidget(app_name)
-        card_layout.addSpacing(32)
+        card_layout.addSpacing(28)
 
-        # User badge
+        # USER BADGE
         user_container = QWidget()
         user_container.setStyleSheet("background: transparent;")
         user_layout = QHBoxLayout(user_container)
         user_layout.setContentsMargins(0, 0, 0, 0)
         user_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         user_label = QLabel("Admin")
-        user_label.setStyleSheet("QLabel { color: #0F172A; font-size: 14px; font-weight: 600; background-color: #F1F5F9; padding: 8px 20px; border-radius: 6px; letter-spacing: 0.3px; }")
+        user_label.setStyleSheet(
+            "QLabel { "
+            "color: #0F172A; "
+            "font-size: 14px; "
+            "font-weight: 600; "
+            "background-color: #F1F5F9; "
+            "padding: 8px 20px; "
+            "border-radius: 6px; "
+            "letter-spacing: 0.3px; "
+            "}"
+        )
         user_layout.addWidget(user_label)
         card_layout.addWidget(user_container)
-        card_layout.addSpacing(36)
+        card_layout.addSpacing(32)
 
-        # PIN label
+        # PIN LABEL
         pin_label = QLabel("Ingresa tu PIN")
         pin_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        pin_label.setStyleSheet("QLabel { color: #475569; font-size: 15px; font-weight: 600; background: transparent; letter-spacing: 0.3px; }")
+        pin_label.setStyleSheet(
+            "QLabel { "
+            "color: #475569; "
+            "font-size: 15px; "
+            "font-weight: 600; "
+            "background: transparent; "
+            "letter-spacing: 0.3px; "
+            "}"
+        )
         card_layout.addWidget(pin_label)
         card_layout.addSpacing(20)
 
-        # PIN boxes
+        # PIN BOXES (4 digits)
         pin_layout = QHBoxLayout()
         pin_layout.setSpacing(16)
         pin_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -209,9 +260,9 @@ class LoginView(QDialog):
             self.pin_boxes.append(pin_box)
             pin_layout.addWidget(pin_box)
         card_layout.addLayout(pin_layout)
-        card_layout.addSpacing(36)
+        card_layout.addSpacing(32)
 
-        # Button
+        # ACCESS BUTTON
         self.login_btn = QPushButton("Acceder")
         self.login_btn.setFixedHeight(52)
         self.login_btn.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -231,14 +282,25 @@ class LoginView(QDialog):
         self.login_btn.clicked.connect(self.login)
         card_layout.addWidget(self.login_btn)
 
-        # Footer
-        card_layout.addSpacing(24)
+        # FOOTER
+        card_layout.addSpacing(20)
         footer = QLabel("Acceso seguro al sistema de ventas")
         footer.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        footer.setStyleSheet("QLabel { color: #64748B; font-size: 12px; background: transparent; letter-spacing: 0.3px; }")
+        footer.setStyleSheet(
+            "QLabel { "
+            "color: #64748B; "
+            "font-size: 12px; "
+            "background: transparent; "
+            "letter-spacing: 0.3px; "
+            "}"
+        )
         card_layout.addWidget(footer)
 
-        main_layout.addWidget(card)
+        # Add card to container
+        container_layout.addWidget(card)
+
+        # Add container to main layout
+        main_layout.addWidget(container)
 
         # Focus first PIN box
         self.pin_boxes[0].setFocus()
