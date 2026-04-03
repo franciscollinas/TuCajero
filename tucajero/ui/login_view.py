@@ -183,7 +183,7 @@ class LoginView(QDialog):
             logo_label = QLabel()
             logo_pixmap = QPixmap(logo_path)
             scaled_logo = logo_pixmap.scaled(
-                220, 100,
+                240, 120,
                 Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation
             )
