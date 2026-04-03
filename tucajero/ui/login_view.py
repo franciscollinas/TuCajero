@@ -207,7 +207,7 @@ class LoginView(QDialog):
         app_name.setStyleSheet(
             "QLabel { "
             "color: #0F172A; "
-            "font-size: 20px; "
+            "font-size: 24px; "
             "font-weight: 600; "
             "letter-spacing: 0.2px; "
             "background: transparent; "
