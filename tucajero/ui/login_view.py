@@ -128,16 +128,11 @@ class LoginView(QDialog):
         self.resize(1280, 800)
         self.setMinimumSize(1024, 720)
 
-        # 2. ROOT BACKGROUND - Gradient covers entire viewport
+        # 2. ROOT BACKGROUND - Transparent (only card visible)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
         self.setStyleSheet("""
             QDialog {
-                background: qradialgradient(
-                    cx:0.5, cy:0.45, radius:0.9,
-                    fx:0.5, fy:0.45,
-                    stop:0 #EEF2FF,
-                    stop:0.5 #F1F5F9,
-                    stop:1 #F8FAFC
-                );
+                background: transparent;
                 border: none;
             }
         """)
@@ -207,7 +202,7 @@ class LoginView(QDialog):
         app_name.setStyleSheet(
             "QLabel { "
             "color: #0F172A; "
-            "font-size: 24px; "
+            "font-size: 53px; "
             "font-weight: 600; "
             "letter-spacing: 0.2px; "
             "background: transparent; "
