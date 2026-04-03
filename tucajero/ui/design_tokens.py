@@ -1,66 +1,58 @@
 """Sistema de diseño premium - NO MODIFICAR"""
 
 class Colors:
-    # FONDOS - Modo oscuro premium
-    BG_APP = "#0a0e1a"           # Fondo principal ultra oscuro
-    BG_PANEL = "#131824"         # Paneles principales
-    BG_CARD = "#1a1f2e"          # Cards y contenedores
-    BG_ELEVATED = "#1f2533"      # Elementos elevados
-    BG_INPUT = "#242938"         # Inputs y campos
-    BG_HOVER = "#2a2f3e"         # Estado hover
-    BG_ACTIVE = "#2f3544"        # Estado activo
-    
-    # TEXTO - Jerarquía visual clara
-    TEXT_PRIMARY = "#f8fafc"     # Texto principal 100% blanco
-    TEXT_SECONDARY = "#cbd5e1"   # Texto secundario 80% opacidad
-    TEXT_TERTIARY = "#94a3b8"    # Texto terciario 60% opacidad
-    TEXT_MUTED = "#64748b"       # Texto deshabilitado 40% opacidad
-    TEXT_INVERSE = "#0f172a"     # Texto sobre fondos claros
-    
-    # BORDES - Separadores sutiles
-    BORDER_SUBTLE = "#1e293b"    # Bordes muy suaves
-    BORDER_DEFAULT = "#334155"   # Bordes normales
-    BORDER_STRONG = "#475569"    # Bordes marcados
-    BORDER_FOCUS = "#3b82f6"     # Borde al hacer focus
-    
-    # COLORES DE MARCA (Gradientes premium)
-    PRIMARY = "#3b82f6"          # Azul principal
-    PRIMARY_DARK = "#1e40af"
-    PRIMARY_LIGHT = "#60a5fa"
-    
-    SUCCESS = "#10b981"          # Verde éxito
-    SUCCESS_DARK = "#047857"
-    SUCCESS_LIGHT = "#34d399"
-    
-    WARNING = "#f59e0b"          # Naranja advertencia
-    WARNING_DARK = "#b45309"
-    WARNING_LIGHT = "#fbbf24"
-    
-    DANGER = "#ef4444"           # Rojo peligro
-    DANGER_DARK = "#b91c1c"
-    DANGER_LIGHT = "#f87171"
-    
-    INFO = "#06b6d4"             # Cyan información
-    INFO_DARK = "#0e7490"
-    INFO_LIGHT = "#22d3ee"
-    
-    PURPLE = "#8b5cf6"           # Púrpura acento
-    PURPLE_DARK = "#6d28d9"
-    PURPLE_LIGHT = "#a78bfa"
-    
-    # SOMBRAS (para CSS box-shadow)
-    SHADOW_SM = "0 1px 2px 0 rgba(0, 0, 0, 0.3)"
-    SHADOW_MD = "0 4px 8px -2px rgba(0, 0, 0, 0.4)"
-    SHADOW_LG = "0 12px 24px -4px rgba(0, 0, 0, 0.5)"
-    SHADOW_XL = "0 20px 40px -8px rgba(0, 0, 0, 0.6)"
-    SHADOW_GLOW = "0 0 20px 0 rgba(59, 130, 246, 0.3)"
-    
-    # OVERLAYS
-    OVERLAY_LIGHT = "rgba(255, 255, 255, 0.05)"
-    OVERLAY_MEDIUM = "rgba(255, 255, 255, 0.1)"
-    OVERLAY_STRONG = "rgba(255, 255, 255, 0.15)"
-    OVERLAY_DARK = "rgba(0, 0, 0, 0.5)"
-    OVERLAY_GLASS = "rgba(26, 31, 46, 0.8)"
+    # FONDOS - Inspirado en Maxton
+    BG_APP = "#0f1320"           # Fondo principal ultra oscuro
+    BG_PANEL = "#151825"         # Sidebar y paneles
+    BG_CARD = "#1a1d2e"          # Cards principales
+    BG_ELEVATED = "#1f2333"      # Elementos elevados
+    BG_INPUT = "#232639"         # Inputs
+    BG_HOVER = "#2a2f3e"         # Hover state
+    BG_ACTIVE = "#2f3544"        # Active state
+
+    # TEXTO - Jerarquía clara
+    TEXT_PRIMARY = "#ffffff"     # Blanco puro
+    TEXT_SECONDARY = "#cbd5e1"   # Gris claro
+    TEXT_TERTIARY = "#94a3b8"    # Gris medio
+    TEXT_MUTED = "#64748b"       # Gris oscuro
+    TEXT_INVERSE = "#0f172a"     # Para fondos claros
+
+    # BORDES - Sutiles pero visibles
+    BORDER_SUBTLE = "#1e293b"
+    BORDER_DEFAULT = "#334155"
+    BORDER_STRONG = "#475569"
+    BORDER_FOCUS = "#3b82f6"
+
+    # GRADIENTES PREMIUM (Maxton style)
+    GRADIENT_CYAN_START = "#00d4ff"
+    GRADIENT_CYAN_END = "#00a3cc"
+    GRADIENT_GREEN_START = "#00ff88"
+    GRADIENT_GREEN_END = "#00cc66"
+    GRADIENT_PINK_START = "#ff0080"
+    GRADIENT_PINK_END = "#cc0066"
+    GRADIENT_PURPLE_START = "#a855f7"
+    GRADIENT_PURPLE_END = "#7c3aed"
+    GRADIENT_BLUE_START = "#3b82f6"
+    GRADIENT_BLUE_END = "#1e40af"
+    GRADIENT_ORANGE_START = "#ff8c00"
+    GRADIENT_ORANGE_END = "#cc7000"
+
+    # COLORES PLANOS (para elementos sin gradiente)
+    PRIMARY = "#3b82f6"
+    SUCCESS = "#00ff88"
+    WARNING = "#fbbf24"
+    DANGER = "#ff0080"
+    INFO = "#00d4ff"
+    PURPLE = "#a855f7"
+
+    # SOMBRAS
+    SHADOW_SM = "0 1px 3px 0 rgba(0, 0, 0, 0.4)"
+    SHADOW_MD = "0 4px 6px -1px rgba(0, 0, 0, 0.5)"
+    SHADOW_LG = "0 10px 20px -3px rgba(0, 0, 0, 0.6)"
+    SHADOW_XL = "0 20px 40px -8px rgba(0, 0, 0, 0.7)"
+    SHADOW_GLOW_CYAN = "0 0 30px 0 rgba(0, 212, 255, 0.3)"
+    SHADOW_GLOW_GREEN = "0 0 30px 0 rgba(0, 255, 136, 0.3)"
+    SHADOW_GLOW_PINK = "0 0 30px 0 rgba(255, 0, 128, 0.3)"
 
 
 class Typography:

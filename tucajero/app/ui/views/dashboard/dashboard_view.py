@@ -7,11 +7,19 @@ from PySide6.QtWidgets import (
     QSizePolicy,
     QTableWidget,
     QTableWidgetItem,
+    QGridLayout,
 )
 from PySide6.QtCore import Qt
 
 from tucajero.app.ui.theme.theme import app_style, PRIMARY, SECONDARY, SUCCESS, WARNING, ACCENT
 from tucajero.ui.chart_widget import ChartWidget
+from tucajero.ui.components_premium import (
+    MetricCardMaxton,
+    ChartCardMaxton,
+    ButtonPremium,
+    TABLE_STYLE_PREMIUM,
+)
+from tucajero.ui.design_tokens import Typography, Colors
 
 
 class DashboardView(QWidget):
@@ -22,175 +30,133 @@ class DashboardView(QWidget):
         self.load_data()
 
     def setup_ui(self):
-        self.setStyleSheet(
-            app_style()
-            + """
-            QWidget {
-                background-color: #0F172A;
-            }
-        """
-        )
+        """Layout principal del dashboard estilo Maxton"""
+        c = Colors
 
-        root = QVBoxLayout(self)
-        root.setContentsMargins(20, 20, 20, 20)
-        root.setSpacing(20)
-
-        # =========================
-        # KPI ROW
-        # =========================
-        kpi_row = QHBoxLayout()
-        kpi_row.setSpacing(20)
-
-        self.kpi_ventas_hoy = self.create_kpi("Ventas hoy", "$0", "#22C55E")
-        self.kpi_ventas_mes = self.create_kpi("Ventas mes", "$0", "#3B82F6")
-        self.kpi_ticket = self.create_kpi("Ticket promedio", "$0", "#06B6D4")
-        self.kpi_facturas = self.create_kpi("N° ventas", "0", "#F59E0B")
-
-        kpi_row.addWidget(self.kpi_ventas_hoy)
-        kpi_row.addWidget(self.kpi_ventas_mes)
-        kpi_row.addWidget(self.kpi_ticket)
-        kpi_row.addWidget(self.kpi_facturas)
-
-        root.addLayout(kpi_row)
-
-        # =========================
-        # CHARTS ROW
-        # =========================
-        charts_row = QHBoxLayout()
-        charts_row.setSpacing(20)
-
-        self.chart_bar = self.create_card("Ventas últimos 7 días")
-        self.chart_bar_layout = self.chart_bar.layout()
-
-        self.chart_widget = ChartWidget()
-        self.chart_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.chart_widget.setMinimumHeight(300)
-        self.chart_bar_layout.addWidget(self.chart_widget)
-
-        self.chart_pie = self.create_card("Métodos de pago")
-        self.chart_pie_layout = self.chart_pie.layout()
-
-        self.pie_chart = ChartWidget()
-        self.pie_chart.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.pie_chart.setMinimumHeight(300)
-        self.chart_pie_layout.addWidget(self.pie_chart)
-
-        charts_row.addWidget(self.chart_bar, 2)
-        charts_row.addWidget(self.chart_pie, 1)
-
-        root.addLayout(charts_row)
-
-        # =========================
-        # TABLE
-        # =========================
-        table_card = self.create_card("Ventas recientes")
-
-        self.table = QTableWidget()
-        self.table.setColumnCount(5)
-        self.table.setHorizontalHeaderLabels(
-            ["Fecha", "Cliente", "Total", "Método", "Productos"]
-        )
-        self.table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-
-        self.table.setStyleSheet("""
-            QTableWidget {
-                background: transparent;
-                color: white;
-                border: none;
-                gridline-color: rgba(255,255,255,0.05);
-            }
-            QTableWidget::item {
-                padding: 12px;
-                border-bottom: 1px solid rgba(255,255,255,0.05);
-            }
-            QTableWidget::item:nth-child(even) {
-                background: rgba(255, 255, 255, 0.03);
-            }
-            QTableWidget::item:hover {
-                background: rgba(124, 58, 237, 0.2);
-            }
-            QTableWidget::item:selected {
-                background: #7C3AED;
-            }
-            QHeaderView::section {
-                background: rgba(255,255,255,0.08);
-                color: #CBD5E1;
-                padding: 14px;
-                border: none;
-                border-bottom: 1px solid rgba(255,255,255,0.1);
-                font-weight: 600;
-                font-size: 12px;
-            }
+        self.setStyleSheet(f"""
+            QWidget {{
+                background-color: {c.BG_APP};
+                color: {c.TEXT_PRIMARY};
+                font-family: 'Segoe UI', 'Inter', sans-serif;
+            }}
         """)
 
-        self.table.setAlternatingRowColors(False)
-        self.table.verticalHeader().setVisible(False)
-        self.table.horizontalHeader().setStretchLastSection(True)
+        root = QVBoxLayout(self)
+        root.setContentsMargins(32, 24, 32, 32)
+        root.setSpacing(24)
 
-        table_card.layout().addWidget(self.table)
+        # HEADER (título + fecha + botón refresh)
+        header = QWidget()
+        header.setStyleSheet("background: transparent;")
+        header_layout = QHBoxLayout(header)
+        header_layout.setContentsMargins(0, 0, 0, 0)
+        header_layout.setSpacing(16)
+
+        # Título
+        title = QLabel("Dashboard")
+        title.setStyleSheet(f"color: {c.TEXT_PRIMARY}; font-size: {Typography.H2}px; font-weight: {Typography.BOLD}; background: transparent;")
+        header_layout.addWidget(title)
+
+        # Fecha actual
+        from datetime import datetime
+        now = datetime.now()
+        fecha = QLabel(now.strftime("%A, %d de %B %Y"))
+        fecha.setStyleSheet(f"color: {c.TEXT_SECONDARY}; font-size: {Typography.BODY}px; background: transparent;")
+        header_layout.addWidget(fecha)
+
+        header_layout.addStretch()
+
+        # Botón refresh
+        btn_refresh = ButtonPremium("🔄 Actualizar", style="secondary")
+        btn_refresh.clicked.connect(self.refresh_data)
+        header_layout.addWidget(btn_refresh)
+
+        root.addWidget(header)
+
+        # GRID PRINCIPAL (2x2)
+        grid = QGridLayout()
+        grid.setSpacing(24)
+
+        # FILA 1
+        # Card 1: Ventas hoy (arriba izquierda)
+        self.card_ventas_hoy = MetricCardMaxton(
+            value="$0",
+            label="Ventas Hoy",
+            gradient_colors="green"
+        )
+        self.card_ventas_hoy.setMinimumHeight(160)
+        grid.addWidget(self.card_ventas_hoy, 0, 0)
+
+        # Card 2: Gráfico de barras (arriba derecha - ocupa 2 filas)
+        self.card_chart_ventas = ChartCardMaxton(
+            title="Ventas últimos 7 días",
+            subtitle="Comparación diaria"
+        )
+        self.card_chart_ventas.setMinimumHeight(320)
+        grid.addWidget(self.card_chart_ventas, 0, 1, 2, 1)
+
+        # FILA 2
+        # Card 3: Métodos de pago (abajo izquierda)
+        self.card_metodos_pago = ChartCardMaxton(
+            title="Métodos de pago"
+        )
+        self.card_metodos_pago.setMinimumHeight(320)
+        grid.addWidget(self.card_metodos_pago, 1, 0)
+
+        root.addLayout(grid)
+
+        # FILA 3: Cards de métricas pequeñas (horizontal)
+        metrics_row = QHBoxLayout()
+        metrics_row.setSpacing(24)
+
+        self.card_ventas_mes = MetricCardMaxton(
+            value="$0",
+            label="Ventas Mes",
+            gradient_colors="blue"
+        )
+        self.card_ventas_mes.setMinimumHeight(140)
+        metrics_row.addWidget(self.card_ventas_mes)
+
+        self.card_ticket = MetricCardMaxton(
+            value="$0",
+            label="Ticket Promedio",
+            gradient_colors="cyan"
+        )
+        self.card_ticket.setMinimumHeight(140)
+        metrics_row.addWidget(self.card_ticket)
+
+        self.card_num_ventas = MetricCardMaxton(
+            value="0",
+            label="Nº Ventas",
+            gradient_colors="purple"
+        )
+        self.card_num_ventas.setMinimumHeight(140)
+        metrics_row.addWidget(self.card_num_ventas)
+
+        root.addLayout(metrics_row)
+
+        # FILA 4: Tabla de ventas recientes
+        table_card = ChartCardMaxton(title="Ventas Recientes")
+        table_card.setMinimumHeight(400)
+
+        # Tabla dentro de la card
+        self.table_ventas = QTableWidget()
+        self.table_ventas.setColumnCount(5)
+        self.table_ventas.setHorizontalHeaderLabels([
+            "Fecha", "Cliente", "Total", "Método", "Productos"
+        ])
+        self.table_ventas.setStyleSheet(TABLE_STYLE_PREMIUM)
+        self.table_ventas.setShowGrid(False)
+        self.table_ventas.verticalHeader().setVisible(False)
+        self.table_ventas.horizontalHeader().setStretchLastSection(True)
+
+        table_card.content_layout.addWidget(self.table_ventas)
 
         root.addWidget(table_card)
 
     # =========================
-    # COMPONENTES
+    # LOAD DATA
     # =========================
-    def create_kpi(self, title, value, color):
-        card = QFrame()
-        card.setStyleSheet(f"""
-            QFrame {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 {color}, stop:1 {color}CC);
-                border-radius: 16px;
-                border: 1px solid {color};
-            }}
-            QFrame:hover {{
-                border: 1px solid white;
-            }}
-        """)
-        card.setMinimumHeight(120)
-        card.setCursor(Qt.CursorShape.PointingHandCursor)
-
-        layout = QVBoxLayout(card)
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
-
-        label_value = QLabel(value)
-        label_value.setStyleSheet(
-            "color: white; font-size: 26px; font-weight: bold; background: transparent;"
-        )
-
-        label_title = QLabel(title)
-        label_title.setStyleSheet(
-            "color: rgba(255,255,255,0.8); font-size: 12px; font-weight: 500; background: transparent;"
-        )
-
-        layout.addWidget(label_value)
-        layout.addWidget(label_title)
-
-        return card
-
-    def create_card(self, title):
-        card = QFrame()
-        card.setStyleSheet("""
-            QFrame {
-                background-color: #1E293B;
-                border-radius: 16px;
-                border: 1px solid #334155;
-            }
-        """)
-
-        layout = QVBoxLayout(card)
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.setSpacing(12)
-
-        label = QLabel(title)
-        label.setStyleSheet(
-            "color: white; font-weight: 600; font-size: 16px; background: transparent;"
-        )
-
-        layout.addWidget(label)
-
-        return card
-
     def load_data(self):
         try:
             self.get_kpis()
@@ -215,6 +181,10 @@ class DashboardView(QWidget):
     def refresh(self):
         self.load_data()
 
+    def refresh_data(self):
+        """Método para actualizar los datos del dashboard"""
+        self.load_data()
+
     def get_kpis(self):
         try:
             from tucajero.services.venta_service import VentaService
@@ -226,10 +196,10 @@ class DashboardView(QWidget):
             num_ventas_hoy = venta_service.get_num_ventas_hoy()
             ticket_prom = total_hoy / num_ventas_hoy if num_ventas_hoy > 0 else 0
 
-            self.kpi_ventas_hoy.findChild(QLabel).setText(f"${total_hoy:,.0f}")
-            self.kpi_ventas_mes.findChild(QLabel).setText(f"${total_mes:,.0f}")
-            self.kpi_ticket.findChild(QLabel).setText(f"${ticket_prom:,.0f}")
-            self.kpi_facturas.findChild(QLabel).setText(str(num_ventas_hoy))
+            self.card_ventas_hoy.set_value(f"${total_hoy:,.0f}")
+            self.card_ventas_mes.set_value(f"${total_mes:,.0f}")
+            self.card_ticket.set_value(f"${ticket_prom:,.0f}")
+            self.card_num_ventas.set_value(str(num_ventas_hoy))
         except Exception as e:
             print(f"Error in get_kpis: {e}")
 
@@ -240,7 +210,19 @@ class DashboardView(QWidget):
             venta_service = VentaService(self.session)
             labels, valores = venta_service.get_ventas_ultimos_7_dias()
 
-            self.chart_widget.plot_bar(labels, valores, "")
+            # Limpiar contenido previo
+            chart_widget = ChartWidget()
+            chart_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+            chart_widget.setMinimumHeight(250)
+            chart_widget.plot_bar(labels, valores, "")
+
+            # Limpiar layout y agregar nuevo widget
+            while self.card_chart_ventas.content_layout.count():
+                item = self.card_chart_ventas.content_layout.takeAt(0)
+                if item.widget():
+                    item.widget().deleteLater()
+
+            self.card_chart_ventas.content_layout.addWidget(chart_widget)
         except Exception as e:
             print(f"Error in get_ventas_7_dias: {e}")
 
@@ -251,7 +233,19 @@ class DashboardView(QWidget):
             venta_service = VentaService(self.session)
             metodos_labels, metodos_valores = venta_service.get_ventas_por_metodo()
 
-            self.pie_chart.plot_pie(metodos_labels, metodos_valores, "")
+            # Limpiar contenido previo
+            pie_chart = ChartWidget()
+            pie_chart.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+            pie_chart.setMinimumHeight(250)
+            pie_chart.plot_pie(metodos_labels, metodos_valores, "")
+
+            # Limpiar layout y agregar nuevo widget
+            while self.card_metodos_pago.content_layout.count():
+                item = self.card_metodos_pago.content_layout.takeAt(0)
+                if item.widget():
+                    item.widget().deleteLater()
+
+            self.card_metodos_pago.content_layout.addWidget(pie_chart)
         except Exception as e:
             print(f"Error in get_metodos_pago: {e}")
 
@@ -270,7 +264,7 @@ class DashboardView(QWidget):
             except:
                 ventas = []
 
-            self.table.setRowCount(len(ventas))
+            self.table_ventas.setRowCount(len(ventas))
 
             for i, venta in enumerate(ventas):
                 fecha = (
@@ -305,8 +299,8 @@ class DashboardView(QWidget):
                 for j, text in enumerate(items):
                     item = QTableWidgetItem(text)
                     item.setForeground(Qt.GlobalColor.white)
-                    self.table.setItem(i, j, item)
+                    self.table_ventas.setItem(i, j, item)
 
-            self.table.resizeColumnsToContents()
+            self.table_ventas.resizeColumnsToContents()
         except Exception as e:
             print(f"Error in get_ventas_recientes: {e}")

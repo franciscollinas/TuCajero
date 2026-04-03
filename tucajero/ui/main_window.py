@@ -69,8 +69,8 @@ class MainWindow(QMainWindow):
         self._nav_buttons = {}
 
     def _build_header(self):
-        from utils.theme import get_colors
-        from utils.store_config import (
+        from tucajero.utils.theme import get_colors
+        from tucajero.utils.store_config import (
             get_store_name,
             get_nit,
             get_phone,
@@ -185,8 +185,8 @@ class MainWindow(QMainWindow):
         return header
 
     def _build_sidebar(self):
-        from utils.theme import get_colors, btn_sidebar
-        from utils.store_config import get_logo_path
+        from tucajero.utils.theme import get_colors, btn_sidebar
+        from tucajero.utils.store_config import get_logo_path
         import os
 
         c = get_colors()
@@ -486,13 +486,13 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "📦 Stock bajo", mensaje)
 
         except Exception as e:
-            from utils.theme import get_colors
+            from tucajero.utils.theme import get_colors
 
             pass
 
     def actualizar_badge_productos(self, num_alertas):
         """Actualiza el botón de Productos con badge de alertas"""
-        from utils.theme import get_colors
+        from tucajero.utils.theme import get_colors
 
         c = get_colors()
         btn = self._nav_buttons.get("productos")
