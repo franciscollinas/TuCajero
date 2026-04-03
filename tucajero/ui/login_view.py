@@ -147,9 +147,9 @@ class LoginView(QDialog):
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        # 4. CONTENT CONTAINER - Max width control (reduced for elegance)
+        # 4. CONTENT CONTAINER - Compact width for focus
         container = QWidget()
-        container.setFixedWidth(370)
+        container.setFixedWidth(360)
         container.setStyleSheet("background: transparent;")
 
         container_layout = QVBoxLayout(container)
@@ -181,14 +181,14 @@ class LoginView(QDialog):
         # SPACING SYSTEM - Refined SaaS pattern
         # ═══════════════════════════════════════
 
-        # LOGO (54x54) - Primary visual anchor
-        card_layout.addSpacing(8)
+        # LOGO (52x52) - Primary visual anchor
+        card_layout.addSpacing(12)
         logo_path = os.path.join(os.path.dirname(__file__), "assets", "icons", "logo.png")
         if os.path.exists(logo_path):
             logo_label = QLabel()
             logo_pixmap = QPixmap(logo_path)
             scaled_logo = logo_pixmap.scaled(
-                54, 54,
+                52, 52,
                 Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation
             )
@@ -196,9 +196,9 @@ class LoginView(QDialog):
             logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             logo_label.setStyleSheet("background: transparent; border: none;")
             card_layout.addWidget(logo_label)
-            card_layout.addSpacing(22)
+            card_layout.addSpacing(24)
 
-        # TITLE - Refined branding
+        # TITLE - Clean branding, no box feeling
         title_layout = QVBoxLayout()
         title_layout.setSpacing(4)
         
@@ -207,7 +207,7 @@ class LoginView(QDialog):
         app_name.setStyleSheet(
             "QLabel { "
             "color: #0F172A; "
-            "font-size: 22px; "
+            "font-size: 20px; "
             "font-weight: 600; "
             "letter-spacing: 0.2px; "
             "background: transparent; "
@@ -221,7 +221,7 @@ class LoginView(QDialog):
         subtitle.setStyleSheet(
             "QLabel { "
             "color: #64748B; "
-            "font-size: 13px; "
+            "font-size: 12px; "
             "font-weight: 400; "
             "background: transparent; "
             "}"
@@ -229,7 +229,7 @@ class LoginView(QDialog):
         title_layout.addWidget(subtitle)
         
         card_layout.addLayout(title_layout)
-        card_layout.addSpacing(28)
+        card_layout.addSpacing(24)
 
         # USER BADGE - Refined
         user_container = QWidget()
