@@ -34,7 +34,7 @@ def get_logo_path():
 
 
 class PINBox(QPushButton):
-    """Tactile PIN digit input box with enhanced contrast states"""
+    """Tactile PIN digit input box with smooth transitions"""
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -43,7 +43,7 @@ class PINBox(QPushButton):
         self._value = ""
         self._focused = False
         self._hovered = False
-        
+
         self.update_style()
         self.clicked.connect(self._on_click)
 
@@ -51,11 +51,16 @@ class PINBox(QPushButton):
         self._focused = True
         self.update_style()
 
+    def set_focus_state(self, focused):
+        """Smoothly transition focus state"""
+        self._focused = focused
+        self.update_style()
+
     def update_style(self):
         if self._focused:
             self.setStyleSheet("""
                 QPushButton {
-                    background-color: #FFFFFF;
+                    background-color: #DBEAFE;
                     border: 2px solid #2563EB;
                     border-radius: 10px;
                     font-size: 24px;
@@ -64,14 +69,14 @@ class PINBox(QPushButton):
                     padding: 0px;
                 }
                 QPushButton:hover {
-                    background-color: #F1F5F9;
+                    background-color: #DBEAFE;
                 }
             """)
         elif self._hovered:
             self.setStyleSheet("""
                 QPushButton {
                     background-color: #FFFFFF;
-                    border: 1px solid #94A3B8;
+                    border: 1px solid #CBD5E1;
                     border-radius: 10px;
                     font-size: 24px;
                     font-weight: 700;
@@ -83,7 +88,7 @@ class PINBox(QPushButton):
             self.setStyleSheet("""
                 QPushButton {
                     background-color: #FFFFFF;
-                    border: 1px solid #CBD5E1;
+                    border: 1px solid #E2E8F0;
                     border-radius: 10px;
                     font-size: 24px;
                     font-weight: 700;
@@ -91,7 +96,7 @@ class PINBox(QPushButton):
                     padding: 0px;
                 }
                 QPushButton:hover {
-                    border: 1px solid #94A3B8;
+                    border: 1px solid #CBD5E1;
                 }
             """)
 
@@ -165,7 +170,7 @@ class LoginView(QDialog):
         container_layout.setContentsMargins(0, 0, 0, 0)
         container_layout.setSpacing(0)
 
-        # 5. LOGIN CARD - Professional design
+        # 5. LOGIN CARD - Professional design with shadow
         card = QWidget()
         card.setStyleSheet("""
             QWidget {
@@ -177,9 +182,9 @@ class LoginView(QDialog):
 
         # Shadow effect
         shadow = QGraphicsDropShadowEffect()
-        shadow.setBlurRadius(50)
-        shadow.setOffset(0, 16)
-        shadow.setColor(QColor(0, 0, 0, 25))
+        shadow.setBlurRadius(30)
+        shadow.setOffset(0, 10)
+        shadow.setColor(QColor(15, 23, 42, 20))  # rgba(15, 23, 42, 0.08)
         card.setGraphicsEffect(shadow)
 
         card_layout = QVBoxLayout(card)
@@ -219,7 +224,7 @@ class LoginView(QDialog):
             "color: #0F172A; "
             "font-size: 13px; "
             "font-weight: 500; "
-            "background-color: #F1F5F9; "
+            "background-color: #F8FAFC; "
             "padding: 6px 12px; "
             "border-radius: 8px; "
             "}"
@@ -255,7 +260,7 @@ class LoginView(QDialog):
         card_layout.addLayout(pin_layout)
         card_layout.addSpacing(32)
 
-        # ACCESS BUTTON - Premium feel
+        # ACCESS BUTTON - Premium feel with micro-interactions
         self.login_btn = QPushButton("Acceder")
         self.login_btn.setFixedHeight(52)
         self.login_btn.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -288,9 +293,13 @@ class LoginView(QDialog):
         footer.setAlignment(Qt.AlignmentFlag.AlignCenter)
         footer.setStyleSheet(
             "QLabel { "
-            "color: #94A3B8; "
+            "color: #64748B; "
             "font-size: 12px; "
+            "font-weight: 600; "
             "background: transparent; "
+            "padding: 8px 12px; "
+            "border: 1px solid #E2E8F0; "
+            "border-radius: 6px; "
             "}"
         )
         card_layout.addWidget(footer)
@@ -301,10 +310,9 @@ class LoginView(QDialog):
         # Add container to main layout
         main_layout.addWidget(container)
 
-        # Focus first PIN box
+        # Focus first PIN box with smooth animation
         self.pin_boxes[0].setFocus()
-        self.pin_boxes[0]._focused = True
-        self.pin_boxes[0].update_style()
+        self.pin_boxes[0].set_focus_state(True)
 
         self.installEventFilter(self)
 
@@ -324,20 +332,27 @@ class LoginView(QDialog):
 
     def _enter_digit(self, digit):
         if self.current_box < 4:
+            # Blur current box smoothly
+            if self.current_box > 0:
+                self.pin_boxes[self.current_box - 1].set_focus_state(False)
+            
             self.pin_boxes[self.current_box].set_value(digit)
-            self.pin_boxes[self.current_box]._focused = False
-            self.pin_boxes[self.current_box].update_style()
+            self.pin_boxes[self.current_box].set_focus_state(False)
             self.current_box += 1
+            
+            # Focus next box smoothly
             if self.current_box < 4:
-                self.pin_boxes[self.current_box]._focused = True
-                self.pin_boxes[self.current_box].update_style()
+                self.pin_boxes[self.current_box].set_focus_state(True)
 
     def _delete_digit(self):
         if self.current_box > 0:
+            # Blur current box
+            self.pin_boxes[self.current_box].set_focus_state(False)
             self.current_box -= 1
+            
+            # Clear and focus previous box smoothly
             self.pin_boxes[self.current_box].clear()
-            self.pin_boxes[self.current_box]._focused = True
-            self.pin_boxes[self.current_box].update_style()
+            self.pin_boxes[self.current_box].set_focus_state(True)
 
     def get_pin(self):
         return "".join(box.get_value() for box in self.pin_boxes)
@@ -368,12 +383,12 @@ class LoginView(QDialog):
 
         if not cajero_encontrado:
             QMessageBox.warning(self, "Error", "PIN incorrecto. Intenta de nuevo.")
-            # Clear PIN boxes
+            # Clear PIN boxes with smooth transitions
             for box in self.pin_boxes:
                 box.clear()
+                box.set_focus_state(False)
             self.current_box = 0
-            self.pin_boxes[0]._focused = True
-            self.pin_boxes[0].update_style()
+            self.pin_boxes[0].set_focus_state(True)
             return
 
         # Login successful
