@@ -5,6 +5,7 @@ Fixed rendering using QDialog with proper attributes
 """
 
 import os
+import sys
 from PySide6.QtWidgets import (
     QDialog,
     QVBoxLayout,
@@ -17,6 +18,19 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, QEvent
 from PySide6.QtGui import QColor, QPixmap
+
+
+def get_logo_path():
+    """Get logo path that works in both dev and compiled EXE"""
+    if getattr(sys, "frozen", False):
+        # Running as compiled EXE
+        base = getattr(sys, "_MEIPASS", os.path.dirname(sys.executable))
+        logo = os.path.join(base, "tucajero", "assets", "icons", "logo.png")
+    else:
+        # Running as script
+        base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        logo = os.path.join(base, "assets", "icons", "logo.png")
+    return logo if os.path.exists(logo) else ""
 
 
 class PINBox(QPushButton):
@@ -178,8 +192,8 @@ class LoginView(QDialog):
 
         # BRAND BLOCK - Logo at top (includes brand name + tagline)
         card_layout.addSpacing(24)
-        logo_path = os.path.join(os.path.dirname(__file__), "..", "assets", "icons", "logo.png")
-        if os.path.exists(logo_path):
+        logo_path = get_logo_path()
+        if logo_path:
             logo_label = QLabel()
             logo_pixmap = QPixmap(logo_path)
             scaled_logo = logo_pixmap.scaled(
