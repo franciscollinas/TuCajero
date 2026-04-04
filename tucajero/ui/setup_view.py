@@ -27,7 +27,8 @@ from tucajero.utils.store_config import (
     get_nit,
     get_logo_path,
 )
-from tucajero.utils.theme import btn_primary, btn_secondary, get_colors
+from tucajero.ui.design_tokens import Colors, Typography, Spacing, BorderRadius
+from tucajero.ui.components_premium import ButtonPremium
 
 
 class SetupDialog(QDialog):
@@ -43,7 +44,6 @@ class SetupDialog(QDialog):
 
     def init_ui(self):
         """Inicializa la interfaz."""
-        c = get_colors()
         main_layout = QVBoxLayout()
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
@@ -161,9 +161,8 @@ class SetupDialog(QDialog):
         logo_row = QHBoxLayout()
         logo_row.setSpacing(12)
 
-        self.btn_logo = QPushButton("📁  Seleccionar logo...")
+        self.btn_logo = ButtonPremium("📁  Seleccionar logo...", style="secondary")
         self.btn_logo.setFixedHeight(42)
-        self.btn_logo.setStyleSheet(btn_secondary())
         self.btn_logo.clicked.connect(self.seleccionar_logo)
 
         self.logo_preview = QLabel()
@@ -193,15 +192,12 @@ class SetupDialog(QDialog):
 
         nota = QLabel("* Campo requerido")
         nota.setObjectName("nota")
-        nota.setStyleSheet(f"color: {c['text_secondary']}; font-size: 12px;")
+        nota.setStyleSheet(f"color: {Colors.TEXT_SECONDARY}; font-size: 12px;")
         nota.setAlignment(Qt.AlignmentFlag.AlignCenter)
         footer_layout.addWidget(nota)
 
-        self.btn_comenzar = QPushButton("COMENZAR")
+        self.btn_comenzar = ButtonPremium("COMENZAR", style="primary")
         self.btn_comenzar.setFixedHeight(44)
-        self.btn_comenzar.setStyleSheet(
-            btn_primary() + "QPushButton { min-width: 200px; }"
-        )
         self.btn_comenzar.clicked.connect(self.guardar)
         footer_layout.addWidget(self.btn_comenzar, alignment=Qt.AlignmentFlag.AlignCenter)
 
@@ -280,7 +276,6 @@ class SetupView(QWidget):
         self.cargar_config()
 
     def init_ui(self):
-        c = get_colors()
 
         # Main layout with scroll area for centered content
         main_layout = QVBoxLayout()
@@ -290,7 +285,7 @@ class SetupView(QWidget):
 
         # Header
         header = QWidget()
-        header.setStyleSheet(f"background-color: {c['bg_sidebar']};")
+        header.setStyleSheet(f"background-color: {Colors.BG_PANEL};")
         header_layout = QVBoxLayout()
         header.setLayout(header_layout)
         header_layout.setContentsMargins(24, 20, 24, 20)
@@ -298,7 +293,7 @@ class SetupView(QWidget):
 
         titulo = QLabel("Configuración del Negocio")
         titulo.setStyleSheet(
-            f"font-size: 22px; font-weight: bold; color: {c['text_primary']};"
+            f"font-size: 22px; font-weight: bold; color: {Colors.TEXT_PRIMARY};"
         )
         titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         header_layout.addWidget(titulo)
@@ -401,9 +396,8 @@ class SetupView(QWidget):
         logo_row = QHBoxLayout()
         logo_row.setSpacing(12)
 
-        self.btn_logo = QPushButton("📁  Seleccionar logo...")
+        self.btn_logo = ButtonPremium("📁  Seleccionar logo...", style="secondary")
         self.btn_logo.setFixedHeight(42)
-        self.btn_logo.setStyleSheet(btn_secondary())
         self.btn_logo.clicked.connect(self.seleccionar_logo)
 
         self.logo_preview = QLabel()
@@ -489,9 +483,8 @@ class SetupView(QWidget):
         self.ancho_papel.setCurrentIndex(1)
         printer_layout.addRow("Ancho de papel:", self.ancho_papel)
 
-        btn_prueba = QPushButton("Imprimir página de prueba")
+        btn_prueba = ButtonPremium("Imprimir página de prueba", style="secondary")
         btn_prueba.setFixedHeight(42)
-        btn_prueba.setStyleSheet(btn_secondary())
         btn_prueba.clicked.connect(self.prueba_impresion)
         printer_layout.addRow("", btn_prueba)
 
@@ -513,11 +506,8 @@ class SetupView(QWidget):
         footer_layout.setContentsMargins(24, 16, 24, 24)
         footer_layout.setSpacing(12)
 
-        self.btn_guardar = QPushButton("GUARDAR CONFIGURACIÓN")
+        self.btn_guardar = ButtonPremium("GUARDAR CONFIGURACIÓN", style="primary")
         self.btn_guardar.setFixedHeight(44)
-        self.btn_guardar.setStyleSheet(
-            btn_primary() + "QPushButton { min-width: 240px; }"
-        )
         self.btn_guardar.clicked.connect(self.guardar)
         footer_layout.addWidget(self.btn_guardar, alignment=Qt.AlignmentFlag.AlignCenter)
 

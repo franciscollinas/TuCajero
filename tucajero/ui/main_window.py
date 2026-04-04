@@ -21,7 +21,8 @@ from tucajero.utils.store_config import (
     get_email,
     get_address,
 )
-from tucajero.utils.theme import btn_primary, btn_secondary, btn_danger, btn_sidebar, get_colors, header_style
+from tucajero.ui.design_tokens import Colors, Typography, Spacing, BorderRadius
+from tucajero.ui.components_premium import ButtonPremium
 import os
 
 

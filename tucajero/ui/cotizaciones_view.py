@@ -13,7 +13,8 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor
 from tucajero.utils.formato import fmt_moneda
-from tucajero.utils.theme import btn_danger, btn_primary, get_colors
+from tucajero.ui.design_tokens import Colors, Typography, Spacing, BorderRadius
+from tucajero.ui.components_premium import ButtonPremium
 
 
 class CotizacionesView(QWidget):
@@ -27,16 +28,12 @@ class CotizacionesView(QWidget):
         self.cargar_cotizaciones()
 
     def init_ui(self):
-        from tucajero.utils.theme import get_colors
-
-        c = get_colors()
-
         layout = QVBoxLayout()
         self.setLayout(layout)
 
         titulo = QLabel("Cotizaciones")
         titulo.setStyleSheet(
-            f"font-size: 24px; font-weight: bold; color: {c['accent']};"
+            f"font-size: {Typography.H2}px; font-weight: {Typography.BOLD}; color: {Colors.PRIMARY};"
         )
         layout.addWidget(titulo)
 
@@ -52,13 +49,11 @@ class CotizacionesView(QWidget):
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
 
-        self.btn_facturar = QPushButton("⚡ Convertir en venta")
-        self.btn_facturar.setStyleSheet(btn_primary())
+        self.btn_facturar = ButtonPremium("⚡ Convertir en venta", style="primary")
         self.btn_facturar.clicked.connect(self.convertir_en_venta)
         btn_layout.addWidget(self.btn_facturar)
 
-        self.btn_cancelar = QPushButton("✕ Cancelar cotización")
-        self.btn_cancelar.setStyleSheet(btn_danger())
+        self.btn_cancelar = ButtonPremium("✕ Cancelar cotización", style="danger")
         self.btn_cancelar.clicked.connect(self.cancelar_cotizacion)
         btn_layout.addWidget(self.btn_cancelar)
 
@@ -74,7 +69,7 @@ class CotizacionesView(QWidget):
         )
         self.tabla.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.tabla.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.tabla.setStyleSheet("font-size: 14px;")
+        self.tabla.setStyleSheet(f"font-size: {Typography.H5}px;")
         self.tabla.doubleClicked.connect(self.convertir_en_venta)
         layout.addWidget(self.tabla)
 
@@ -82,7 +77,7 @@ class CotizacionesView(QWidget):
             "Doble clic o 'Convertir en venta' para facturar una cotización pendiente"
         )
         info.setStyleSheet(
-            f"color: {c['text_secondary']}; font-size: 13px; font-style: italic;"
+            f"color: {Colors.TEXT_SECONDARY}; font-size: {Typography.BODY}px; font-style: italic;"
         )
         info.setObjectName("info_label")
         layout.addWidget(info)
@@ -103,9 +98,6 @@ class CotizacionesView(QWidget):
         self.cotizaciones = service.get_all(estado=estado)
 
         self.tabla.setRowCount(len(self.cotizaciones))
-        from tucajero.utils.theme import get_colors
-
-        c = get_colors()
         for i, cot in enumerate(self.cotizaciones):
             self.tabla.setItem(i, 0, QTableWidgetItem(str(cot.id)))
             self.tabla.setItem(
@@ -124,14 +116,14 @@ class CotizacionesView(QWidget):
 
             estado_item = QTableWidgetItem(cot.estado.capitalize())
             if cot.estado == "pendiente":
-                estado_item.setBackground(QColor(c["warning"] + "33"))
-                estado_item.setForeground(QColor(c["warning"]))
+                estado_item.setBackground(QColor(Colors.WARNING + "33"))
+                estado_item.setForeground(QColor(Colors.WARNING))
             elif cot.estado == "facturada":
-                estado_item.setBackground(QColor(c["success"] + "33"))
-                estado_item.setForeground(QColor(c["success"]))
+                estado_item.setBackground(QColor(Colors.SUCCESS + "33"))
+                estado_item.setForeground(QColor(Colors.SUCCESS))
             elif cot.estado == "cancelada":
-                estado_item.setBackground(QColor(c["danger"] + "33"))
-                estado_item.setForeground(QColor(c["danger"]))
+                estado_item.setBackground(QColor(Colors.DANGER + "33"))
+                estado_item.setForeground(QColor(Colors.DANGER))
             self.tabla.setItem(i, 4, estado_item)
             self.tabla.setItem(i, 5, QTableWidgetItem(cot.notas or ""))
 

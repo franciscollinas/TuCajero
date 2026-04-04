@@ -10,8 +10,8 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 from tucajero.utils.formato import fmt_moneda
-from tucajero.utils.theme import btn_primary, btn_secondary, get_colors
-c = get_colors()
+from tucajero.ui.design_tokens import Colors, Typography, Spacing, BorderRadius
+from tucajero.ui.components_premium import ButtonPremium
 
 
 class SelectorClienteDialog(QDialog):
@@ -21,10 +21,8 @@ class SelectorClienteDialog(QDialog):
         self.cliente = None
         self.setWindowTitle("Seleccionar Cliente")
         self.setMinimumSize(500, 400)
-        from tucajero.utils.theme import get_colors
-        c = get_colors()
-        self.setStyleSheet(f"QDialog {{ background-color: {c['bg_app']}; }}")
-        
+        self.setStyleSheet(f"QDialog {{ background-color: {Colors.BG_APP}; }}")
+
         layout = QVBoxLayout()
         self.setLayout(layout)
 
@@ -32,7 +30,7 @@ class SelectorClienteDialog(QDialog):
         self.input_buscar.setPlaceholderText(
             "Buscar por nombre, documento o teléfono..."
         )
-        self.input_buscar.setStyleSheet(f"padding: 10px; font-size: 14px; background: {c['bg_input']}; color: {c['text_primary']}; border: 1.5px solid {c['border']}; border-radius: 8px;")
+        self.input_buscar.setStyleSheet(f"padding: {Spacing.SM}px; font-size: {Typography.H5}px; background: {Colors.BG_INPUT}; color: {Colors.TEXT_PRIMARY}; border: 1.5px solid {Colors.BORDER_DEFAULT}; border-radius: {BorderRadius.MD}px;")
         self.input_buscar.textChanged.connect(self.buscar)
         layout.addWidget(self.input_buscar)
 
@@ -47,16 +45,14 @@ class SelectorClienteDialog(QDialog):
         self.tabla.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.tabla.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.tabla.doubleClicked.connect(self.seleccionar)
-        self.tabla.setStyleSheet("font-size: 13px;")
+        self.tabla.setStyleSheet(f"font-size: {Typography.BODY}px;")
         layout.addWidget(self.tabla)
 
         btns = QHBoxLayout()
-        btn_sel = QPushButton("✓ Seleccionar")
-        btn_sel.setStyleSheet(btn_primary())
+        btn_sel = ButtonPremium("✓ Seleccionar", style="primary")
         btn_sel.clicked.connect(self.seleccionar)
         btns.addWidget(btn_sel)
-        btn_cancel = QPushButton("Cancelar")
-        btn_cancel.setStyleSheet(btn_secondary())
+        btn_cancel = ButtonPremium("Cancelar", style="secondary")
         btn_cancel.clicked.connect(self.reject)
         btns.addWidget(btn_cancel)
         layout.addLayout(btns)

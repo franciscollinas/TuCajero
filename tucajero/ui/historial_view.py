@@ -13,7 +13,8 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, QDate
 from datetime import datetime, timedelta
-from tucajero.utils.theme import btn_primary
+from tucajero.ui.design_tokens import Colors, Typography, Spacing, BorderRadius
+from tucajero.ui.components_premium import ButtonPremium
 import os
 from tucajero.utils.formato import fmt_moneda
 
@@ -29,17 +30,14 @@ class HistorialView(QWidget):
 
     def init_ui(self):
         """Inicializa la interfaz"""
-        from tucajero.utils.theme import get_colors
-
-        c = get_colors()
-        self.setStyleSheet(f"background-color: {c['bg_app']};")
+        self.setStyleSheet(f"background-color: {Colors.BG_APP};")
 
         layout = QVBoxLayout()
         self.setLayout(layout)
 
         titulo = QLabel("Historial de Cierres")
         titulo.setStyleSheet(
-            f"font-size: 24px; font-weight: bold; color: {c['text_primary']};"
+            f"font-size: {Typography.H2}px; font-weight: {Typography.BOLD}; color: {Colors.TEXT_PRIMARY};"
         )
         layout.addWidget(titulo)
 
@@ -70,13 +68,11 @@ class HistorialView(QWidget):
         self.filtro_rapido.currentTextChanged.connect(self.on_filtro_rapido_changed)
         filtros_layout.addWidget(self.filtro_rapido)
 
-        btn_filtrar = QPushButton("Filtrar")
-        btn_filtrar.setStyleSheet(btn_primary())
+        btn_filtrar = ButtonPremium("Filtrar", style="primary")
         btn_filtrar.clicked.connect(self.cargar_historial)
         filtros_layout.addWidget(btn_filtrar)
 
-        btn_exportar = QPushButton("Exportar Excel")
-        btn_exportar.setStyleSheet(btn_primary())
+        btn_exportar = ButtonPremium("Exportar Excel", style="primary")
         btn_exportar.clicked.connect(self.exportar_excel)
         filtros_layout.addWidget(btn_exportar)
 
@@ -86,9 +82,9 @@ class HistorialView(QWidget):
         self.resumen_widget = QWidget()
         self.resumen_widget.setStyleSheet(f"""
             QWidget {{
-                background-color: {c["bg_sidebar"]};
-                border-radius: 8px;
-                padding: 15px;
+                background-color: {Colors.BG_ELEVATED};
+                border-radius: {BorderRadius.MD}px;
+                padding: {Spacing.MD}px;
             }}
         """)
         resumen_layout = QHBoxLayout()
@@ -96,33 +92,33 @@ class HistorialView(QWidget):
 
         self.lbl_ventas = QLabel(f"Ventas brutas: {fmt_moneda(0)}")
         self.lbl_ventas.setStyleSheet(
-            "color: white; font-size: 16px; font-weight: bold;"
+            f"color: {Colors.TEXT_PRIMARY}; font-size: {Typography.H5}px; font-weight: {Typography.BOLD};"
         )
         resumen_layout.addWidget(self.lbl_ventas)
 
         self.lbl_gastos = QLabel(f"Gastos: {fmt_moneda(0)}")
         self.lbl_gastos.setStyleSheet(
-            f"color: {c['danger']}; font-size: 16px; font-weight: bold;"
+            f"color: {Colors.DANGER}; font-size: {Typography.H5}px; font-weight: {Typography.BOLD};"
         )
         resumen_layout.addWidget(self.lbl_gastos)
 
         self.lbl_ganancia = QLabel(f"Ganancia neta: {fmt_moneda(0)}")
         self.lbl_ganancia.setStyleSheet(
-            f"color: {c['success']}; font-size: 16px; font-weight: bold;"
+            f"color: {Colors.SUCCESS}; font-size: {Typography.H5}px; font-weight: {Typography.BOLD};"
         )
         resumen_layout.addWidget(self.lbl_ganancia)
 
         resumen_layout.addStretch()
 
         self.lbl_resumen_datos = QLabel("Cierres: 0 | Ventas: 0")
-        self.lbl_resumen_datos.setStyleSheet(f"color: {c['text_muted']};")
+        self.lbl_resumen_datos.setStyleSheet(f"color: {Colors.TEXT_MUTED};")
         resumen_layout.addWidget(self.lbl_resumen_datos)
 
         layout.addWidget(self.resumen_widget)
 
         cierres_label = QLabel("Cierres del período")
         cierres_label.setStyleSheet(
-            f"font-size: 18px; font-weight: bold; margin-top: 15px; color: {c['text_primary']};"
+            f"font-size: {Typography.H4}px; font-weight: {Typography.BOLD}; margin-top: {Spacing.SM}px; color: {Colors.TEXT_PRIMARY};"
         )
         layout.addWidget(cierres_label)
 
@@ -134,13 +130,13 @@ class HistorialView(QWidget):
         self.tabla_cierres.horizontalHeader().setSectionResizeMode(
             1, QHeaderView.ResizeMode.Stretch
         )
-        self.tabla_cierres.setStyleSheet("font-size: 14px;")
+        self.tabla_cierres.setStyleSheet(f"font-size: {Typography.H5}px;")
         self.tabla_cierres.setMinimumHeight(200)
         layout.addWidget(self.tabla_cierres)
 
         ranking_label = QLabel("Ranking de productos")
         ranking_label.setStyleSheet(
-            "font-size: 18px; font-weight: bold; margin-top: 15px;"
+            f"font-size: {Typography.H4}px; font-weight: {Typography.BOLD}; margin-top: {Spacing.SM}px;"
         )
         layout.addWidget(ranking_label)
 
@@ -152,7 +148,7 @@ class HistorialView(QWidget):
         self.tabla_ranking.horizontalHeader().setSectionResizeMode(
             1, QHeaderView.ResizeMode.Stretch
         )
-        self.tabla_ranking.setStyleSheet("font-size: 14px;")
+        self.tabla_ranking.setStyleSheet(f"font-size: {Typography.H5}px;")
         self.tabla_ranking.setMaximumHeight(250)
         layout.addWidget(self.tabla_ranking)
 

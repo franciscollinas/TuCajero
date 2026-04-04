@@ -11,8 +11,8 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 from tucajero.utils.formato import fmt_moneda
-from tucajero.utils.theme import btn_danger, btn_secondary, btn_primary, get_colors
-c = get_colors()
+from tucajero.ui.design_tokens import Colors, Typography, Spacing, BorderRadius
+from tucajero.ui.components_premium import ButtonPremium
 
 
 class DescuentoDialog(QDialog):
@@ -33,21 +33,21 @@ class DescuentoDialog(QDialog):
 
         lbl_total = QLabel(f"Total actual: {fmt_moneda(total_bruto)}")
         lbl_total.setStyleSheet(
-            f"font-size:16px; font-weight:bold; padding:8px; "
-            f"background: {c['bg_card']}; color: {c['text_primary']}; border-radius:4px; border: 1px solid {c['border']};"
+            f"font-size:{Typography.H5}px; font-weight:{Typography.BOLD}; padding:{Spacing.SM}px; "
+            f"background: {Colors.BG_CARD}; color: {Colors.TEXT_PRIMARY}; border-radius:{BorderRadius.SM}px; border: 1px solid {Colors.BORDER_DEFAULT};"
         )
         lbl_total.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(lbl_total)
 
         tipo_label = QLabel("Tipo de descuento:")
-        tipo_label.setStyleSheet(f"font-size:13px;font-weight:bold;margin-top:8px; color: {c['text_primary']};")
+        tipo_label.setStyleSheet(f"font-size:{Typography.BODY}px;font-weight:{Typography.BOLD};margin-top:{Spacing.SM}px; color: {Colors.TEXT_PRIMARY};")
         layout.addWidget(tipo_label)
 
         self.radio_group = QButtonGroup()
         self.radio_pct = QRadioButton("Porcentaje (%)")
         self.radio_fijo = QRadioButton("Valor fijo ($)")
-        self.radio_pct.setStyleSheet("font-size:14px;padding:4px;")
-        self.radio_fijo.setStyleSheet("font-size:14px;padding:4px;")
+        self.radio_pct.setStyleSheet(f"font-size:{Typography.H5}px;padding:{Spacing.XXS}px;")
+        self.radio_fijo.setStyleSheet(f"font-size:{Typography.H5}px;padding:{Spacing.XXS}px;")
         self.radio_group.addButton(self.radio_pct, 1)
         self.radio_group.addButton(self.radio_fijo, 2)
         self.radio_pct.setChecked(True)
@@ -56,39 +56,36 @@ class DescuentoDialog(QDialog):
         layout.addWidget(self.radio_fijo)
 
         self.lbl_input = QLabel("Porcentaje de descuento:")
-        self.lbl_input.setStyleSheet(f"font-size:13px;margin-top:8px; color: {c['text_primary']};")
+        self.lbl_input.setStyleSheet(f"font-size:{Typography.BODY}px;margin-top:{Spacing.SM}px; color: {Colors.TEXT_PRIMARY};")
         layout.addWidget(self.lbl_input)
 
         self.valor_input = QDoubleSpinBox()
         self.valor_input.setRange(0, 100)
         self.valor_input.setDecimals(2)
-        self.valor_input.setStyleSheet(f"font-size:18px;padding:8px; background-color: {c['bg_input']}; color: {c['text_primary']}; border: 1.5px solid {c['border']};")
+        self.valor_input.setStyleSheet(f"font-size:{Typography.H4}px;padding:{Spacing.SM}px; background-color: {Colors.BG_INPUT}; color: {Colors.TEXT_PRIMARY}; border: 1.5px solid {Colors.BORDER_DEFAULT};")
         self.valor_input.setSuffix(" %")
         self.valor_input.valueChanged.connect(self.actualizar_preview)
         layout.addWidget(self.valor_input)
 
         self.lbl_preview = QLabel("")
         self.lbl_preview.setStyleSheet(
-            f"font-size:15px; font-weight:bold; color: {c['success']}; "
-            f"padding:8px; background: {c['success_light']}; border-radius:4px; border: 1px solid {c['success']};"
+            f"font-size:{Typography.H5}px; font-weight:{Typography.BOLD}; color: {Colors.SUCCESS}; "
+            f"padding:{Spacing.SM}px; background: {Colors.SUCCESS_LIGHT}; border-radius:{BorderRadius.SM}px; border: 1px solid {Colors.SUCCESS};"
         )
         self.lbl_preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.lbl_preview)
         self.actualizar_preview()
 
         btns = QHBoxLayout()
-        btn_aplicar = QPushButton("✓ APLICAR DESCUENTO")
-        btn_aplicar.setStyleSheet(btn_primary())
+        btn_aplicar = ButtonPremium("✓ APLICAR DESCUENTO", style="primary")
         btn_aplicar.clicked.connect(self.aplicar)
         btns.addWidget(btn_aplicar)
 
-        btn_quitar = QPushButton("✕ Quitar descuento")
-        btn_quitar.setStyleSheet(btn_danger())
+        btn_quitar = ButtonPremium("✕ Quitar descuento", style="danger")
         btn_quitar.clicked.connect(self.quitar)
         btns.addWidget(btn_quitar)
 
-        btn_cancel = QPushButton("Cancelar")
-        btn_cancel.setStyleSheet(btn_secondary())
+        btn_cancel = ButtonPremium("Cancelar", style="secondary")
         btn_cancel.clicked.connect(self.reject)
         btns.addWidget(btn_cancel)
         layout.addLayout(btns)

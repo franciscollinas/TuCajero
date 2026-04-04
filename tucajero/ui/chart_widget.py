@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QPainter, QColor, QPen, QBrush, QFont, QFontMetrics
-from tucajero.utils.theme import get_colors
+from tucajero.ui.design_tokens import Colors, Typography, Spacing, BorderRadius
 
 
 class ChartWidget(QWidget):
@@ -55,9 +55,8 @@ class ChartWidget(QWidget):
         """Dibuja mensaje de sin datos"""
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        c = get_colors()
-        
-        painter.setPen(QColor(c.get("text_muted", "#94a3b8")))
+
+        painter.setPen(QColor(Colors.TEXT_MUTED))
         painter.setFont(QFont("Segoe UI", 12))
         painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, "Sin datos disponibles")
 
@@ -65,62 +64,61 @@ class ChartWidget(QWidget):
         """Dibuja gráfico de barras"""
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        c = get_colors()
-        
+
         # Márgenes
         margin_left = 60
         margin_right = 20
         margin_top = 40
         margin_bottom = 60
-        
+
         # Área de dibujo
         chart_width = self.width() - margin_left - margin_right
         chart_height = self.height() - margin_top - margin_bottom
-        
+
         if chart_width <= 0 or chart_height <= 0:
             return
-        
+
         # Título
-        painter.setPen(QColor(c.get("text_primary", "#1e293b")))
+        painter.setPen(QColor(Colors.TEXT_PRIMARY))
         painter.setFont(QFont("Segoe UI", 12, QFont.Weight.Bold))
         painter.drawText(0, 0, self.width(), 30, Qt.AlignmentFlag.AlignCenter, self.title)
-        
+
         # Valor máximo
         max_value = max(self.values) if self.values else 1
-        
+
         # Ancho de barras
         bar_width = (chart_width / len(self.values)) * 0.7 if self.values else 0
         spacing = (chart_width / len(self.values)) * 0.3 if self.values else 0
-        
+
         # Colores para barras
         colors = self._get_colors(len(self.values))
-        
+
         # Dibujar barras
         for i, (label, value) in enumerate(zip(self.labels, self.values)):
             x = margin_left + (i * (bar_width + spacing)) + spacing / 2
             bar_height = (value / max_value) * chart_height if max_value > 0 else 0
             y = margin_top + chart_height - bar_height
-            
+
             # Barra
             painter.setBrush(QBrush(QColor(colors[i % len(colors)])))
             painter.setPen(QPen(QColor(colors[i % len(colors)]), 1))
             painter.drawRoundedRect(int(x), int(y), int(bar_width), int(bar_height), 4, 4)
-            
+
             # Valor encima de la barra
-            painter.setPen(QColor(c.get("text_primary", "#1e293b")))
+            painter.setPen(QColor(Colors.TEXT_PRIMARY))
             painter.setFont(QFont("Segoe UI", 9))
             value_text = f"${int(value):,}"
             fm = QFontMetrics(painter.font())
             text_width = fm.horizontalAdvance(value_text)
             painter.drawText(int(x + bar_width/2 - text_width/2), int(y - 5), value_text)
-            
+
             # Etiqueta abajo
-            painter.setPen(QColor(c.get("text_muted", "#94a3b8")))
+            painter.setPen(QColor(Colors.TEXT_MUTED))
             painter.setFont(QFont("Segoe UI", 8))
             label_text = label[:10] + "..." if len(label) > 10 else label
             fm = QFontMetrics(painter.font())
             text_width = fm.horizontalAdvance(label_text)
-            
+
             # Rotar texto si es muy largo
             if len(label) > 8:
                 painter.save()
@@ -129,67 +127,66 @@ class ChartWidget(QWidget):
                 painter.drawText(0, 0, label_text)
                 painter.restore()
             else:
-                painter.drawText(int(x + bar_width/2 - text_width/2), 
+                painter.drawText(int(x + bar_width/2 - text_width/2),
                                int(margin_top + chart_height + 20), label_text)
-        
+
         # Línea base
-        painter.setPen(QPen(QColor(c.get("border", "#e2e8f0")), 1))
-        painter.drawLine(margin_left, margin_top + chart_height, 
+        painter.setPen(QPen(QColor(Colors.BORDER_DEFAULT), 1))
+        painter.drawLine(margin_left, margin_top + chart_height,
                         self.width() - margin_right, margin_top + chart_height)
 
     def _draw_pie_chart(self):
         """Dibuja gráfico de torta"""
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        c = get_colors()
-        
+
         # Título
-        painter.setPen(QColor(c.get("text_primary", "#1e293b")))
+        painter.setPen(QColor(Colors.TEXT_PRIMARY))
         painter.setFont(QFont("Segoe UI", 12, QFont.Weight.Bold))
         painter.drawText(0, 0, self.width(), 30, Qt.AlignmentFlag.AlignCenter, self.title)
-        
+
         # Centro y radio
         center_x = self.width() // 3
         center_y = self.height() // 2 + 10
         radius = min(center_x - 40, self.height() // 2 - 40)
-        
+
         if radius <= 0:
             return
-        
+
         total = sum(self.values)
         if total == 0:
             return
-        
+
         # Colores
         colors = self._get_colors(len(self.values))
-        
+
         # Dibujar rebanadas
         start_angle = 0
         for i, (label, value) in enumerate(zip(self.labels, self.values)):
             span_angle = int((value / total) * 360 * 16)  # 16 = unidades de Qt
-            
+
             painter.setBrush(QBrush(QColor(colors[i % len(colors)])))
-            painter.setPen(QPen(QColor(c.get("bg_app", "#ffffff")), 2))
-            
-            painter.drawPie(center_x - radius, center_y - radius, 
-                          radius * 2, radius * 2, 
+            painter.setPen(QPen(QColor(Colors.BG_APP), 2))
+
+            painter.drawPie(center_x - radius, center_y - radius,
+                          radius * 2, radius * 2,
                           start_angle * 16, span_angle)
-            
+
             start_angle += span_angle
-        
+
         # Leyenda a la derecha
         legend_x = self.width() // 2 + 20
         legend_y = 50
-        
+
         painter.setFont(QFont("Segoe UI", 8))
         for i, (label, value) in enumerate(zip(self.labels, self.values)):
             # Cuadro de color
             painter.setBrush(QBrush(QColor(colors[i % len(colors)])))
             painter.setPen(QPen(QColor(colors[i % len(colors)]), 1))
             painter.drawRect(legend_x, legend_y + i * 22, 14, 14)
-            
+
             # Texto
-            painter.setPen(QColor(c.get("text_primary", "#1e293b")))
+            painter.setPen(QColor(Colors.TEXT_PRIMARY))
             percentage = (value / total) * 100
             text = f"{label[:15]}... ({percentage:.1f}%)" if len(label) > 15 else f"{label} ({percentage:.1f}%)"
             painter.drawText(legend_x + 20, legend_y + i * 22 + 12, text)

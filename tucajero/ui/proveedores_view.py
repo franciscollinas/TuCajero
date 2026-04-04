@@ -22,7 +22,8 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
 from tucajero.utils.formato import fmt_moneda
-from tucajero.utils.theme import btn_primary, btn_danger, btn_secondary, get_colors
+from tucajero.ui.design_tokens import Colors, Typography, Spacing, BorderRadius
+from tucajero.ui.components_premium import ButtonPremium
 
 
 class ProveedoresView(QWidget):
@@ -32,7 +33,6 @@ class ProveedoresView(QWidget):
         self.init_ui()
 
     def init_ui(self):
-        c = get_colors()
         main_layout = QVBoxLayout()
         main_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.setLayout(main_layout)
@@ -46,14 +46,14 @@ class ProveedoresView(QWidget):
         container = QWidget()
         container.setMaximumWidth(600)
         container_layout = QVBoxLayout()
-        container_layout.setSpacing(24)
+        container_layout.setSpacing(Spacing.XXL)
         container_layout.setContentsMargins(0, 16, 0, 16)
         container.setLayout(container_layout)
 
         titulo = QLabel("Proveedores y Compras")
         titulo.setStyleSheet(
-            f"font-size: 26px; font-weight: 700; color: {c['text_primary']}; "
-            f"padding: 8px 0;"
+            f"font-size: {Typography.H2}px; font-weight: {Typography.EXTRABOLD}; color: {Colors.TEXT_PRIMARY}; "
+            f"padding: {Spacing.SM}px 0;"
         )
         titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         container_layout.addWidget(titulo)
@@ -69,7 +69,6 @@ class ProveedoresView(QWidget):
         main_layout.addWidget(scroll)
 
     def _crear_tab_proveedores(self):
-        c = get_colors()
         widget = QWidget()
         layout = QVBoxLayout()
         layout.setSpacing(16)
@@ -79,8 +78,8 @@ class ProveedoresView(QWidget):
         # Card wrapper
         card = QFrame()
         card.setStyleSheet(
-            f"background-color: {c['bg_card']}; border-radius: 12px; "
-            f"border: 1px solid {c['border']}; padding: 0px;"
+            f"background-color: {Colors.BG_CARD}; border-radius: 12px; "
+            f"border: 1px solid {Colors.BORDER_DEFAULT}; padding: 0px;"
         )
         card_layout = QVBoxLayout()
         card_layout.setSpacing(16)
@@ -89,23 +88,20 @@ class ProveedoresView(QWidget):
 
         # Button row
         btn_layout = QHBoxLayout()
-        btn_layout.setSpacing(12)
+        btn_layout.setSpacing(Spacing.SM)
 
-        btn_nuevo = QPushButton("+ Nuevo Proveedor")
+        btn_nuevo = ButtonPremium("+ Nuevo Proveedor", style="primary")
         btn_nuevo.setFixedHeight(44)
-        btn_nuevo.setStyleSheet(btn_primary())
         btn_nuevo.clicked.connect(self.nuevo_proveedor)
         btn_layout.addWidget(btn_nuevo)
 
-        btn_editar = QPushButton("Editar")
+        btn_editar = ButtonPremium("Editar", style="secondary")
         btn_editar.setFixedHeight(44)
-        btn_editar.setStyleSheet(btn_secondary())
         btn_editar.clicked.connect(self.editar_proveedor)
         btn_layout.addWidget(btn_editar)
 
-        btn_eliminar = QPushButton("Eliminar")
+        btn_eliminar = ButtonPremium("Eliminar", style="danger")
         btn_eliminar.setFixedHeight(44)
-        btn_eliminar.setStyleSheet(btn_danger())
         btn_eliminar.clicked.connect(self.eliminar_proveedor)
         btn_layout.addWidget(btn_eliminar)
 
@@ -177,7 +173,6 @@ class ProveedoresView(QWidget):
             self.cargar_proveedores()
 
     def _crear_tab_ordenes(self):
-        c = get_colors()
         widget = QWidget()
         layout = QVBoxLayout()
         layout.setSpacing(16)
@@ -187,8 +182,8 @@ class ProveedoresView(QWidget):
         # Card wrapper
         card = QFrame()
         card.setStyleSheet(
-            f"background-color: {c['bg_card']}; border-radius: 12px; "
-            f"border: 1px solid {c['border']}; padding: 0px;"
+            f"background-color: {Colors.BG_CARD}; border-radius: 12px; "
+            f"border: 1px solid {Colors.BORDER_DEFAULT}; padding: 0px;"
         )
         card_layout = QVBoxLayout()
         card_layout.setSpacing(16)
@@ -197,23 +192,20 @@ class ProveedoresView(QWidget):
 
         # Button row
         btn_layout = QHBoxLayout()
-        btn_layout.setSpacing(12)
+        btn_layout.setSpacing(Spacing.SM)
 
-        btn_nueva = QPushButton("+ Nueva Orden")
+        btn_nueva = ButtonPremium("+ Nueva Orden", style="primary")
         btn_nueva.setFixedHeight(44)
-        btn_nueva.setStyleSheet(btn_primary())
         btn_nueva.clicked.connect(self.nueva_orden)
         btn_layout.addWidget(btn_nueva)
 
-        btn_recibir = QPushButton("✅ Recibir")
+        btn_recibir = ButtonPremium("✅ Recibir", style="primary")
         btn_recibir.setFixedHeight(44)
-        btn_recibir.setStyleSheet(btn_primary())
         btn_recibir.clicked.connect(self.recibir_orden)
         btn_layout.addWidget(btn_recibir)
 
-        btn_cancelar = QPushButton("✕ Cancelar")
+        btn_cancelar = ButtonPremium("✕ Cancelar", style="danger")
         btn_cancelar.setFixedHeight(44)
-        btn_cancelar.setStyleSheet(btn_danger())
         btn_cancelar.clicked.connect(self.cancelar_orden)
         btn_layout.addWidget(btn_cancelar)
 
@@ -236,7 +228,7 @@ class ProveedoresView(QWidget):
         # Info label
         info = QLabel("💡 Doble clic en una orden para ver el detalle de productos")
         info.setStyleSheet(
-            f"color: {c['text_secondary']}; font-size: 12px; padding: 4px 0 0 0;"
+            f"color: {Colors.TEXT_SECONDARY}; font-size: 12px; padding: 4px 0 0 0;"
         )
         card_layout.addWidget(info)
 
@@ -248,9 +240,7 @@ class ProveedoresView(QWidget):
 
     def cargar_ordenes(self):
         from tucajero.services.proveedor_service import OrdenCompraService
-        from tucajero.utils.theme import get_colors
-
-        c = get_colors()
+        
 
         self.ordenes = OrdenCompraService(self.session).get_all()
         self.tabla_ord.setRowCount(len(self.ordenes))
@@ -264,14 +254,14 @@ class ProveedoresView(QWidget):
 
             estado_item = QTableWidgetItem(o.estado.capitalize())
             if o.estado == "pendiente":
-                estado_item.setBackground(QColor(c["warning"] + "33"))
-                estado_item.setForeground(QColor(c["warning"]))
+                estado_item.setBackground(QColor(Colors.WARNING_LIGHT))
+                estado_item.setForeground(QColor(Colors.WARNING))
             elif o.estado == "recibida":
-                estado_item.setBackground(QColor(c["success"] + "33"))
-                estado_item.setForeground(QColor(c["success"]))
+                estado_item.setBackground(QColor(Colors.SUCCESS_LIGHT))
+                estado_item.setForeground(QColor(Colors.SUCCESS))
             elif o.estado == "cancelada":
-                estado_item.setBackground(QColor(c["danger"] + "33"))
-                estado_item.setForeground(QColor(c["danger"]))
+                estado_item.setBackground(QColor(Colors.DANGER_LIGHT))
+                estado_item.setForeground(QColor(Colors.DANGER))
             self.tabla_ord.setItem(i, 4, estado_item)
             self.tabla_ord.setItem(i, 5, QTableWidgetItem(o.notas or ""))
 
@@ -358,7 +348,6 @@ class ProveedorDialog(QDialog):
             "Nuevo Proveedor" if not proveedor_id else "Editar Proveedor"
         )
         self.setMinimumWidth(480)
-        c = get_colors()
 
         main_layout = QVBoxLayout()
         main_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -380,7 +369,7 @@ class ProveedorDialog(QDialog):
             "Nuevo Proveedor" if not proveedor_id else "Editar Proveedor"
         )
         titulo.setStyleSheet(
-            f"font-size: 20px; font-weight: 700; color: {c['text_primary']}; "
+            f"font-size: 20px; font-weight: 700; color: {Colors.TEXT_PRIMARY}; "
             f"padding-bottom: 8px;"
         )
         card_layout.addWidget(titulo)
@@ -399,12 +388,12 @@ class ProveedorDialog(QDialog):
         self.direccion = QLineEdit()
 
         input_style = (
-            f"background-color: #FFFFFF; color: {c['text_primary']}; "
+            f"background-color: #FFFFFF; color: {Colors.TEXT_PRIMARY}; "
             f"border: 1px solid #E2E8F0; border-radius: 8px; "
             f"padding: 8px 12px; font-size: 14px; min-height: 40px;"
         )
         label_style = (
-            f"color: {c['text_secondary']}; font-size: 13px; font-weight: 500;"
+            f"color: {Colors.TEXT_SECONDARY}; font-size: 13px; font-weight: 500;"
         )
 
         for w in [self.nombre, self.nit, self.telefono, self.email, self.direccion]:
@@ -435,7 +424,7 @@ class ProveedorDialog(QDialog):
         # Separator
         separator = QFrame()
         separator.setFrameShape(QFrame.Shape.HLine)
-        separator.setStyleSheet(f"background-color: {c['border']}; border: none; max-height: 1px;")
+        separator.setStyleSheet(f"background-color: {Colors.BORDER_DEFAULT}; border: none; max-height: 1px;")
         card_layout.addWidget(separator)
 
         # Buttons
@@ -444,13 +433,11 @@ class ProveedorDialog(QDialog):
 
         btn_g = QPushButton("Guardar")
         btn_g.setFixedHeight(44)
-        btn_g.setStyleSheet(btn_primary())
         btn_g.clicked.connect(self.guardar)
         btn_layout.addWidget(btn_g)
 
         btn_c = QPushButton("Cancelar")
         btn_c.setFixedHeight(44)
-        btn_c.setStyleSheet(btn_secondary())
         btn_c.clicked.connect(self.reject)
         btn_layout.addWidget(btn_c)
 
@@ -509,7 +496,6 @@ class OrdenCompraDialog(QDialog):
         self.init_ui()
 
     def init_ui(self):
-        c = get_colors()
 
         main_layout = QVBoxLayout()
         main_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -529,7 +515,7 @@ class OrdenCompraDialog(QDialog):
         # Title
         titulo = QLabel("Nueva Orden de Compra")
         titulo.setStyleSheet(
-            f"font-size: 20px; font-weight: 700; color: {c['text_primary']}; "
+            f"font-size: 20px; font-weight: 700; color: {Colors.TEXT_PRIMARY}; "
             f"padding-bottom: 8px;"
         )
         card_layout.addWidget(titulo)
@@ -539,12 +525,12 @@ class OrdenCompraDialog(QDialog):
         prov_layout.setSpacing(12)
         prov_label = QLabel("Proveedor:")
         prov_label.setStyleSheet(
-            f"color: {c['text_secondary']}; font-size: 13px; font-weight: 500;"
+            f"color: {Colors.TEXT_SECONDARY}; font-size: 13px; font-weight: 500;"
         )
         prov_layout.addWidget(prov_label)
         self.combo_prov = QComboBox()
         self.combo_prov.setStyleSheet(
-            f"background-color: #FFFFFF; color: {c['text_primary']}; "
+            f"background-color: #FFFFFF; color: {Colors.TEXT_PRIMARY}; "
             f"border: 1px solid #E2E8F0; border-radius: 8px; "
             f"padding: 8px 12px; font-size: 14px; min-height: 40px;"
         )
@@ -555,7 +541,7 @@ class OrdenCompraDialog(QDialog):
         # Add product section
         agregar_label = QLabel("Agregar productos")
         agregar_label.setStyleSheet(
-            f"color: {c['text_secondary']}; font-size: 13px; font-weight: 600; "
+            f"color: {Colors.TEXT_SECONDARY}; font-size: 13px; font-weight: 600; "
             f"text-transform: uppercase; letter-spacing: 0.5px; padding-top: 8px;"
         )
         card_layout.addWidget(agregar_label)
@@ -565,7 +551,7 @@ class OrdenCompraDialog(QDialog):
 
         self.combo_prod = QComboBox()
         self.combo_prod.setStyleSheet(
-            f"background-color: #FFFFFF; color: {c['text_primary']}; "
+            f"background-color: #FFFFFF; color: {Colors.TEXT_PRIMARY}; "
             f"border: 1px solid #E2E8F0; border-radius: 8px; "
             f"padding: 8px 12px; font-size: 14px; min-height: 40px;"
         )
@@ -576,7 +562,7 @@ class OrdenCompraDialog(QDialog):
         self.spin_cant.setValue(1)
         self.spin_cant.setPrefix("Cant: ")
         self.spin_cant.setStyleSheet(
-            f"background-color: #FFFFFF; color: {c['text_primary']}; "
+            f"background-color: #FFFFFF; color: {Colors.TEXT_PRIMARY}; "
             f"border: 1px solid #E2E8F0; border-radius: 8px; "
             f"padding: 8px 12px; font-size: 14px; min-height: 40px;"
         )
@@ -587,7 +573,7 @@ class OrdenCompraDialog(QDialog):
         self.spin_precio.setDecimals(2)
         self.spin_precio.setPrefix("$ ")
         self.spin_precio.setStyleSheet(
-            f"background-color: #FFFFFF; color: {c['text_primary']}; "
+            f"background-color: #FFFFFF; color: {Colors.TEXT_PRIMARY}; "
             f"border: 1px solid #E2E8F0; border-radius: 8px; "
             f"padding: 8px 12px; font-size: 14px; min-height: 40px;"
         )
@@ -597,7 +583,6 @@ class OrdenCompraDialog(QDialog):
 
         btn_agregar = QPushButton("+ Agregar")
         btn_agregar.setFixedHeight(44)
-        btn_agregar.setStyleSheet(btn_primary())
         btn_agregar.clicked.connect(self.agregar_item)
         agregar_layout.addWidget(btn_agregar)
         card_layout.addLayout(agregar_layout)
@@ -623,7 +608,7 @@ class OrdenCompraDialog(QDialog):
         # Total
         self.lbl_total = QLabel("Total: $0.00")
         self.lbl_total.setStyleSheet(
-            f"font-size: 18px; font-weight: 700; color: {c['success']}; padding: 8px 0;"
+            f"font-size: 18px; font-weight: 700; color: {Colors.SUCCESS}; padding: 8px 0;"
         )
         self.lbl_total.setAlignment(Qt.AlignmentFlag.AlignRight)
         card_layout.addWidget(self.lbl_total)
@@ -632,7 +617,7 @@ class OrdenCompraDialog(QDialog):
         self.notas = QLineEdit()
         self.notas.setPlaceholderText("Notas (opcional)")
         self.notas.setStyleSheet(
-            f"background-color: #FFFFFF; color: {c['text_primary']}; "
+            f"background-color: #FFFFFF; color: {Colors.TEXT_PRIMARY}; "
             f"border: 1px solid #E2E8F0; border-radius: 8px; "
             f"padding: 8px 12px; font-size: 14px; min-height: 40px;"
         )
@@ -644,13 +629,11 @@ class OrdenCompraDialog(QDialog):
 
         btn_crear = QPushButton("CREAR ORDEN")
         btn_crear.setFixedHeight(44)
-        btn_crear.setStyleSheet(btn_primary())
         btn_crear.clicked.connect(self.crear_orden)
         btns.addWidget(btn_crear)
 
         btn_cancel = QPushButton("Cancelar")
         btn_cancel.setFixedHeight(44)
-        btn_cancel.setStyleSheet(btn_secondary())
         btn_cancel.clicked.connect(self.reject)
         btns.addWidget(btn_cancel)
 
@@ -716,7 +699,6 @@ class OrdenCompraDialog(QDialog):
             self.tabla.setItem(i, 3, QTableWidgetItem(fmt_moneda(subtotal)))
 
             btn_del = QPushButton("✕")
-            btn_del.setStyleSheet(btn_danger())
             btn_del.clicked.connect(lambda checked, idx=i: self._eliminar_item(idx))
             self.tabla.setCellWidget(i, 4, btn_del)
 
@@ -761,7 +743,6 @@ class DetalleOrdenDialog(QDialog):
         self.orden = orden
         self.setWindowTitle(f"Detalle - Orden #{orden.id}")
         self.setMinimumSize(600, 450)
-        c = get_colors()
 
         main_layout = QVBoxLayout()
         main_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -781,7 +762,7 @@ class DetalleOrdenDialog(QDialog):
         # Title
         titulo = QLabel(f"Orden #{orden.id}")
         titulo.setStyleSheet(
-            f"font-size: 20px; font-weight: 700; color: {c['text_primary']}; "
+            f"font-size: 20px; font-weight: 700; color: {Colors.TEXT_PRIMARY}; "
             f"padding-bottom: 8px;"
         )
         card_layout.addWidget(titulo)
@@ -794,7 +775,7 @@ class DetalleOrdenDialog(QDialog):
             f"<b>Total:</b> {fmt_moneda(orden.total)}"
         )
         info.setStyleSheet(
-            f"font-size: 13px; color: {c['text_primary']}; padding: 12px; "
+            f"font-size: 13px; color: {Colors.TEXT_PRIMARY}; padding: 12px; "
             f"background-color: #F8FAFC; border-radius: 8px; "
             f"border: 1px solid #E2E8F0;"
         )
@@ -830,7 +811,7 @@ class DetalleOrdenDialog(QDialog):
         if orden.notas:
             nota = QLabel(f"Notas: {orden.notas}")
             nota.setStyleSheet(
-                f"color: {c['text_secondary']}; font-size: 12px; padding: 4px 0;"
+                f"color: {Colors.TEXT_SECONDARY}; font-size: 12px; padding: 4px 0;"
             )
             nota.setWordWrap(True)
             card_layout.addWidget(nota)
@@ -846,7 +827,6 @@ class DetalleOrdenDialog(QDialog):
         btn_layout.setAlignment(Qt.AlignmentFlag.AlignRight)
         btn_cerrar = QPushButton("Cerrar")
         btn_cerrar.setFixedHeight(44)
-        btn_cerrar.setStyleSheet(btn_secondary())
         btn_cerrar.clicked.connect(self.accept)
         btn_layout.addWidget(btn_cerrar)
         card_layout.addLayout(btn_layout)

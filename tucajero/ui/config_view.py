@@ -13,7 +13,8 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap
-from tucajero.utils.theme import get_colors, btn_primary, btn_secondary
+from tucajero.ui.design_tokens import Colors, Typography, Spacing, BorderRadius
+from tucajero.ui.components_premium import ButtonPremium
 
 
 class ConfigNegocioDialog(QDialog):
@@ -33,60 +34,58 @@ class ConfigNegocioDialog(QDialog):
 
     def init_ui(self):
         layout = QVBoxLayout()
-        from tucajero.utils.theme import get_colors
-        c = get_colors()
-        self.setStyleSheet(f"QDialog {{ background-color: {c['bg_app']}; }}")
+        self.setStyleSheet(f"QDialog {{ background-color: {Colors.BG_APP}; }}")
         self.setLayout(layout)
 
         header = QWidget()
         header.setStyleSheet(
-            f"background-color: {c['bg_sidebar'] if c['is_dark'] else '#1a252f'}; border-radius: 8px; padding: 16px;"
+            f"background-color: {Colors.PRIMARY_DARK}; border-radius: {BorderRadius.MD}px; padding: {Spacing.MD}px;"
         )
         header_layout = QVBoxLayout()
         header.setLayout(header_layout)
 
         if self.primera_vez:
             titulo = QLabel("¡Bienvenido a TuCajero!")
-            titulo.setStyleSheet(f"color: {c['text_primary']}; font-size: 20px; font-weight: bold;")
+            titulo.setStyleSheet(f"color: {Colors.TEXT_INVERSE}; font-size: {Typography.H4}px; font-weight: {Typography.BOLD};")
             subtitulo = QLabel("Configura los datos de tu negocio antes de comenzar.")
-            subtitulo.setStyleSheet(f"color: {c['text_secondary']}; font-size: 13px;")
+            subtitulo.setStyleSheet(f"color: rgba(255,255,255,0.8); font-size: {Typography.BODY}px;")
             header_layout.addWidget(titulo)
             header_layout.addWidget(subtitulo)
         else:
             titulo = QLabel("Configuración del Negocio")
-            titulo.setStyleSheet(f"color: {c['text_primary']}; font-size: 18px; font-weight: bold;")
+            titulo.setStyleSheet(f"color: {Colors.TEXT_INVERSE}; font-size: {Typography.H5}px; font-weight: {Typography.BOLD};")
             header_layout.addWidget(titulo)
 
         layout.addWidget(header)
 
         form_widget = QWidget()
         form = QFormLayout()
-        form.setSpacing(12)
+        form.setSpacing(Spacing.SM)
         form_widget.setLayout(form)
 
         self.nombre_input = QLineEdit()
         self.nombre_input.setPlaceholderText("Ej: Droguería El Carmen")
-        self.nombre_input.setStyleSheet("padding: 8px; font-size: 14px;")
+        self.nombre_input.setStyleSheet(f"padding: {Spacing.SM}px; font-size: {Typography.H5}px;")
         form.addRow("Nombre del negocio *:", self.nombre_input)
 
         self.direccion_input = QLineEdit()
         self.direccion_input.setPlaceholderText("Ej: Calle 10 # 5-20")
-        self.direccion_input.setStyleSheet("padding: 8px; font-size: 14px;")
+        self.direccion_input.setStyleSheet(f"padding: {Spacing.SM}px; font-size: {Typography.H5}px;")
         form.addRow("Dirección:", self.direccion_input)
 
         self.telefono_input = QLineEdit()
         self.telefono_input.setPlaceholderText("Ej: 3001234567")
-        self.telefono_input.setStyleSheet("padding: 8px; font-size: 14px;")
+        self.telefono_input.setStyleSheet(f"padding: {Spacing.SM}px; font-size: {Typography.H5}px;")
         form.addRow("Teléfono:", self.telefono_input)
 
         self.email_input = QLineEdit()
         self.email_input.setPlaceholderText("Ej: minegocio@gmail.com")
-        self.email_input.setStyleSheet("padding: 8px; font-size: 14px;")
+        self.email_input.setStyleSheet(f"padding: {Spacing.SM}px; font-size: {Typography.H5}px;")
         form.addRow("Email:", self.email_input)
 
         self.nit_input = QLineEdit()
         self.nit_input.setPlaceholderText("Ej: 900123456-1")
-        self.nit_input.setStyleSheet("padding: 8px; font-size: 14px;")
+        self.nit_input.setStyleSheet(f"padding: {Spacing.SM}px; font-size: {Typography.H5}px;")
         form.addRow("NIT:", self.nit_input)
 
         logo_widget = QWidget()
@@ -97,20 +96,19 @@ class ConfigNegocioDialog(QDialog):
         self.logo_preview = QLabel()
         self.logo_preview.setFixedSize(80, 80)
         self.logo_preview.setStyleSheet(
-            f"border: 2px dashed {c['border']}; border-radius: 8px; background: {c['bg_input']}; color: {c['text_muted']};"
+            f"border: 2px dashed {Colors.BORDER_DEFAULT}; border-radius: {BorderRadius.SM}px; background: {Colors.BG_INPUT}; color: {Colors.TEXT_MUTED};"
         )
         self.logo_preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.logo_preview.setText("Sin logo")
         logo_layout.addWidget(self.logo_preview)
 
         logo_btn_layout = QVBoxLayout()
-        btn_seleccionar_logo = QPushButton("Seleccionar logo...")
-        btn_seleccionar_logo.setStyleSheet(btn_secondary())
+        btn_seleccionar_logo = ButtonPremium("Seleccionar logo...", style="secondary")
         btn_seleccionar_logo.clicked.connect(self.seleccionar_logo)
         logo_btn_layout.addWidget(btn_seleccionar_logo)
 
         self.lbl_logo_path = QLabel("Ningún archivo seleccionado")
-        self.lbl_logo_path.setStyleSheet(f"color: {c['text_secondary']};")
+        self.lbl_logo_path.setStyleSheet(f"color: {Colors.TEXT_SECONDARY};")
         self.lbl_logo_path.setWordWrap(True)
         logo_btn_layout.addWidget(self.lbl_logo_path)
         logo_btn_layout.addStretch()
@@ -120,57 +118,52 @@ class ConfigNegocioDialog(QDialog):
         layout.addWidget(form_widget)
 
         nota = QLabel("* Campo obligatorio")
-        nota.setStyleSheet(f"color: {c['danger']}; font-size: 11px;")
+        nota.setStyleSheet(f"color: {Colors.DANGER}; font-size: {Typography.TINY}px;")
         layout.addWidget(nota)
 
         layout.addStretch()
 
         # ── Sección Backup ────────────────────────
-        from tucajero.utils.theme import get_colors
         from PySide6.QtWidgets import QGroupBox, QHBoxLayout, QLabel
-
-        c = get_colors()
 
         backup_group = QGroupBox("💾  Backup de Datos")
         backup_group.setStyleSheet(f"""
             QGroupBox {{
-                color: {c["text_secondary"]};
-                font-size: 12px;
-                font-weight: bold;
-                border: 1.5px solid {c["border"]};
-                border-radius: 10px;
-                margin-top: 12px;
-                padding: 12px;
+                color: {Colors.TEXT_SECONDARY};
+                font-size: {Typography.CAPTION}px;
+                font-weight: {Typography.BOLD};
+                border: 1.5px solid {Colors.BORDER_DEFAULT};
+                border-radius: {BorderRadius.MD}px;
+                margin-top: {Spacing.SM}px;
+                padding: {Spacing.MD}px;
             }}
             QGroupBox::title {{
                 subcontrol-origin: margin;
-                left: 12px;
-                padding: 0 6px;
+                left: {Spacing.SM}px;
+                padding: 0 {Spacing.XXS}px;
             }}
         """)
         backup_layout = QVBoxLayout(backup_group)
-        backup_layout.setSpacing(8)
+        backup_layout.setSpacing(Spacing.XS)
 
         backup_desc = QLabel(
             "Exporta todos tus datos (productos, ventas, clientes, historial) para hacer una copia de seguridad o migrar a una nueva versión."
         )
         backup_desc.setWordWrap(True)
         backup_desc.setStyleSheet(
-            f"color: {c['text_muted']}; font-size: 11px; background: transparent;"
+            f"color: {Colors.TEXT_MUTED}; font-size: {Typography.TINY}px; background: transparent;"
         )
         backup_layout.addWidget(backup_desc)
 
         btns_backup = QHBoxLayout()
-        btns_backup.setSpacing(8)
+        btns_backup.setSpacing(Spacing.XS)
 
-        btn_exportar = QPushButton("📤  Exportar datos")
+        btn_exportar = ButtonPremium("📤  Exportar datos", style="primary")
         btn_exportar.setFixedHeight(36)
-        btn_exportar.setStyleSheet(btn_primary())
         btn_exportar.clicked.connect(self._exportar_datos)
 
-        btn_importar = QPushButton("📥  Importar datos")
+        btn_importar = ButtonPremium("📥  Importar datos", style="secondary")
         btn_importar.setFixedHeight(36)
-        btn_importar.setStyleSheet(btn_secondary())
         btn_importar.clicked.connect(self._importar_datos)
 
         btns_backup.addWidget(btn_exportar)
@@ -181,16 +174,14 @@ class ConfigNegocioDialog(QDialog):
         layout.addWidget(backup_group)
 
         btn_layout = QHBoxLayout()
-        btn_guardar = QPushButton(
-            "GUARDAR Y CONTINUAR" if self.primera_vez else "GUARDAR"
+        btn_guardar = ButtonPremium(
+            "GUARDAR Y CONTINUAR" if self.primera_vez else "GUARDAR", style="primary"
         )
-        btn_guardar.setStyleSheet(btn_primary())
         btn_guardar.clicked.connect(self.guardar)
         btn_layout.addWidget(btn_guardar)
 
         if not self.primera_vez:
-            btn_cancelar = QPushButton("Cancelar")
-            btn_cancelar.setStyleSheet(btn_secondary())
+            btn_cancelar = ButtonPremium("Cancelar", style="secondary")
             btn_cancelar.clicked.connect(self.reject)
             btn_layout.addWidget(btn_cancelar)
 

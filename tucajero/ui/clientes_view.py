@@ -17,7 +17,8 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
 from tucajero.utils.formato import fmt_moneda
-from tucajero.utils.theme import btn_primary, btn_success, btn_warning, btn_danger, btn_secondary
+from tucajero.ui.design_tokens import Colors, Typography, Spacing, BorderRadius
+from tucajero.ui.components_premium import ButtonPremium
 
 
 class ClientesView(QWidget):
@@ -28,9 +29,7 @@ class ClientesView(QWidget):
         self.cargar_clientes()
 
     def init_ui(self):
-        from tucajero.utils.theme import get_colors
-        c = get_colors()
-        self.setStyleSheet(f"background-color: {c['bg_app']};")
+        self.setStyleSheet(f"background-color: {Colors.BG_APP};")
 
         main_layout = QVBoxLayout()
         main_layout.setContentsMargins(24, 24, 24, 24)
@@ -46,7 +45,7 @@ class ClientesView(QWidget):
 
         # Titulo
         titulo = QLabel("Clientes")
-        titulo.setStyleSheet(f"font-size: 28px; font-weight: 700; color: {c['text_primary']}; padding: 0px 4px;")
+        titulo.setStyleSheet(f"font-size: {Typography.H2}px; font-weight: {Typography.EXTRABOLD}; color: {Colors.TEXT_PRIMARY}; padding: 0px {Spacing.XXS}px;")
         titulo.setAlignment(Qt.AlignCenter)
         content_layout.addWidget(titulo)
 
@@ -55,16 +54,16 @@ class ClientesView(QWidget):
         self.input_buscar.setPlaceholderText("Buscar por nombre, documento o telefono...")
         self.input_buscar.setStyleSheet(f"""
             QLineEdit {{
-                background-color: {c['bg_input']};
-                color: {c['text_primary']};
-                border: 1.5px solid {c['border']};
-                border-radius: 8px;
-                padding: 10px 14px;
-                font-size: 14px;
+                background-color: {Colors.BG_INPUT};
+                color: {Colors.TEXT_PRIMARY};
+                border: 1.5px solid {Colors.BORDER_DEFAULT};
+                border-radius: {BorderRadius.MD}px;
+                padding: {Spacing.SM}px {Spacing.XS}px;
+                font-size: {Typography.H5}px;
                 min-height: 42px;
             }}
             QLineEdit:focus {{
-                border: 1.5px solid {c['primary']};
+                border: 1.5px solid {Colors.PRIMARY};
             }}
         """)
         self.input_buscar.textChanged.connect(self.buscar_cliente)
@@ -72,30 +71,25 @@ class ClientesView(QWidget):
 
         # Botones de accion
         btn_layout = QHBoxLayout()
-        btn_layout.setSpacing(12)
+        btn_layout.setSpacing(Spacing.SM)
 
-        btn_nuevo = QPushButton("+ Nuevo Cliente")
-        btn_nuevo.setStyleSheet(btn_primary())
+        btn_nuevo = ButtonPremium("+ Nuevo Cliente", style="primary")
         btn_nuevo.clicked.connect(self.nuevo_cliente)
         btn_layout.addWidget(btn_nuevo)
 
-        btn_editar = QPushButton("Editar")
-        btn_editar.setStyleSheet(btn_primary())
+        btn_editar = ButtonPremium("Editar", style="primary")
         btn_editar.clicked.connect(self.editar_cliente)
         btn_layout.addWidget(btn_editar)
 
-        btn_abonar = QPushButton("Abonar")
-        btn_abonar.setStyleSheet(btn_success())
+        btn_abonar = ButtonPremium("Abonar", style="success")
         btn_abonar.clicked.connect(self.abonar_cliente)
         btn_layout.addWidget(btn_abonar)
 
-        btn_historial = QPushButton("Ver compras")
-        btn_historial.setStyleSheet(btn_secondary())
+        btn_historial = ButtonPremium("Ver compras", style="secondary")
         btn_historial.clicked.connect(self.ver_historial)
         btn_layout.addWidget(btn_historial)
 
-        btn_eliminar = QPushButton("Eliminar")
-        btn_eliminar.setStyleSheet(btn_danger())
+        btn_eliminar = ButtonPremium("Eliminar", style="danger")
         btn_eliminar.clicked.connect(self.eliminar_cliente)
         btn_layout.addWidget(btn_eliminar)
 
@@ -105,9 +99,9 @@ class ClientesView(QWidget):
         card = QFrame()
         card.setStyleSheet(f"""
             QFrame {{
-                background-color: #FFFFFF;
-                border-radius: 12px;
-                border: 1px solid #E2E8F0;
+                background-color: {Colors.BG_CARD};
+                border-radius: {BorderRadius.MD}px;
+                border: 1px solid {Colors.BORDER_DEFAULT};
                 padding: 0px;
             }}
         """)
@@ -128,23 +122,23 @@ class ClientesView(QWidget):
         self.tabla.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.tabla.setStyleSheet(f"""
             QTableWidget {{
-                background-color: #FFFFFF;
-                color: {c['text_primary']};
+                background-color: {Colors.BG_CARD};
+                color: {Colors.TEXT_PRIMARY};
                 border: none;
-                gridline-color: #E2E8F0;
-                font-size: 13px;
+                gridline-color: {Colors.BORDER_DEFAULT};
+                font-size: {Typography.BODY}px;
             }}
             QTableWidget::item {{
-                padding: 8px 12px;
+                padding: {Spacing.SM}px {Spacing.MD}px;
             }}
             QHeaderView::section {{
-                background-color: #F8FAFC;
-                color: {c['text_secondary']};
-                padding: 10px 12px;
+                background-color: {Colors.BG_ELEVATED};
+                color: {Colors.TEXT_SECONDARY};
+                padding: {Spacing.SM}px {Spacing.MD}px;
                 border: none;
-                border-bottom: 2px solid #E2E8F0;
-                font-weight: 600;
-                font-size: 12px;
+                border-bottom: 2px solid {Colors.BORDER_DEFAULT};
+                font-weight: {Typography.SEMIBOLD};
+                font-size: {Typography.CAPTION}px;
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
             }}
@@ -156,7 +150,7 @@ class ClientesView(QWidget):
 
         # Deudas
         self.lbl_deudas = QLabel("")
-        self.lbl_deudas.setStyleSheet(f"color: {c['danger']}; font-size: 13px; padding: 8px 4px;")
+        self.lbl_deudas.setStyleSheet(f"color: {Colors.DANGER}; font-size: {Typography.BODY}px; padding: {Spacing.SM}px {Spacing.XXS}px;")
         self.lbl_deudas.setAlignment(Qt.AlignCenter)
         content_layout.addWidget(self.lbl_deudas)
 
@@ -274,15 +268,13 @@ class ClientesView(QWidget):
 class ClienteDialog(QDialog):
     def __init__(self, session, parent=None, cliente_id=None):
         super().__init__(parent)
-        from tucajero.utils.theme import get_colors
-        c = get_colors()
         self.session = session
         self.cliente_id = cliente_id
         self.setWindowTitle("Nuevo Cliente" if not cliente_id else "Editar Cliente")
         self.setMinimumWidth(480)
         self.setStyleSheet(f"""
-            QDialog {{ background-color: {c['bg_app']}; }}
-            QLabel {{ color: {c['text_primary']}; font-size: 13px; }}
+            QDialog {{ background-color: {Colors.BG_APP}; }}
+            QLabel {{ color: {Colors.TEXT_PRIMARY}; font-size: {Typography.BODY}px; }}
         """)
 
         main_layout = QVBoxLayout()
@@ -294,43 +286,43 @@ class ClienteDialog(QDialog):
         card = QFrame()
         card.setStyleSheet(f"""
             QFrame {{
-                background-color: #FFFFFF;
-                border-radius: 12px;
-                border: 1px solid #E2E8F0;
-                padding: 24px;
+                background-color: {Colors.BG_CARD};
+                border-radius: {BorderRadius.MD}px;
+                border: 1px solid {Colors.BORDER_DEFAULT};
+                padding: {Spacing.XXL}px;
             }}
         """)
         card_layout = QVBoxLayout()
-        card_layout.setSpacing(16)
+        card_layout.setSpacing(Spacing.MD)
         card.setLayout(card_layout)
 
         # Titulo del formulario
         titulo = QLabel("Nuevo Cliente" if not cliente_id else "Editar Cliente")
-        titulo.setStyleSheet(f"font-size: 20px; font-weight: 700; color: {c['text_primary']};")
+        titulo.setStyleSheet(f"font-size: {Typography.H4}px; font-weight: {Typography.EXTRABOLD}; color: {Colors.TEXT_PRIMARY};")
         titulo.setAlignment(Qt.AlignCenter)
         card_layout.addWidget(titulo)
 
         # Formulario
         form = QFormLayout()
-        form.setSpacing(16)
-        form.setContentsMargins(0, 8, 0, 0)
+        form.setSpacing(Spacing.MD)
+        form.setContentsMargins(0, Spacing.SM, 0, 0)
 
         input_style = f"""
             QLineEdit {{
-                background-color: {c['bg_input']};
-                color: {c['text_primary']};
-                border: 1.5px solid {c['border']};
-                border-radius: 8px;
-                padding: 10px 14px;
-                font-size: 14px;
+                background-color: {Colors.BG_INPUT};
+                color: {Colors.TEXT_PRIMARY};
+                border: 1.5px solid {Colors.BORDER_DEFAULT};
+                border-radius: {BorderRadius.MD}px;
+                padding: {Spacing.SM}px {Spacing.XS}px;
+                font-size: {Typography.H5}px;
                 min-height: 42px;
             }}
             QLineEdit:focus {{
-                border: 1.5px solid {c['primary']};
+                border: 1.5px solid {Colors.PRIMARY};
             }}
         """
 
-        label_style = f"color: {c['text_secondary']}; font-size: 13px; font-weight: 500;"
+        label_style = f"color: {Colors.TEXT_SECONDARY}; font-size: {Typography.BODY}px; font-weight: {Typography.MEDIUM};"
 
         self.nombre = QLineEdit()
         self.nombre.setStyleSheet(input_style)
@@ -364,15 +356,13 @@ class ClienteDialog(QDialog):
 
         # Botones
         btns = QHBoxLayout()
-        btns.setSpacing(12)
+        btns.setSpacing(Spacing.SM)
         btns.addStretch()
-        btn_guardar = QPushButton("Guardar")
-        btn_guardar.setStyleSheet(btn_primary())
+        btn_guardar = ButtonPremium("Guardar", style="primary")
         btn_guardar.setFixedHeight(44)
         btn_guardar.clicked.connect(self.guardar)
         btns.addWidget(btn_guardar)
-        btn_cancel = QPushButton("Cancelar")
-        btn_cancel.setStyleSheet(btn_secondary())
+        btn_cancel = ButtonPremium("Cancelar", style="secondary")
         btn_cancel.setFixedHeight(44)
         btn_cancel.clicked.connect(self.reject)
         btns.addWidget(btn_cancel)
@@ -419,15 +409,13 @@ class ClienteDialog(QDialog):
 class AbonoDialog(QDialog):
     def __init__(self, session, cliente, parent=None):
         super().__init__(parent)
-        from tucajero.utils.theme import get_colors
-        c = get_colors()
         self.session = session
         self.cliente = cliente
         self.setWindowTitle(f"Registrar Abono \u2014 {cliente.nombre}")
         self.setMinimumWidth(480)
         self.setStyleSheet(f"""
-            QDialog {{ background-color: {c['bg_app']}; }}
-            QLabel {{ color: {c['text_primary']}; }}
+            QDialog {{ background-color: {Colors.BG_APP}; }}
+            QLabel {{ color: {Colors.TEXT_PRIMARY}; }}
         """)
 
         main_layout = QVBoxLayout()
@@ -439,19 +427,19 @@ class AbonoDialog(QDialog):
         card = QFrame()
         card.setStyleSheet(f"""
             QFrame {{
-                background-color: #FFFFFF;
-                border-radius: 12px;
-                border: 1px solid #E2E8F0;
-                padding: 24px;
+                background-color: {Colors.BG_CARD};
+                border-radius: {BorderRadius.MD}px;
+                border: 1px solid {Colors.BORDER_DEFAULT};
+                padding: {Spacing.XXL}px;
             }}
         """)
         card_layout = QVBoxLayout()
-        card_layout.setSpacing(24)
+        card_layout.setSpacing(Spacing.XL)
         card.setLayout(card_layout)
 
         # Titulo
         titulo = QLabel("Registrar Abono")
-        titulo.setStyleSheet(f"font-size: 20px; font-weight: 700; color: {c['text_primary']};")
+        titulo.setStyleSheet(f"font-size: {Typography.H4}px; font-weight: {Typography.EXTRABOLD}; color: {Colors.TEXT_PRIMARY};")
         titulo.setAlignment(Qt.AlignCenter)
         card_layout.addWidget(titulo)
 
@@ -459,29 +447,29 @@ class AbonoDialog(QDialog):
         info = QFrame()
         info.setStyleSheet(f"""
             QFrame {{
-                background-color: #F8FAFC;
-                border-radius: 8px;
-                border: 1px solid #E2E8F0;
-                padding: 16px;
+                background-color: {Colors.BG_ELEVATED};
+                border-radius: {BorderRadius.SM}px;
+                border: 1px solid {Colors.BORDER_DEFAULT};
+                padding: {Spacing.MD}px;
             }}
         """)
         info_layout = QVBoxLayout()
-        info_layout.setSpacing(8)
+        info_layout.setSpacing(Spacing.XS)
         info.setLayout(info_layout)
 
         lbl_cliente = QLabel(f"<b>Cliente:</b> {cliente.nombre}")
-        lbl_cliente.setStyleSheet(f"color: {c['text_primary']}; font-size: 14px;")
+        lbl_cliente.setStyleSheet(f"color: {Colors.TEXT_PRIMARY}; font-size: {Typography.H5}px;")
         info_layout.addWidget(lbl_cliente)
 
         lbl_deuda = QLabel(f"<b>Deuda actual:</b> {fmt_moneda(cliente.saldo_credito)}")
-        lbl_deuda.setStyleSheet(f"color: {c['danger']}; font-size: 14px; font-weight: 600;")
+        lbl_deuda.setStyleSheet(f"color: {Colors.DANGER}; font-size: {Typography.H5}px; font-weight: {Typography.SEMIBOLD};")
         info_layout.addWidget(lbl_deuda)
 
         card_layout.addWidget(info)
 
         # Formulario monto
         form = QFormLayout()
-        form.setSpacing(16)
+        form.setSpacing(Spacing.MD)
 
         self.monto_input = QDoubleSpinBox()
         self.monto_input.setRange(0.01, cliente.saldo_credito)
@@ -489,44 +477,42 @@ class AbonoDialog(QDialog):
         self.monto_input.setValue(cliente.saldo_credito)
         self.monto_input.setStyleSheet(f"""
             QDoubleSpinBox {{
-                background-color: {c['bg_input']};
-                color: {c['text_primary']};
-                border: 1.5px solid {c['border']};
-                border-radius: 8px;
-                padding: 10px 14px;
-                font-size: 18px;
-                font-weight: 600;
+                background-color: {Colors.BG_INPUT};
+                color: {Colors.TEXT_PRIMARY};
+                border: 1.5px solid {Colors.BORDER_DEFAULT};
+                border-radius: {BorderRadius.MD}px;
+                padding: {Spacing.SM}px {Spacing.XS}px;
+                font-size: {Typography.H4}px;
+                font-weight: {Typography.SEMIBOLD};
                 min-height: 44px;
             }}
             QDoubleSpinBox:focus {{
-                border: 1.5px solid {c['primary']};
+                border: 1.5px solid {Colors.PRIMARY};
             }}
         """)
         self.monto_input.valueChanged.connect(self.actualizar_preview)
 
         form_label = QLabel("Monto a abonar:")
-        form_label.setStyleSheet(f"color: {c['text_secondary']}; font-size: 13px; font-weight: 500;")
+        form_label.setStyleSheet(f"color: {Colors.TEXT_SECONDARY}; font-size: {Typography.BODY}px; font-weight: {Typography.MEDIUM};")
         form.addRow(form_label, self.monto_input)
         card_layout.addLayout(form)
 
         # Preview
         self.lbl_preview = QLabel("")
-        self.lbl_preview.setStyleSheet(f"font-size: 14px; color: {c['success']}; padding: 12px; background-color: #F0FDF4; border-radius: 8px;")
+        self.lbl_preview.setStyleSheet(f"font-size: {Typography.H5}px; color: {Colors.SUCCESS}; padding: {Spacing.MD}px; background-color: {Colors.SUCCESS_LIGHT}; border-radius: {BorderRadius.SM}px;")
         self.lbl_preview.setAlignment(Qt.AlignCenter)
         card_layout.addWidget(self.lbl_preview)
         self.actualizar_preview()
 
         # Botones
         btns = QHBoxLayout()
-        btns.setSpacing(12)
+        btns.setSpacing(Spacing.SM)
         btns.addStretch()
-        btn_ok = QPushButton("Registrar Abono")
-        btn_ok.setStyleSheet(btn_success())
+        btn_ok = ButtonPremium("Registrar Abono", style="success")
         btn_ok.setFixedHeight(44)
         btn_ok.clicked.connect(self.confirmar)
         btns.addWidget(btn_ok)
-        btn_cancel = QPushButton("Cancelar")
-        btn_cancel.setStyleSheet(btn_secondary())
+        btn_cancel = ButtonPremium("Cancelar", style="secondary")
         btn_cancel.setFixedHeight(44)
         btn_cancel.clicked.connect(self.reject)
         btns.addWidget(btn_cancel)
@@ -560,13 +546,11 @@ class AbonoDialog(QDialog):
 class HistorialClienteDialog(QDialog):
     def __init__(self, cliente, ventas, parent=None):
         super().__init__(parent)
-        from tucajero.utils.theme import get_colors
-        c = get_colors()
         self.setWindowTitle(f"Historial \u2014 {cliente.nombre}")
         self.setMinimumSize(640, 480)
         self.setStyleSheet(f"""
-            QDialog {{ background-color: {c['bg_app']}; }}
-            QLabel {{ color: {c['text_primary']}; }}
+            QDialog {{ background-color: {Colors.BG_APP}; }}
+            QLabel {{ color: {Colors.TEXT_PRIMARY}; }}
         """)
 
         main_layout = QVBoxLayout()
@@ -578,25 +562,25 @@ class HistorialClienteDialog(QDialog):
         content_widget = QWidget()
         content_widget.setMaximumWidth(600)
         content_layout = QVBoxLayout()
-        content_layout.setSpacing(24)
+        content_layout.setSpacing(Spacing.XL)
         content_widget.setLayout(content_layout)
 
         # Info del cliente
         info = QFrame()
         info.setStyleSheet(f"""
             QFrame {{
-                background-color: #FFFFFF;
-                border-radius: 12px;
-                border: 1px solid #E2E8F0;
-                padding: 16px;
+                background-color: {Colors.BG_CARD};
+                border-radius: {BorderRadius.MD}px;
+                border: 1px solid {Colors.BORDER_DEFAULT};
+                padding: {Spacing.MD}px;
             }}
         """)
         info_layout = QVBoxLayout()
-        info_layout.setSpacing(8)
+        info_layout.setSpacing(Spacing.XS)
         info.setLayout(info_layout)
 
         lbl_nombre = QLabel(f"<b>{cliente.nombre}</b>")
-        lbl_nombre.setStyleSheet(f"font-size: 16px; color: {c['text_primary']};")
+        lbl_nombre.setStyleSheet(f"font-size: {Typography.H5}px; color: {Colors.TEXT_PRIMARY};")
         info_layout.addWidget(lbl_nombre)
 
         lbl_detalle = QLabel(
@@ -604,7 +588,7 @@ class HistorialClienteDialog(QDialog):
             f"Tel: {cliente.telefono or '\u2014'}  |  "
             f"Saldo: {fmt_moneda(cliente.saldo_credito)}"
         )
-        lbl_detalle.setStyleSheet(f"font-size: 13px; color: {c['text_secondary']};")
+        lbl_detalle.setStyleSheet(f"font-size: {Typography.BODY}px; color: {Colors.TEXT_SECONDARY};")
         info_layout.addWidget(lbl_detalle)
 
         content_layout.addWidget(info)
@@ -616,24 +600,24 @@ class HistorialClienteDialog(QDialog):
         tabla.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         tabla.setStyleSheet(f"""
             QTableWidget {{
-                background-color: #FFFFFF;
-                color: {c['text_primary']};
-                border: 1px solid #E2E8F0;
-                border-radius: 12px;
-                gridline-color: #E2E8F0;
-                font-size: 13px;
+                background-color: {Colors.BG_CARD};
+                color: {Colors.TEXT_PRIMARY};
+                border: 1px solid {Colors.BORDER_DEFAULT};
+                border-radius: {BorderRadius.MD}px;
+                gridline-color: {Colors.BORDER_DEFAULT};
+                font-size: {Typography.BODY}px;
             }}
             QTableWidget::item {{
-                padding: 8px 12px;
+                padding: {Spacing.SM}px {Spacing.MD}px;
             }}
             QHeaderView::section {{
-                background-color: #F8FAFC;
-                color: {c['text_secondary']};
-                padding: 10px 12px;
+                background-color: {Colors.BG_ELEVATED};
+                color: {Colors.TEXT_SECONDARY};
+                padding: {Spacing.SM}px {Spacing.MD}px;
                 border: none;
-                border-bottom: 2px solid #E2E8F0;
-                font-weight: 600;
-                font-size: 12px;
+                border-bottom: 2px solid {Colors.BORDER_DEFAULT};
+                font-weight: {Typography.SEMIBOLD};
+                font-size: {Typography.CAPTION}px;
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
             }}
@@ -655,13 +639,12 @@ class HistorialClienteDialog(QDialog):
         resumen = QLabel(
             f"Total compras: {len(ventas)}  |  Valor total: {fmt_moneda(total)}"
         )
-        resumen.setStyleSheet(f"font-size: 14px; padding: 12px; color: {c['text_primary']}; font-weight: 600;")
+        resumen.setStyleSheet(f"font-size: {Typography.H5}px; padding: {Spacing.MD}px; color: {Colors.TEXT_PRIMARY}; font-weight: {Typography.SEMIBOLD};")
         resumen.setAlignment(Qt.AlignCenter)
         content_layout.addWidget(resumen)
 
         # Boton cerrar
-        btn_cerrar = QPushButton("Cerrar")
-        btn_cerrar.setStyleSheet(btn_secondary())
+        btn_cerrar = ButtonPremium("Cerrar", style="secondary")
         btn_cerrar.setFixedHeight(44)
         btn_cerrar.clicked.connect(self.accept)
         content_layout.addWidget(btn_cerrar, alignment=Qt.AlignCenter)

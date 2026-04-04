@@ -4,14 +4,13 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QLineEdit,
-    QPushButton,
     QMessageBox,
     QDialog,
     QApplication,
 )
 from PySide6.QtCore import Qt, QTimer
-from tucajero.utils.theme import btn_primary, btn_secondary, get_colors
-c = get_colors()
+from tucajero.ui.design_tokens import Colors, Typography, Spacing, BorderRadius
+from tucajero.ui.components_premium import ButtonPremium
 from tucajero.security.license_manager import (
     get_machine_id,
     generar_licencia,
@@ -36,24 +35,27 @@ class ActivateView(QWidget):
         self.setLayout(layout)
         self.setFixedSize(400, 300)
         self.setWindowTitle(f"Activación - {store_name}")
+        self.setStyleSheet(f"background: {Colors.BG_APP};")
 
         titulo = QLabel(f"Activación de {store_name}")
-        titulo.setStyleSheet(f"font-size: 20px; font-weight: bold; color: {c['primary']};")
+        titulo.setStyleSheet(f"font-size: 20px; font-weight: bold; color: {Colors.TEXT_PRIMARY}; background: transparent;")
         titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(titulo)
 
         subtitulo = QLabel("Ingrese su licencia para activar el sistema")
         subtitulo.setObjectName("subtitulo")
+        subtitulo.setStyleSheet(f"color: {Colors.TEXT_SECONDARY}; background: transparent;")
         subtitulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(subtitulo)
 
         machine_id = get_machine_id()
-        machine_label = QLabel(f"Machine ID:")
-        machine_label.setStyleSheet("font-weight: bold;")
+        machine_label = QLabel("Machine ID:")
+        machine_label.setStyleSheet(f"font-weight: bold; color: {Colors.TEXT_PRIMARY}; background: transparent;")
         layout.addWidget(machine_label)
 
         self.machine_id_display = QLabel(machine_id)
         self.machine_id_display.setObjectName("machine_id_display")
+        self.machine_id_display.setStyleSheet(f"color: {Colors.PRIMARY}; font-family: monospace; font-weight: bold; background: transparent;")
         self.machine_id_display.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.machine_id_display)
 
@@ -61,22 +63,32 @@ class ActivateView(QWidget):
             "Envía tu Machine ID al administrador\npara recibir tu licencia de activación."
         )
         info_label.setObjectName("info_label")
+        info_label.setStyleSheet(f"color: {Colors.TEXT_MUTED}; background: transparent;")
         info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(info_label)
 
         self.licencia_input = QLineEdit()
         self.licencia_input.setPlaceholderText("Ingrese su licencia")
-        self.licencia_input.setStyleSheet("padding: 10px; font-size: 16px;")
+        self.licencia_input.setStyleSheet(f"""
+            QLineEdit {{
+                background: {Colors.BG_INPUT};
+                color: {Colors.TEXT_PRIMARY};
+                border: 2px solid {Colors.BORDER_DEFAULT};
+                border-radius: {BorderRadius.MD}px;
+                padding: 10px 14px;
+                font-size: 16px;
+            }}
+            QLineEdit:focus {{
+                border-color: {Colors.BORDER_FOCUS};
+            }}
+        """)
         self.licencia_input.setMaxLength(16)
         layout.addWidget(self.licencia_input)
 
         btn_layout = QHBoxLayout()
-
-        self.btn_activar = QPushButton("ACTIVAR")
-        self.btn_activar.setStyleSheet(btn_primary())
+        self.btn_activar = ButtonPremium("ACTIVAR", style="primary")
         self.btn_activar.clicked.connect(self.activar)
         btn_layout.addWidget(self.btn_activar)
-
         layout.addLayout(btn_layout)
 
     def activar(self):
@@ -115,7 +127,7 @@ class ActivateView(QWidget):
 
 
 class ActivationDialog(QDialog):
-    """Diálogo de activación con tema adaptativo"""
+    """Diálogo de activación con tema claro"""
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -123,18 +135,20 @@ class ActivationDialog(QDialog):
         self.setWindowTitle(f"Activación - {store_name}")
         self.setModal(True)
         self.activation_success = False
+        self.setStyleSheet(f"background: {Colors.BG_APP};")
 
         layout = QVBoxLayout()
         self.setLayout(layout)
         self.setFixedSize(450, 380)
 
         titulo = QLabel(f"Activación de {store_name}")
-        titulo.setStyleSheet(f"color: {c['primary']}; font-size: 18px; font-weight: bold;")
+        titulo.setStyleSheet(f"color: {Colors.TEXT_PRIMARY}; font-size: 18px; font-weight: bold; background: transparent;")
         titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(titulo)
 
         subtitulo = QLabel("Ingrese su licencia para activar el sistema")
         subtitulo.setObjectName("subtitulo")
+        subtitulo.setStyleSheet(f"color: {Colors.TEXT_SECONDARY}; background: transparent;")
         subtitulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(subtitulo)
 
@@ -142,6 +156,7 @@ class ActivationDialog(QDialog):
 
         machine_label = QLabel("Machine ID de esta computadora:")
         machine_label.setObjectName("machine_label")
+        machine_label.setStyleSheet(f"color: {Colors.TEXT_SECONDARY}; background: transparent;")
         layout.addWidget(machine_label)
 
         machine_layout = QHBoxLayout()
@@ -150,10 +165,10 @@ class ActivationDialog(QDialog):
         self.txt_machine_id.setReadOnly(True)
         self.txt_machine_id.setStyleSheet(f"""
             QLineEdit {{
-                background-color: {c['surface']};
-                color: {c['primary']};
-                border: 1px solid {c['border']};
-                border-radius: 4px;
+                background-color: {Colors.BG_ELEVATED};
+                color: {Colors.PRIMARY};
+                border: 1px solid {Colors.BORDER_DEFAULT};
+                border-radius: {BorderRadius.SM}px;
                 padding: 8px;
                 font-family: monospace;
                 font-size: 13px;
@@ -162,8 +177,7 @@ class ActivationDialog(QDialog):
         """)
         machine_layout.addWidget(self.txt_machine_id)
 
-        self.btn_copiar = QPushButton("📋 Copiar")
-        self.btn_copiar.setStyleSheet(btn_secondary())
+        self.btn_copiar = ButtonPremium("📋 Copiar", style="secondary")
         self.btn_copiar.clicked.connect(self.copiar_machine_id)
         machine_layout.addWidget(self.btn_copiar)
 
@@ -173,6 +187,7 @@ class ActivationDialog(QDialog):
             "Envía tu Machine ID al administrador\npara recibir tu licencia de activación."
         )
         info_label.setObjectName("info_label")
+        info_label.setStyleSheet(f"color: {Colors.TEXT_MUTED}; background: transparent;")
         info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(info_label)
 
@@ -180,22 +195,21 @@ class ActivationDialog(QDialog):
         self.licencia_input.setPlaceholderText("Licencia de 16 caracteres")
         self.licencia_input.setStyleSheet(f"""
             QLineEdit {{
-                background-color: {c['background']};
-                color: {c['text']};
-                border: 2px solid {c['primary']};
-                border-radius: 4px;
+                background-color: {Colors.BG_INPUT};
+                color: {Colors.TEXT_PRIMARY};
+                border: 2px solid {Colors.BORDER_DEFAULT};
+                border-radius: {BorderRadius.SM}px;
                 padding: 8px;
                 font-size: 13px;
             }}
             QLineEdit:focus {{
-                border: 2px solid {c['primary_hover']};
+                border-color: {Colors.BORDER_FOCUS};
             }}
         """)
         self.licencia_input.setMaxLength(16)
         layout.addWidget(self.licencia_input)
 
-        btn_activar = QPushButton("ACTIVAR SISTEMA")
-        btn_activar.setStyleSheet(btn_primary())
+        btn_activar = ButtonPremium("ACTIVAR SISTEMA", style="primary")
         btn_activar.clicked.connect(self.activar)
         layout.addWidget(btn_activar)
 

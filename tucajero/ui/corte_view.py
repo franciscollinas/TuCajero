@@ -18,7 +18,8 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 from datetime import datetime
 from tucajero.utils.formato import fmt_moneda
-from tucajero.utils.theme import btn_primary, btn_secondary, btn_danger, get_colors
+from tucajero.ui.design_tokens import Colors, Typography, Spacing, BorderRadius
+from tucajero.ui.components_premium import ButtonPremium
 
 
 class CorteView(QWidget):
@@ -33,21 +34,18 @@ class CorteView(QWidget):
 
     def init_ui(self):
         """Inicializa la interfaz"""
-        from tucajero.utils.theme import get_colors
-
-        c = get_colors()
-        self.setStyleSheet(f"background-color: {c['bg_app']};")
+        self.setStyleSheet(f"background-color: {Colors.BG_APP};")
 
         # Main layout with scroll
         main_layout = QVBoxLayout()
         main_layout.setContentsMargins(24, 24, 24, 24)
-        main_layout.setSpacing(24)
+        main_layout.setSpacing(Spacing.XL)
         self.setLayout(main_layout)
 
         # Title - centered
         titulo = QLabel("Corte de Caja")
         titulo.setStyleSheet(
-            f"font-size: 28px; font-weight: 700; color: {c['text_primary']}; "
+            f"font-size: {Typography.H2}px; font-weight: {Typography.EXTRABOLD}; color: {Colors.TEXT_PRIMARY}; "
             f"background: transparent;"
         )
         titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -58,7 +56,7 @@ class CorteView(QWidget):
         container.setMaximumWidth(600)
         container_layout = QVBoxLayout()
         container_layout.setContentsMargins(0, 0, 0, 0)
-        container_layout.setSpacing(24)
+        container_layout.setSpacing(Spacing.XL)
         container.setLayout(container_layout)
 
         # --- Info Card ---
@@ -66,37 +64,37 @@ class CorteView(QWidget):
         self.info_widget.setObjectName("infoCard")
         self.info_widget.setStyleSheet(f"""
             QFrame#infoCard {{
-                background-color: #FFFFFF;
-                border-radius: 12px;
-                border: 1px solid #E2E8F0;
+                background-color: {Colors.BG_CARD};
+                border-radius: {BorderRadius.MD}px;
+                border: 1px solid {Colors.BORDER_DEFAULT};
             }}
         """)
         info_inner = QVBoxLayout()
-        info_inner.setContentsMargins(24, 24, 24, 24)
-        info_inner.setSpacing(12)
+        info_inner.setContentsMargins(Spacing.XL, Spacing.XL, Spacing.XL, Spacing.XL)
+        info_inner.setSpacing(Spacing.SM)
         self.info_widget.setLayout(info_inner)
 
         self.lbl_fecha = QLabel(f"Fecha: {datetime.now().strftime('%d/%m/%Y')}")
         self.lbl_fecha.setStyleSheet(
-            f"color: #64748B; font-size: 14px; background: transparent;"
+            f"color: {Colors.TEXT_TERTIARY}; font-size: {Typography.H5}px; background: transparent;"
         )
         info_inner.addWidget(self.lbl_fecha)
 
         self.lbl_estado = QLabel("Caja: ABIERTA")
         self.lbl_estado.setStyleSheet(
-            f"color: {c['success']}; font-size: 15px; font-weight: 600; background: transparent;"
+            f"color: {Colors.SUCCESS}; font-size: {Typography.H5}px; font-weight: {Typography.SEMIBOLD}; background: transparent;"
         )
         info_inner.addWidget(self.lbl_estado)
 
         self.lbl_total = QLabel(f"Total vendido: {fmt_moneda(0)}")
         self.lbl_total.setStyleSheet(
-            f"color: #0F172A; font-size: 28px; font-weight: 700; background: transparent;"
+            f"color: {Colors.TEXT_PRIMARY}; font-size: {Typography.H2}px; font-weight: {Typography.EXTRABOLD}; background: transparent;"
         )
         info_inner.addWidget(self.lbl_total)
 
         self.lbl_num_ventas = QLabel("Numero de ventas: 0")
         self.lbl_num_ventas.setStyleSheet(
-            f"color: #64748B; font-size: 14px; background: transparent;"
+            f"color: {Colors.TEXT_TERTIARY}; font-size: {Typography.H5}px; background: transparent;"
         )
         info_inner.addWidget(self.lbl_num_ventas)
 
@@ -107,29 +105,27 @@ class CorteView(QWidget):
         buttons_card.setObjectName("buttonsCard")
         buttons_card.setStyleSheet(f"""
             QFrame#buttonsCard {{
-                background-color: #FFFFFF;
-                border-radius: 12px;
-                border: 1px solid #E2E8F0;
+                background-color: {Colors.BG_CARD};
+                border-radius: {BorderRadius.MD}px;
+                border: 1px solid {Colors.BORDER_DEFAULT};
             }}
         """)
         buttons_inner = QVBoxLayout()
-        buttons_inner.setContentsMargins(24, 24, 24, 24)
-        buttons_inner.setSpacing(12)
+        buttons_inner.setContentsMargins(Spacing.XL, Spacing.XL, Spacing.XL, Spacing.XL)
+        buttons_inner.setSpacing(Spacing.SM)
         buttons_card.setLayout(buttons_inner)
 
         # Row 1: Abrir + Cerrar
         fila1 = QHBoxLayout()
-        fila1.setSpacing(12)
+        fila1.setSpacing(Spacing.SM)
 
-        self.btn_abrir = QPushButton("ABRIR CAJA")
+        self.btn_abrir = ButtonPremium("ABRIR CAJA", style="primary")
         self.btn_abrir.setFixedHeight(44)
-        self.btn_abrir.setStyleSheet(btn_primary())
         self.btn_abrir.clicked.connect(self.abrir_caja)
         fila1.addWidget(self.btn_abrir)
 
-        self.btn_cerrar = QPushButton("CERRAR CAJA")
+        self.btn_cerrar = ButtonPremium("CERRAR CAJA", style="danger")
         self.btn_cerrar.setFixedHeight(44)
-        self.btn_cerrar.setStyleSheet(btn_danger())
         self.btn_cerrar.clicked.connect(self.cerrar_caja)
         fila1.addWidget(self.btn_cerrar)
 
@@ -137,11 +133,10 @@ class CorteView(QWidget):
 
         # Row 2: Gasto
         fila1b = QHBoxLayout()
-        fila1b.setSpacing(12)
+        fila1b.setSpacing(Spacing.SM)
 
-        self.btn_gasto = QPushButton("Registrar Gasto de Caja")
+        self.btn_gasto = ButtonPremium("Registrar Gasto de Caja", style="primary")
         self.btn_gasto.setFixedHeight(44)
-        self.btn_gasto.setStyleSheet(btn_primary())
         self.btn_gasto.clicked.connect(self.registrar_gasto)
         fila1b.addWidget(self.btn_gasto)
 
@@ -149,17 +144,15 @@ class CorteView(QWidget):
 
         # Row 3: Anular + Facturas
         fila2 = QHBoxLayout()
-        fila2.setSpacing(12)
+        fila2.setSpacing(Spacing.SM)
 
-        self.btn_anular = QPushButton("Anular Venta")
+        self.btn_anular = ButtonPremium("Anular Venta", style="danger")
         self.btn_anular.setFixedHeight(44)
-        self.btn_anular.setStyleSheet(btn_danger())
         self.btn_anular.clicked.connect(self.anular_venta)
         fila2.addWidget(self.btn_anular)
 
-        self.btn_facturas = QPushButton("Ver Facturas del Dia")
+        self.btn_facturas = ButtonPremium("Ver Facturas del Dia", style="primary")
         self.btn_facturas.setFixedHeight(44)
-        self.btn_facturas.setStyleSheet(btn_primary())
         self.btn_facturas.clicked.connect(self.ver_facturas_dia)
         fila2.addWidget(self.btn_facturas)
 
@@ -167,11 +160,10 @@ class CorteView(QWidget):
 
         # Row 4: Reimprimir
         fila2b = QHBoxLayout()
-        fila2b.setSpacing(12)
+        fila2b.setSpacing(Spacing.SM)
 
-        self.btn_reimprimir = QPushButton("Reimprimir ultimo ticket")
+        self.btn_reimprimir = ButtonPremium("Reimprimir ultimo ticket", style="secondary")
         self.btn_reimprimir.setFixedHeight(44)
-        self.btn_reimprimir.setStyleSheet(btn_secondary())
         self.btn_reimprimir.clicked.connect(self.reimprimir_ultimo)
         fila2b.addWidget(self.btn_reimprimir)
 
@@ -184,18 +176,18 @@ class CorteView(QWidget):
         ganancia_card.setObjectName("gananciaCard")
         ganancia_card.setStyleSheet(f"""
             QFrame#gananciaCard {{
-                background-color: #FFFFFF;
-                border-radius: 12px;
-                border: 1px solid #E2E8F0;
+                background-color: {Colors.BG_CARD};
+                border-radius: {BorderRadius.MD}px;
+                border: 1px solid {Colors.BORDER_DEFAULT};
             }}
         """)
         ganancia_inner = QVBoxLayout()
-        ganancia_inner.setContentsMargins(24, 20, 24, 20)
+        ganancia_inner.setContentsMargins(Spacing.XL, Spacing.LG, Spacing.XL, Spacing.LG)
         ganancia_card.setLayout(ganancia_inner)
 
         self.lbl_ganancia = QLabel(f"Ganancia neta: {fmt_moneda(0)}")
         self.lbl_ganancia.setStyleSheet(
-            f"font-size: 20px; font-weight: 700; color: {c['purple']}; background: transparent;"
+            f"font-size: {Typography.H4}px; font-weight: {Typography.EXTRABOLD}; color: {Colors.PURPLE}; background: transparent;"
         )
         self.lbl_ganancia.setAlignment(Qt.AlignmentFlag.AlignCenter)
         ganancia_inner.addWidget(self.lbl_ganancia)
@@ -207,19 +199,19 @@ class CorteView(QWidget):
         ventas_card.setObjectName("ventasCard")
         ventas_card.setStyleSheet(f"""
             QFrame#ventasCard {{
-                background-color: #FFFFFF;
-                border-radius: 12px;
-                border: 1px solid #E2E8F0;
+                background-color: {Colors.BG_CARD};
+                border-radius: {BorderRadius.MD}px;
+                border: 1px solid {Colors.BORDER_DEFAULT};
             }}
         """)
         ventas_inner = QVBoxLayout()
-        ventas_inner.setContentsMargins(24, 20, 24, 24)
-        ventas_inner.setSpacing(16)
+        ventas_inner.setContentsMargins(Spacing.XL, Spacing.LG, Spacing.XL, Spacing.XL)
+        ventas_inner.setSpacing(Spacing.MD)
         ventas_card.setLayout(ventas_inner)
 
         historial_label = QLabel("Ventas del dia")
         historial_label.setStyleSheet(
-            f"font-size: 16px; font-weight: 600; color: #0F172A; background: transparent;"
+            f"font-size: {Typography.H5}px; font-weight: {Typography.SEMIBOLD}; color: {Colors.TEXT_PRIMARY}; background: transparent;"
         )
         ventas_inner.addWidget(historial_label)
 
@@ -229,7 +221,7 @@ class CorteView(QWidget):
         self.tabla_ventas.horizontalHeader().setSectionResizeMode(
             1, QHeaderView.ResizeMode.Stretch
         )
-        self.tabla_ventas.setStyleSheet("font-size: 14px;")
+        self.tabla_ventas.setStyleSheet(f"font-size: {Typography.H5}px;")
         self.tabla_ventas.setMinimumHeight(120)
         ventas_inner.addWidget(self.tabla_ventas)
 
@@ -240,19 +232,19 @@ class CorteView(QWidget):
         gastos_card.setObjectName("gastosCard")
         gastos_card.setStyleSheet(f"""
             QFrame#gastosCard {{
-                background-color: #FFFFFF;
-                border-radius: 12px;
-                border: 1px solid #E2E8F0;
+                background-color: {Colors.BG_CARD};
+                border-radius: {BorderRadius.MD}px;
+                border: 1px solid {Colors.BORDER_DEFAULT};
             }}
         """)
         gastos_inner = QVBoxLayout()
-        gastos_inner.setContentsMargins(24, 20, 24, 24)
-        gastos_inner.setSpacing(16)
+        gastos_inner.setContentsMargins(Spacing.XL, Spacing.LG, Spacing.XL, Spacing.XL)
+        gastos_inner.setSpacing(Spacing.MD)
         gastos_card.setLayout(gastos_inner)
 
         gastos_label = QLabel("Gastos del dia")
         gastos_label.setStyleSheet(
-            f"font-size: 16px; font-weight: 600; color: #0F172A; background: transparent;"
+            f"font-size: {Typography.H5}px; font-weight: {Typography.SEMIBOLD}; color: {Colors.TEXT_PRIMARY}; background: transparent;"
         )
         gastos_inner.addWidget(gastos_label)
 
@@ -262,7 +254,7 @@ class CorteView(QWidget):
         self.tabla_gastos.horizontalHeader().setSectionResizeMode(
             1, QHeaderView.ResizeMode.Stretch
         )
-        self.tabla_gastos.setStyleSheet("font-size: 13px;")
+        self.tabla_gastos.setStyleSheet(f"font-size: {Typography.BODY}px;")
         self.tabla_gastos.setMinimumHeight(80)
         gastos_inner.addWidget(self.tabla_gastos)
 
@@ -283,7 +275,7 @@ class CorteView(QWidget):
         if caja_abierta:
             self.lbl_estado.setText("Caja: ABIERTA")
             self.lbl_estado.setStyleSheet(
-                f"font-size: 18px; font-weight: bold; color: {get_colors()['success']};"
+                f"font-size: {Typography.H5}px; font-weight: {Typography.SEMIBOLD}; color: {Colors.SUCCESS};"
             )
             self.btn_abrir.setEnabled(False)
             self.btn_cerrar.setEnabled(True)
@@ -292,7 +284,7 @@ class CorteView(QWidget):
         else:
             self.lbl_estado.setText("Caja: CERRADA")
             self.lbl_estado.setStyleSheet(
-                f"font-size: 18px; font-weight: bold; color: {get_colors()['danger']};"
+                f"font-size: {Typography.H5}px; font-weight: {Typography.SEMIBOLD}; color: {Colors.DANGER};"
             )
             self.btn_abrir.setEnabled(True)
             self.btn_cerrar.setEnabled(False)
@@ -368,7 +360,20 @@ class CorteView(QWidget):
             QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
         )
         buttons.button(QDialogButtonBox.StandardButton.Ok).setText("REGISTRAR")
-        buttons.button(QDialogButtonBox.StandardButton.Ok).setStyleSheet(btn_primary())
+        buttons.button(QDialogButtonBox.StandardButton.Ok).setStyleSheet(
+            f"""
+            QPushButton {{
+                background: {Colors.PRIMARY};
+                color: white;
+                border: none;
+                border-radius: {BorderRadius.MD}px;
+                padding: {Spacing.SM}px {Spacing.XXL}px;
+                font-size: {Typography.BODY}px;
+                font-weight: {Typography.SEMIBOLD};
+            }}
+            QPushButton:hover {{ background: {Colors.PRIMARY_DARK}; }}
+            """
+        )
         buttons.accepted.connect(dialog.accept)
         buttons.rejected.connect(dialog.reject)
         layout.addRow("", buttons)

@@ -10,7 +10,8 @@ from PySide6.QtWidgets import (
     QHeaderView,
 )
 from PySide6.QtCore import Qt
-from tucajero.utils.theme import btn_primary, btn_danger
+from tucajero.ui.design_tokens import Colors, Typography, Spacing, BorderRadius
+from tucajero.ui.components_premium import ButtonPremium
 
 
 class CajerosView(QWidget):
@@ -21,40 +22,35 @@ class CajerosView(QWidget):
         self.cargar_cajeros()
 
     def init_ui(self):
-        from tucajero.utils.theme import get_colors
-        c = get_colors()
-        self.setStyleSheet(f"background-color: {c['bg_app']};")
-        
+        self.setStyleSheet(f"background-color: {Colors.BG_APP};")
+
         layout = QVBoxLayout()
         self.setLayout(layout)
- 
+
         titulo = QLabel("Gestión de Cajeros")
-        titulo.setStyleSheet(f"font-size: 24px; font-weight: bold; color: {c['text_primary']};")
+        titulo.setStyleSheet(f"font-size: {Typography.H2}px; font-weight: {Typography.BOLD}; color: {Colors.TEXT_PRIMARY};")
         layout.addWidget(titulo)
- 
+
         info = QLabel(
             "Administra los cajeros que pueden usar el sistema. "
             "Solo el administrador puede ver esta sección."
         )
-        info.setStyleSheet(f"color: {c['text_secondary']};")
+        info.setStyleSheet(f"color: {Colors.TEXT_SECONDARY};")
         info.setWordWrap(True)
         layout.addWidget(info)
 
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
 
-        btn_nuevo = QPushButton("+ Nuevo Cajero")
-        btn_nuevo.setStyleSheet(btn_primary())
+        btn_nuevo = ButtonPremium("+ Nuevo Cajero", style="primary")
         btn_nuevo.clicked.connect(self.nuevo_cajero)
         btn_layout.addWidget(btn_nuevo)
 
-        btn_cambiar_pin = QPushButton("🔑 Cambiar PIN")
-        btn_cambiar_pin.setStyleSheet(btn_primary())
+        btn_cambiar_pin = ButtonPremium("🔑 Cambiar PIN", style="primary")
         btn_cambiar_pin.clicked.connect(self.cambiar_pin)
         btn_layout.addWidget(btn_cambiar_pin)
 
-        btn_eliminar = QPushButton("Eliminar")
-        btn_eliminar.setStyleSheet(btn_danger())
+        btn_eliminar = ButtonPremium("Eliminar", style="danger")
         btn_eliminar.clicked.connect(self.eliminar_cajero)
         btn_layout.addWidget(btn_eliminar)
 
