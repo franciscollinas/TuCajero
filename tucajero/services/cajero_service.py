@@ -52,3 +52,11 @@ class CajeroService:
         total = self.session.query(Cajero).count()
         if total == 0:
             self.crear("Admin", "0000", rol="admin")
+        else:
+            # Migración: renombrar "Administrador" a "Admin" si existe
+            admin_viejo = self.session.query(Cajero).filter(
+                Cajero.nombre == "Administrador"
+            ).first()
+            if admin_viejo:
+                admin_viejo.nombre = "Admin"
+                self.session.commit()
