@@ -32,22 +32,14 @@ class ClientesView(QWidget):
         self.setStyleSheet(f"background-color: {Colors.BG_APP};")
 
         main_layout = QVBoxLayout()
-        main_layout.setContentsMargins(24, 24, 24, 24)
-        main_layout.setAlignment(Qt.AlignTop | Qt.AlignHCenter)
+        main_layout.setContentsMargins(Spacing.XXXL, Spacing.XXL, Spacing.XXXL, Spacing.XXL)
+        main_layout.setSpacing(Spacing.XXL)
         self.setLayout(main_layout)
-
-        # Centrar contenido con max-width
-        content_widget = QWidget()
-        content_widget.setMaximumWidth(600)
-        content_layout = QVBoxLayout()
-        content_layout.setSpacing(24)
-        content_widget.setLayout(content_layout)
 
         # Titulo
         titulo = QLabel("Clientes")
-        titulo.setStyleSheet(f"font-size: {Typography.H2}px; font-weight: {Typography.EXTRABOLD}; color: {Colors.TEXT_PRIMARY}; padding: 0px {Spacing.XXS}px;")
-        titulo.setAlignment(Qt.AlignCenter)
-        content_layout.addWidget(titulo)
+        titulo.setStyleSheet(f"font-size: {Typography.H2}px; font-weight: {Typography.EXTRABOLD}; color: {Colors.TEXT_PRIMARY};")
+        main_layout.addWidget(titulo)
 
         # Busqueda
         self.input_buscar = QLineEdit()
@@ -67,7 +59,7 @@ class ClientesView(QWidget):
             }}
         """)
         self.input_buscar.textChanged.connect(self.buscar_cliente)
-        content_layout.addWidget(self.input_buscar)
+        main_layout.addWidget(self.input_buscar)
 
         # Botones de accion
         btn_layout = QHBoxLayout()
@@ -93,7 +85,7 @@ class ClientesView(QWidget):
         btn_eliminar.clicked.connect(self.eliminar_cliente)
         btn_layout.addWidget(btn_eliminar)
 
-        content_layout.addLayout(btn_layout)
+        main_layout.addLayout(btn_layout)
 
         # Tabla dentro de card
         card = QFrame()
@@ -146,15 +138,13 @@ class ClientesView(QWidget):
         self.tabla.doubleClicked.connect(self.ver_historial)
         card_layout.addWidget(self.tabla)
 
-        content_layout.addWidget(card)
+        main_layout.addWidget(card)
 
         # Deudas
         self.lbl_deudas = QLabel("")
         self.lbl_deudas.setStyleSheet(f"color: {Colors.DANGER}; font-size: {Typography.BODY}px; padding: {Spacing.SM}px {Spacing.XXS}px;")
         self.lbl_deudas.setAlignment(Qt.AlignCenter)
-        content_layout.addWidget(self.lbl_deudas)
-
-        main_layout.addWidget(content_widget)
+        main_layout.addWidget(self.lbl_deudas)
 
     def cargar_clientes(self, clientes=None):
         from tucajero.services.cliente_service import ClienteService

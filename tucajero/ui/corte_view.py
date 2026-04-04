@@ -36,28 +36,19 @@ class CorteView(QWidget):
         """Inicializa la interfaz"""
         self.setStyleSheet(f"background-color: {Colors.BG_APP};")
 
-        # Main layout with scroll
+        # Main layout
         main_layout = QVBoxLayout()
-        main_layout.setContentsMargins(24, 24, 24, 24)
+        main_layout.setContentsMargins(Spacing.XXXL, Spacing.XXL, Spacing.XXXL, Spacing.XXL)
         main_layout.setSpacing(Spacing.XL)
         self.setLayout(main_layout)
 
-        # Title - centered
+        # Title
         titulo = QLabel("Corte de Caja")
         titulo.setStyleSheet(
             f"font-size: {Typography.H2}px; font-weight: {Typography.EXTRABOLD}; color: {Colors.TEXT_PRIMARY}; "
             f"background: transparent;"
         )
-        titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         main_layout.addWidget(titulo)
-
-        # Centered container (max-width: 600px)
-        container = QWidget()
-        container.setMaximumWidth(600)
-        container_layout = QVBoxLayout()
-        container_layout.setContentsMargins(0, 0, 0, 0)
-        container_layout.setSpacing(Spacing.XL)
-        container.setLayout(container_layout)
 
         # --- Info Card ---
         self.info_widget = QFrame()
@@ -98,7 +89,7 @@ class CorteView(QWidget):
         )
         info_inner.addWidget(self.lbl_num_ventas)
 
-        container_layout.addWidget(self.info_widget)
+        main_layout.addWidget(self.info_widget)
 
         # --- Buttons Card ---
         buttons_card = QFrame()
@@ -169,7 +160,7 @@ class CorteView(QWidget):
 
         buttons_inner.addLayout(fila2b)
 
-        container_layout.addWidget(buttons_card)
+        main_layout.addWidget(buttons_card)
 
         # --- Ganancia Card ---
         ganancia_card = QFrame()
@@ -192,7 +183,7 @@ class CorteView(QWidget):
         self.lbl_ganancia.setAlignment(Qt.AlignmentFlag.AlignCenter)
         ganancia_inner.addWidget(self.lbl_ganancia)
 
-        container_layout.addWidget(ganancia_card)
+        main_layout.addWidget(ganancia_card)
 
         # --- Ventas Table Card ---
         ventas_card = QFrame()
@@ -225,7 +216,7 @@ class CorteView(QWidget):
         self.tabla_ventas.setMinimumHeight(120)
         ventas_inner.addWidget(self.tabla_ventas)
 
-        container_layout.addWidget(ventas_card)
+        main_layout.addWidget(ventas_card)
 
         # --- Gastos Table Card ---
         gastos_card = QFrame()
@@ -258,11 +249,7 @@ class CorteView(QWidget):
         self.tabla_gastos.setMinimumHeight(80)
         gastos_inner.addWidget(self.tabla_gastos)
 
-        container_layout.addWidget(gastos_card)
-
-        # Center the container
-        main_layout.addWidget(container, alignment=Qt.AlignmentFlag.AlignCenter)
-        main_layout.addStretch(1)
+        main_layout.addWidget(gastos_card)
 
     def cargar_estadisticas(self):
         """Carga las estadisticas del dia"""

@@ -34,39 +34,22 @@ class ProveedoresView(QWidget):
 
     def init_ui(self):
         main_layout = QVBoxLayout()
-        main_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        main_layout.setContentsMargins(Spacing.XXXL, Spacing.XXL, Spacing.XXXL, Spacing.XXL)
+        main_layout.setSpacing(Spacing.XXL)
         self.setLayout(main_layout)
-
-        # Scrollable container for content
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        scroll.setFrameShape(QFrame.Shape.NoFrame)
-        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-
-        container = QWidget()
-        container.setMaximumWidth(600)
-        container_layout = QVBoxLayout()
-        container_layout.setSpacing(Spacing.XXL)
-        container_layout.setContentsMargins(0, 16, 0, 16)
-        container.setLayout(container_layout)
 
         titulo = QLabel("Proveedores y Compras")
         titulo.setStyleSheet(
-            f"font-size: {Typography.H2}px; font-weight: {Typography.EXTRABOLD}; color: {Colors.TEXT_PRIMARY}; "
-            f"padding: {Spacing.SM}px 0;"
+            f"font-size: {Typography.H2}px; font-weight: {Typography.EXTRABOLD}; color: {Colors.TEXT_PRIMARY};"
         )
-        titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        container_layout.addWidget(titulo)
+        main_layout.addWidget(titulo)
 
         self.tabs = QTabWidget()
         self.tab_proveedores = self._crear_tab_proveedores()
         self.tab_ordenes = self._crear_tab_ordenes()
         self.tabs.addTab(self.tab_proveedores, "🏭 Proveedores")
         self.tabs.addTab(self.tab_ordenes, "📦 Órdenes de Compra")
-        container_layout.addWidget(self.tabs)
-
-        scroll.setWidget(container)
-        main_layout.addWidget(scroll)
+        main_layout.addWidget(self.tabs)
 
     def _crear_tab_proveedores(self):
         widget = QWidget()
