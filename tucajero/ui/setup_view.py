@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QFormLayout,
+    QFrame,
 )
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QPixmap
@@ -44,13 +45,17 @@ class SetupDialog(QDialog):
         """Inicializa la interfaz."""
         c = get_colors()
         main_layout = QVBoxLayout()
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
         self.setLayout(main_layout)
 
+        # Header
         header = QWidget()
         header.setStyleSheet(f"background-color: {c['bg_sidebar']};")
         header_layout = QVBoxLayout()
         header.setLayout(header_layout)
-        header_layout.setContentsMargins(15, 15, 15, 15)
+        header_layout.setContentsMargins(24, 24, 24, 24)
+        header_layout.setSpacing(4)
 
         title = QLabel("Bienvenido a TuCajero")
         title.setStyleSheet(f"color: {c['text_primary']}; font-size: 26px; font-weight: bold;")
@@ -59,119 +64,146 @@ class SetupDialog(QDialog):
 
         subtitle = QLabel("Configura tu negocio para comenzar")
         subtitle.setObjectName("subtitle")
+        subtitle.setStyleSheet(f"color: {c['text_secondary']}; font-size: 14px;")
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
         header_layout.addWidget(subtitle)
 
         main_layout.addWidget(header)
 
+        # Scroll area with centered content
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
-        scroll.setStyleSheet("QScrollArea { border: none; }")
+        scroll.setStyleSheet("QScrollArea { border: none; background-color: transparent; }")
         main_layout.addWidget(scroll, 1)
 
         scroll_content = QWidget()
-        form_layout = QVBoxLayout()
-        scroll_content.setLayout(form_layout)
-        form_layout.setContentsMargins(30, 20, 30, 20)
-        form_layout.setSpacing(10)
+        scroll_content.setStyleSheet("background-color: transparent;")
+        scroll_layout = QVBoxLayout()
+        scroll_content.setLayout(scroll_layout)
+        scroll_layout.setContentsMargins(24, 24, 24, 24)
+        scroll_layout.setSpacing(0)
+        scroll_layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignHCenter)
+
+        # Card container
+        card = QFrame()
+        card.setStyleSheet(
+            f"background-color: #FFFFFF; border-radius: 12px; border: 1px solid #E2E8F0;"
+        )
+        card_layout = QVBoxLayout()
+        card.setLayout(card_layout)
+        card_layout.setContentsMargins(24, 24, 24, 24)
+        card_layout.setSpacing(16)
 
         def field_label(text):
             lbl = QLabel(text)
-            lbl.setStyleSheet(f"font-size: 12px; color: {c['text_secondary']}; margin-bottom: 2px;")
+            lbl.setStyleSheet(f"font-size: 13px; font-weight: 500; color: #0F172A; margin-bottom: 0px;")
             return lbl
 
         def input_style():
             return (
-                f"padding: 8px; font-size: 13px; background: {c['bg_input']}; color: {c['text_primary']}; "
-                f"border: 1px solid {c['border']}; border-radius: 4px;"
+                f"padding: 10px 14px; font-size: 14px; background: #FFFFFF; color: #0F172A; "
+                f"border: 1.5px solid #E2E8F0; border-radius: 8px; min-height: 42px; max-height: 44px;"
             )
 
+        # Nombre
+        card_layout.addWidget(field_label("Nombre del negocio *"))
         self.nombre_input = QLineEdit()
         self.nombre_input.setPlaceholderText("Ej: Droguería CruzMedic")
         self.nombre_input.setStyleSheet(input_style())
-        form_layout.addWidget(field_label("Nombre del negocio *"))
-        form_layout.addWidget(self.nombre_input)
+        card_layout.addWidget(self.nombre_input)
 
+        # NIT y Teléfono en fila
         nit_tel_layout = QHBoxLayout()
-        nit_tel_layout.setSpacing(15)
+        nit_tel_layout.setSpacing(16)
 
         nit_widget = QWidget()
         nit_vl = QVBoxLayout()
-        nit_vl.setSpacing(2)
+        nit_vl.setSpacing(8)
         nit_vl.setContentsMargins(0, 0, 0, 0)
         nit_widget.setLayout(nit_vl)
+        nit_vl.addWidget(field_label("NIT"))
         self.nit_input = QLineEdit()
         self.nit_input.setPlaceholderText("123456789-0")
         self.nit_input.setStyleSheet(input_style())
-        nit_vl.addWidget(field_label("NIT"))
         nit_vl.addWidget(self.nit_input)
 
         tel_widget = QWidget()
         tel_vl = QVBoxLayout()
-        tel_vl.setSpacing(2)
+        tel_vl.setSpacing(8)
         tel_vl.setContentsMargins(0, 0, 0, 0)
         tel_widget.setLayout(tel_vl)
+        tel_vl.addWidget(field_label("Teléfono"))
         self.telefono_input = QLineEdit()
         self.telefono_input.setPlaceholderText("300 123 4567")
         self.telefono_input.setStyleSheet(input_style())
-        tel_vl.addWidget(field_label("Teléfono"))
         tel_vl.addWidget(self.telefono_input)
 
         nit_tel_layout.addWidget(nit_widget, 1)
         nit_tel_layout.addWidget(tel_widget, 1)
-        form_layout.addLayout(nit_tel_layout)
+        card_layout.addLayout(nit_tel_layout)
 
+        # Email
+        card_layout.addWidget(field_label("Correo electrónico"))
         self.email_input = QLineEdit()
         self.email_input.setPlaceholderText("info@ejemplo.com")
         self.email_input.setStyleSheet(input_style())
-        form_layout.addWidget(field_label("Correo electrónico"))
-        form_layout.addWidget(self.email_input)
+        card_layout.addWidget(self.email_input)
 
+        # Dirección
+        card_layout.addWidget(field_label("Dirección"))
         self.direccion_input = QLineEdit()
         self.direccion_input.setPlaceholderText("Calle 123 #45-67, Ciudad")
         self.direccion_input.setStyleSheet(input_style())
-        form_layout.addWidget(field_label("Dirección"))
-        form_layout.addWidget(self.direccion_input)
+        card_layout.addWidget(self.direccion_input)
 
+        # Logo section
+        card_layout.addWidget(field_label("Logo de tu negocio"))
         logo_row = QHBoxLayout()
-        logo_row.setSpacing(15)
+        logo_row.setSpacing(12)
 
         self.btn_logo = QPushButton("📁  Seleccionar logo...")
-        self.btn_logo.setFixedHeight(36)
+        self.btn_logo.setFixedHeight(42)
         self.btn_logo.setStyleSheet(btn_secondary())
         self.btn_logo.clicked.connect(self.seleccionar_logo)
 
         self.logo_preview = QLabel()
-        self.logo_preview.setFixedSize(70, 70)
+        self.logo_preview.setFixedSize(56, 56)
         self.logo_preview.setStyleSheet(
-            f"border: 1px solid {c['border']}; border-radius: 4px; background-color: {c['bg_card']};"
+            f"border: 1.5px solid #E2E8F0; border-radius: 8px; background-color: #F8FAFC;"
         )
         self.logo_preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         logo_row.addWidget(self.btn_logo, 1)
         logo_row.addWidget(self.logo_preview)
+        card_layout.addLayout(logo_row)
 
-        form_layout.addWidget(field_label("Logo de tu negocio"))
-        form_layout.addLayout(logo_row)
+        # Add card to scroll layout
+        scroll_layout.addWidget(card)
+        scroll_layout.addStretch()
 
-        form_layout.addStretch()
         scroll.setWidget(scroll_content)
 
+        # Footer
         footer = QWidget()
+        footer.setStyleSheet("background-color: transparent;")
         footer_layout = QVBoxLayout()
         footer.setLayout(footer_layout)
-        footer_layout.setContentsMargins(30, 10, 30, 20)
-        footer_layout.setSpacing(8)
+        footer_layout.setContentsMargins(24, 16, 24, 24)
+        footer_layout.setSpacing(12)
 
         nota = QLabel("* Campo requerido")
         nota.setObjectName("nota")
+        nota.setStyleSheet(f"color: {c['text_secondary']}; font-size: 12px;")
+        nota.setAlignment(Qt.AlignmentFlag.AlignCenter)
         footer_layout.addWidget(nota)
 
         self.btn_comenzar = QPushButton("COMENZAR")
-        self.btn_comenzar.setFixedHeight(48)
-        self.btn_comenzar.setStyleSheet(btn_primary())
+        self.btn_comenzar.setFixedHeight(44)
+        self.btn_comenzar.setStyleSheet(
+            btn_primary() + "QPushButton { min-width: 200px; }"
+        )
         self.btn_comenzar.clicked.connect(self.guardar)
-        footer_layout.addWidget(self.btn_comenzar)
+        footer_layout.addWidget(self.btn_comenzar, alignment=Qt.AlignmentFlag.AlignCenter)
 
         main_layout.addWidget(footer)
 
@@ -190,8 +222,8 @@ class SetupDialog(QDialog):
             pixmap = QPixmap(file_path)
             if not pixmap.isNull():
                 scaled = pixmap.scaled(
-                    70,
-                    70,
+                    56,
+                    56,
                     Qt.AspectRatioMode.KeepAspectRatio,
                     Qt.TransformationMode.SmoothTransformation,
                 )
@@ -249,101 +281,180 @@ class SetupView(QWidget):
 
     def init_ui(self):
         c = get_colors()
-        layout = QVBoxLayout()
-        self.setLayout(layout)
-        layout.setContentsMargins(30, 20, 30, 20)
-        layout.setSpacing(10)
+
+        # Main layout with scroll area for centered content
+        main_layout = QVBoxLayout()
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
+        self.setLayout(main_layout)
+
+        # Header
+        header = QWidget()
+        header.setStyleSheet(f"background-color: {c['bg_sidebar']};")
+        header_layout = QVBoxLayout()
+        header.setLayout(header_layout)
+        header_layout.setContentsMargins(24, 20, 24, 20)
+        header_layout.setSpacing(4)
 
         titulo = QLabel("Configuración del Negocio")
         titulo.setStyleSheet(
-            f"font-size: 22px; font-weight: bold; color: {c['text_primary']}; padding-bottom: 10px;"
+            f"font-size: 22px; font-weight: bold; color: {c['text_primary']};"
         )
-        layout.addWidget(titulo)
+        titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        header_layout.addWidget(titulo)
 
-        fields_layout = QVBoxLayout()
-        fields_layout.setSpacing(8)
+        subtitulo = QLabel("Administra la información de tu negocio")
+        subtitulo.setStyleSheet(f"color: {c['text_secondary']}; font-size: 13px;")
+        subtitulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        header_layout.addWidget(subtitulo)
+
+        main_layout.addWidget(header)
+
+        # Scroll area
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setStyleSheet("QScrollArea { border: none; background-color: transparent; }")
+        main_layout.addWidget(scroll, 1)
+
+        scroll_content = QWidget()
+        scroll_content.setStyleSheet("background-color: transparent;")
+        scroll_layout = QVBoxLayout()
+        scroll_content.setLayout(scroll_layout)
+        scroll_layout.setContentsMargins(24, 24, 24, 24)
+        scroll_layout.setSpacing(0)
+        scroll_layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignHCenter)
+
+        # Card container
+        card = QFrame()
+        card.setStyleSheet(
+            f"background-color: #FFFFFF; border-radius: 12px; border: 1px solid #E2E8F0;"
+        )
+        card_layout = QVBoxLayout()
+        card.setLayout(card_layout)
+        card_layout.setContentsMargins(24, 24, 24, 24)
+        card_layout.setSpacing(16)
 
         def field_label(text):
             lbl = QLabel(text)
-            lbl.setStyleSheet(f"font-size: 12px; color: {c['text_secondary']};")
+            lbl.setStyleSheet(f"font-size: 13px; font-weight: 500; color: #0F172A;")
             return lbl
 
         def input_style():
-            return f"padding: 8px; font-size: 13px; background: {c['bg_input']}; color: {c['text_primary']}; border: 1px solid {c['border']}; border-radius: 4px;"
+            return (
+                f"padding: 10px 14px; font-size: 14px; background: #FFFFFF; color: #0F172A; "
+                f"border: 1.5px solid #E2E8F0; border-radius: 8px; min-height: 42px; max-height: 44px;"
+            )
 
+        # Nombre
+        card_layout.addWidget(field_label("Nombre *"))
         self.nombre_input = QLineEdit()
         self.nombre_input.setPlaceholderText("Nombre del negocio")
         self.nombre_input.setStyleSheet(input_style())
-        fields_layout.addWidget(field_label("Nombre *"))
-        fields_layout.addWidget(self.nombre_input)
+        card_layout.addWidget(self.nombre_input)
 
+        # NIT y Teléfono en fila
         nit_tel_layout = QHBoxLayout()
-        nit_tel_layout.setSpacing(15)
+        nit_tel_layout.setSpacing(16)
 
+        nit_widget = QWidget()
+        nit_vl = QVBoxLayout()
+        nit_vl.setSpacing(8)
+        nit_vl.setContentsMargins(0, 0, 0, 0)
+        nit_widget.setLayout(nit_vl)
+        nit_vl.addWidget(field_label("NIT"))
         self.nit_input = QLineEdit()
         self.nit_input.setPlaceholderText("NIT")
         self.nit_input.setStyleSheet(input_style())
-        nit_tel_layout.addWidget(field_label("NIT"))
-        nit_tel_layout.addWidget(self.nit_input)
+        nit_vl.addWidget(self.nit_input)
 
+        tel_widget = QWidget()
+        tel_vl = QVBoxLayout()
+        tel_vl.setSpacing(8)
+        tel_vl.setContentsMargins(0, 0, 0, 0)
+        tel_widget.setLayout(tel_vl)
+        tel_vl.addWidget(field_label("Teléfono"))
         self.telefono_input = QLineEdit()
         self.telefono_input.setPlaceholderText("Teléfono")
         self.telefono_input.setStyleSheet(input_style())
-        nit_tel_layout.addWidget(field_label("Teléfono"))
-        nit_tel_layout.addWidget(self.telefono_input)
+        tel_vl.addWidget(self.telefono_input)
 
-        fields_layout.addLayout(nit_tel_layout)
+        nit_tel_layout.addWidget(nit_widget, 1)
+        nit_tel_layout.addWidget(tel_widget, 1)
+        card_layout.addLayout(nit_tel_layout)
 
+        # Email
+        card_layout.addWidget(field_label("Correo electrónico"))
         self.email_input = QLineEdit()
         self.email_input.setPlaceholderText("Correo electrónico")
         self.email_input.setStyleSheet(input_style())
-        fields_layout.addWidget(field_label("Correo electrónico"))
-        fields_layout.addWidget(self.email_input)
+        card_layout.addWidget(self.email_input)
 
+        # Dirección
+        card_layout.addWidget(field_label("Dirección"))
         self.direccion_input = QLineEdit()
         self.direccion_input.setPlaceholderText("Dirección")
         self.direccion_input.setStyleSheet(input_style())
-        fields_layout.addWidget(field_label("Dirección"))
-        fields_layout.addWidget(self.direccion_input)
+        card_layout.addWidget(self.direccion_input)
 
+        # Logo
+        card_layout.addWidget(field_label("Logo"))
         logo_row = QHBoxLayout()
-        logo_row.setSpacing(15)
+        logo_row.setSpacing(12)
 
         self.btn_logo = QPushButton("📁  Seleccionar logo...")
-        self.btn_logo.setFixedHeight(36)
+        self.btn_logo.setFixedHeight(42)
         self.btn_logo.setStyleSheet(btn_secondary())
         self.btn_logo.clicked.connect(self.seleccionar_logo)
 
         self.logo_preview = QLabel()
-        self.logo_preview.setFixedSize(70, 70)
+        self.logo_preview.setFixedSize(56, 56)
         self.logo_preview.setStyleSheet(
-            f"border: 1px solid {c['border']}; border-radius: 4px; background-color: {c['bg_card']};"
+            f"border: 1.5px solid #E2E8F0; border-radius: 8px; background-color: #F8FAFC;"
         )
         self.logo_preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         logo_row.addWidget(self.btn_logo, 1)
         logo_row.addWidget(self.logo_preview)
-        fields_layout.addWidget(field_label("Logo"))
-        fields_layout.addLayout(logo_row)
+        card_layout.addLayout(logo_row)
 
-        printer_group = QGroupBox("Impresora Termica")
+        # Printer section
+        card_layout.addSpacing(8)
+
+        printer_group = QGroupBox("Impresora Térmica")
+        printer_group.setStyleSheet(
+            f"QGroupBox {{ background-color: transparent; border: 1.5px solid #E2E8F0; "
+            f"border-radius: 10px; margin-top: 12px; padding-top: 16px; font-weight: 600; "
+            f"color: #0F172A; font-size: 14px; }} "
+            f"QGroupBox::title {{ subcontrol-origin: margin; subcontrol-position: top left; "
+            f"left: 14px; padding: 0 10px; color: #64748B; font-size: 12px; "
+            f"text-transform: uppercase; letter-spacing: 0.5px; }}"
+        )
         printer_layout = QFormLayout()
         printer_group.setLayout(printer_layout)
+        printer_layout.setSpacing(12)
+        printer_layout.setContentsMargins(16, 16, 16, 16)
 
-        self.chk_impresora = QCheckBox("Usar impresora termica")
+        self.chk_impresora = QCheckBox("Usar impresora térmica")
+        self.chk_impresora.setStyleSheet(
+            f"color: #0F172A; font-size: 13px; spacing: 8px;"
+        )
         self.chk_impresora.toggled.connect(self.on_impresora_toggled)
         printer_layout.addRow("", self.chk_impresora)
 
         self.tipo_impresora = QComboBox()
         self.tipo_impresora.addItems(["USB", "Red (TCP/IP)", "Serial (COM)"])
         self.tipo_impresora.currentTextChanged.connect(self.on_tipo_impresora_changed)
-        printer_layout.addRow("Tipo de conexion:", self.tipo_impresora)
+        printer_layout.addRow("Tipo de conexión:", self.tipo_impresora)
 
         self.usb_widget = QWidget()
         usb_layout = QFormLayout()
         self.usb_widget.setLayout(usb_layout)
+        usb_layout.setSpacing(8)
+        usb_layout.setContentsMargins(0, 0, 0, 0)
         self.vendor_id = QLineEdit("0x0416")
+        self.vendor_id.setStyleSheet(input_style())
         self.product_id = QLineEdit("0x5011")
+        self.product_id.setStyleSheet(input_style())
         usb_layout.addRow("Vendor ID:", self.vendor_id)
         usb_layout.addRow("Product ID:", self.product_id)
         printer_layout.addRow("", self.usb_widget)
@@ -351,8 +462,12 @@ class SetupView(QWidget):
         self.red_widget = QWidget()
         red_layout = QFormLayout()
         self.red_widget.setLayout(red_layout)
+        red_layout.setSpacing(8)
+        red_layout.setContentsMargins(0, 0, 0, 0)
         self.ip_impresora = QLineEdit("192.168.1.100")
+        self.ip_impresora.setStyleSheet(input_style())
         self.puerto_impresora = QLineEdit("9100")
+        self.puerto_impresora.setStyleSheet(input_style())
         red_layout.addRow("IP:", self.ip_impresora)
         red_layout.addRow("Puerto:", self.puerto_impresora)
         printer_layout.addRow("", self.red_widget)
@@ -361,7 +476,10 @@ class SetupView(QWidget):
         self.serial_widget = QWidget()
         serial_layout = QFormLayout()
         self.serial_widget.setLayout(serial_layout)
+        serial_layout.setSpacing(8)
+        serial_layout.setContentsMargins(0, 0, 0, 0)
         self.com_port = QLineEdit("COM1")
+        self.com_port.setStyleSheet(input_style())
         serial_layout.addRow("Puerto COM:", self.com_port)
         printer_layout.addRow("", self.serial_widget)
         self.serial_widget.setVisible(False)
@@ -371,23 +489,39 @@ class SetupView(QWidget):
         self.ancho_papel.setCurrentIndex(1)
         printer_layout.addRow("Ancho de papel:", self.ancho_papel)
 
-        btn_prueba = QPushButton("Imprimir pagina de prueba")
-        btn_prueba.setStyleSheet(btn_primary())
+        btn_prueba = QPushButton("Imprimir página de prueba")
+        btn_prueba.setFixedHeight(42)
+        btn_prueba.setStyleSheet(btn_secondary())
         btn_prueba.clicked.connect(self.prueba_impresion)
         printer_layout.addRow("", btn_prueba)
 
         self.printer_group = printer_group
-        fields_layout.addWidget(printer_group)
+        card_layout.addWidget(printer_group)
         self.on_impresora_toggled(False)
 
-        layout.addLayout(fields_layout)
-        layout.addStretch()
+        # Add card to scroll layout
+        scroll_layout.addWidget(card)
+        scroll_layout.addStretch()
+
+        scroll.setWidget(scroll_content)
+
+        # Footer with save button
+        footer = QWidget()
+        footer.setStyleSheet("background-color: transparent;")
+        footer_layout = QVBoxLayout()
+        footer.setLayout(footer_layout)
+        footer_layout.setContentsMargins(24, 16, 24, 24)
+        footer_layout.setSpacing(12)
 
         self.btn_guardar = QPushButton("GUARDAR CONFIGURACIÓN")
-        self.btn_guardar.setFixedHeight(48)
-        self.btn_guardar.setStyleSheet(btn_primary())
+        self.btn_guardar.setFixedHeight(44)
+        self.btn_guardar.setStyleSheet(
+            btn_primary() + "QPushButton { min-width: 240px; }"
+        )
         self.btn_guardar.clicked.connect(self.guardar)
-        layout.addWidget(self.btn_guardar)
+        footer_layout.addWidget(self.btn_guardar, alignment=Qt.AlignmentFlag.AlignCenter)
+
+        main_layout.addWidget(footer)
 
     def cargar_config(self):
         from tucajero.utils.store_config import get_printer_config
@@ -406,8 +540,8 @@ class SetupView(QWidget):
                 pixmap = QPixmap(logo)
                 if not pixmap.isNull():
                     scaled = pixmap.scaled(
-                        70,
-                        70,
+                        56,
+                        56,
                         Qt.AspectRatioMode.KeepAspectRatio,
                         Qt.TransformationMode.SmoothTransformation,
                     )
@@ -445,8 +579,8 @@ class SetupView(QWidget):
             pixmap = QPixmap(file_path)
             if not pixmap.isNull():
                 scaled = pixmap.scaled(
-                    70,
-                    70,
+                    56,
+                    56,
                     Qt.AspectRatioMode.KeepAspectRatio,
                     Qt.TransformationMode.SmoothTransformation,
                 )
