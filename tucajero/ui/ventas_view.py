@@ -370,7 +370,7 @@ class VentasView(QWidget):
         hdr_l.addWidget(self.lbl_cliente)
 
         self.btn_cliente = ButtonPremium("Seleccionar cliente", style="primary")
-        self.btn_cliente.setFixedHeight(32)
+        self.btn_cliente.setMinimumHeight(44)
         self.btn_cliente.clicked.connect(self.seleccionar_cliente)
         hdr_l.addWidget(self.btn_cliente)
         self.btn_quitar_cliente = QPushButton("✕")
@@ -474,7 +474,7 @@ class VentasView(QWidget):
 
         # Barra de acciones (Descuento + Eliminar — sin botones ± redundantes)
         actions_bar = QWidget()
-        actions_bar.setFixedHeight(48)
+        actions_bar.setMinimumHeight(60)
         actions_bar.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
         )
@@ -487,11 +487,11 @@ class VentasView(QWidget):
         actions_l.setSpacing(8)
 
         self.btn_descuento = ButtonPremium("% Descuento", style="secondary")
-        self.btn_descuento.setFixedHeight(36)
+        self.btn_descuento.setMinimumHeight(44)
         self.btn_descuento.clicked.connect(self.aplicar_descuento)
 
         self.btn_eliminar = ButtonPremium("🗑  Eliminar", style="danger")
-        self.btn_eliminar.setFixedHeight(36)
+        self.btn_eliminar.setMinimumHeight(44)
         self.btn_eliminar.clicked.connect(self.eliminar_item)
 
         actions_l.addWidget(self.btn_descuento)
@@ -664,11 +664,11 @@ class VentasView(QWidget):
         sec_l.setSpacing(8)
 
         self.btn_cancelar = ButtonPremium("✕  Cancelar", style="secondary")
-        self.btn_cancelar.setFixedHeight(36)
+        self.btn_cancelar.setMinimumHeight(44)
         self.btn_cancelar.clicked.connect(self.cancelar_venta)
 
         self.btn_cotizacion = ButtonPremium("📋  Cotizar", style="secondary")
-        self.btn_cotizacion.setFixedHeight(36)
+        self.btn_cotizacion.setMinimumHeight(44)
         self.btn_cotizacion.clicked.connect(self.guardar_cotizacion)
 
         sec_l.addWidget(self.btn_cancelar)
