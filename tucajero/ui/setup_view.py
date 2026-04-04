@@ -51,20 +51,20 @@ class SetupDialog(QDialog):
 
         # Header
         header = QWidget()
-        header.setStyleSheet(f"background-color: {c['bg_sidebar']};")
+        header.setStyleSheet(f"background-color: {Colors.BG_PANEL};")
         header_layout = QVBoxLayout()
         header.setLayout(header_layout)
         header_layout.setContentsMargins(24, 24, 24, 24)
         header_layout.setSpacing(4)
 
         title = QLabel("Bienvenido a TuCajero")
-        title.setStyleSheet(f"color: {c['text_primary']}; font-size: 26px; font-weight: bold;")
+        title.setStyleSheet(f"color: {Colors.TEXT_PRIMARY}; font-size: 26px; font-weight: bold;")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         header_layout.addWidget(title)
 
         subtitle = QLabel("Configura tu negocio para comenzar")
         subtitle.setObjectName("subtitle")
-        subtitle.setStyleSheet(f"color: {c['text_secondary']}; font-size: 14px;")
+        subtitle.setStyleSheet(f"color: {Colors.TEXT_SECONDARY}; font-size: 14px;")
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
         header_layout.addWidget(subtitle)
 
@@ -299,7 +299,7 @@ class SetupView(QWidget):
         header_layout.addWidget(titulo)
 
         subtitulo = QLabel("Administra la información de tu negocio")
-        subtitulo.setStyleSheet(f"color: {c['text_secondary']}; font-size: 13px;")
+        subtitulo.setStyleSheet(f"color: {Colors.TEXT_SECONDARY}; font-size: 13px;")
         subtitulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         header_layout.addWidget(subtitulo)
 

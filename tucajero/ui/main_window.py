@@ -80,7 +80,7 @@ class MainWindow(QMainWindow):
         import os
 
         header = QWidget()
-        header.setFixedHeight(70)
+        header.setFixedHeight(80)
         header.setStyleSheet(f"""
             QWidget {{
                 background-color: {Colors.BG_CARD};
@@ -88,40 +88,40 @@ class MainWindow(QMainWindow):
             }}
         """)
         layout = QHBoxLayout(header)
-        layout.setContentsMargins(24, 0, 24, 0)
-        layout.setSpacing(16)
+        layout.setContentsMargins(24, 10, 24, 10)
+        layout.setSpacing(20)
 
         # Logo del negocio
         logo = QLabel()
-        logo.setFixedSize(42, 42)
+        logo.setFixedSize(56, 56)
         logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         logo_path = get_logo_path()
         if logo_path and os.path.exists(logo_path):
             from PySide6.QtGui import QPixmap
 
             pix = QPixmap(logo_path).scaled(
-                40,
-                40,
+                52,
+                52,
                 Qt.AspectRatioMode.KeepAspectRatioByExpanding,
                 Qt.TransformationMode.SmoothTransformation,
             )
             logo.setPixmap(pix)
-            logo.setStyleSheet(f"border-radius: 21px; border: 2px solid {Colors.BORDER_DEFAULT};")
+            logo.setStyleSheet(f"border-radius: 12px; border: 2px solid {Colors.BORDER_DEFAULT}; background: transparent;")
         else:
             logo.setText("🏪")
             logo.setStyleSheet(
-                f"background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 {Colors.PRIMARY}, stop:1 {Colors.INFO}); border-radius: 21px; font-size: 20px; border: none;"
+                f"background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 {Colors.PRIMARY}, stop:1 {Colors.INFO}); border-radius: 12px; font-size: 28px; border: none;"
             )
         layout.addWidget(logo)
 
         # Info del negocio
         info_col = QVBoxLayout()
-        info_col.setSpacing(2)
+        info_col.setSpacing(3)
         info_col.setContentsMargins(0, 0, 0, 0)
 
         store_lbl = QLabel(get_store_name())
         store_lbl.setStyleSheet(
-            f"color: {Colors.TEXT_PRIMARY}; font-size: 16px; font-weight: 700; background: transparent; border: none;"
+            f"color: {Colors.TEXT_PRIMARY}; font-size: 18px; font-weight: 700; background: transparent; border: none;"
         )
         info_col.addWidget(store_lbl)
 
@@ -135,7 +135,7 @@ class MainWindow(QMainWindow):
         if parts:
             sub = QLabel("  |  ".join(parts))
             sub.setStyleSheet(
-                f"color: {Colors.TEXT_MUTED}; font-size: 11px; background: transparent; border: none;"
+                f"color: {Colors.TEXT_MUTED}; font-size: 12px; background: transparent; border: none;"
             )
             info_col.addWidget(sub)
 
@@ -146,34 +146,34 @@ class MainWindow(QMainWindow):
         user_w = QWidget()
         user_w.setStyleSheet(f"""
             QWidget {{
-                background-color: {Colors.BG_INPUT};
-                border-radius: 22px;
+                background-color: {Colors.BG_ELEVATED};
+                border-radius: 28px;
                 border: 1px solid {Colors.BORDER_DEFAULT};
-                padding: 4px;
+                padding: 6px;
             }}
         """)
         ul = QHBoxLayout(user_w)
-        ul.setContentsMargins(12, 4, 16, 4)
-        ul.setSpacing(10)
+        ul.setContentsMargins(14, 6, 18, 6)
+        ul.setSpacing(12)
 
         av = QLabel("👑")
-        av.setFixedSize(32, 32)
+        av.setFixedSize(40, 40)
         av.setAlignment(Qt.AlignmentFlag.AlignCenter)
         av.setStyleSheet(
-            f"background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 {Colors.PRIMARY}, stop:1 {Colors.PRIMARY_DARK}); border-radius: 16px; font-size: 14px; border: none;"
+            f"background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 {Colors.PRIMARY}, stop:1 {Colors.PRIMARY_DARK}); border-radius: 20px; font-size: 18px; border: none;"
         )
         ul.addWidget(av)
 
         u_info = QVBoxLayout()
-        u_info.setSpacing(0)
+        u_info.setSpacing(1)
         u_info.setContentsMargins(0, 0, 0, 0)
         self.lbl_cajero = QLabel("Administrador")
         self.lbl_cajero.setStyleSheet(
-            f"color: {Colors.TEXT_PRIMARY}; font-size: 13px; font-weight: 600; background: transparent; border: none;"
+            f"color: {Colors.TEXT_PRIMARY}; font-size: 14px; font-weight: 600; background: transparent; border: none;"
         )
         lbl_rol = QLabel("EXECUTIVE LEVEL")
         lbl_rol.setStyleSheet(
-            f"color: {Colors.TEXT_MUTED}; font-size: 9px; letter-spacing: 0.5px; background: transparent; border: none; text-transform: uppercase;"
+            f"color: {Colors.TEXT_MUTED}; font-size: 10px; letter-spacing: 0.5px; background: transparent; border: none; text-transform: uppercase;"
         )
         u_info.addWidget(self.lbl_cajero)
         u_info.addWidget(lbl_rol)
@@ -201,7 +201,7 @@ class MainWindow(QMainWindow):
 
         # ── Header del sidebar ──────────────────────────────────
         header = QWidget()
-        header.setFixedHeight(70)
+        header.setFixedHeight(80)
         header.setStyleSheet(f"""
             QWidget {{
                 background: {Colors.BG_PANEL};
@@ -209,12 +209,12 @@ class MainWindow(QMainWindow):
             }}
         """)
         h_layout = QHBoxLayout(header)
-        h_layout.setContentsMargins(16, 0, 16, 0)
-        h_layout.setSpacing(12)
+        h_layout.setContentsMargins(16, 8, 16, 8)
+        h_layout.setSpacing(14)
 
         # Logo
         logo = QLabel()
-        logo.setFixedSize(38, 38)
+        logo.setFixedSize(48, 48)
         logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         app_icon = os.path.join(
             os.path.dirname(__file__), "..", "assets", "icons", "tucajero.ico"
@@ -224,32 +224,32 @@ class MainWindow(QMainWindow):
             from PySide6.QtGui import QPixmap
 
             pix = QPixmap(app_icon).scaled(
-                34,
-                34,
+                42,
+                42,
                 Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation,
             )
             logo.setPixmap(pix)
             logo.setStyleSheet(
-                "border-radius: 10px; background: transparent; border: none;"
+                "border-radius: 12px; background: transparent; border: none;"
             )
         elif store_logo and os.path.exists(store_logo):
             from PySide6.QtGui import QPixmap
 
             pix = QPixmap(store_logo).scaled(
-                34,
-                34,
+                42,
+                42,
                 Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation,
             )
             logo.setPixmap(pix)
             logo.setStyleSheet(
-                "border-radius: 10px; background: transparent; border: none;"
+                "border-radius: 12px; background: transparent; border: none;"
             )
         else:
             logo.setText("TC")
             logo.setStyleSheet(
-                f"background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 {Colors.PRIMARY}, stop:1 {Colors.PRIMARY_DARK}); color: white; border-radius: 10px; font-size: 13px; font-weight: 700; border: none;"
+                f"background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 {Colors.PRIMARY}, stop:1 {Colors.PRIMARY_DARK}); color: white; border-radius: 12px; font-size: 16px; font-weight: 700; border: none;"
             )
 
         app_name = QLabel("TuCajero")
