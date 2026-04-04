@@ -234,6 +234,7 @@ class LoginView(QDialog):
             }
         """)
         self.username_input = username_input
+        username_input.returnPressed.connect(self._on_username_enter)
         card_layout.addWidget(username_input)
         card_layout.addSpacing(20)
 
@@ -360,6 +361,11 @@ class LoginView(QDialog):
 
     def get_pin(self):
         return "".join(box.get_value() for box in self.pin_boxes)
+
+    def _on_username_enter(self):
+        """Move focus to first PIN box when Enter is pressed in username field"""
+        self.pin_boxes[0].setFocus()
+        self.pin_boxes[0].set_focus_state(True)
 
     def login(self):
         pin = self.get_pin()
