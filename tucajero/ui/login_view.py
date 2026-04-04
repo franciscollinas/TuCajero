@@ -15,8 +15,7 @@ from PySide6.QtWidgets import (
     QWidget,
     QGraphicsDropShadowEffect,
     QMessageBox,
-    QListWidget,
-    QListWidgetItem,
+    QLineEdit,
 )
 from PySide6.QtCore import Qt, QEvent
 from PySide6.QtGui import QColor, QPixmap
@@ -131,7 +130,6 @@ class LoginView(QDialog):
         super().__init__(parent)
         self.session = session
         self.cajero_seleccionado = None
-        self.selected_cajero = None
         self.pin_boxes = []
         self.current_box = 0
 
@@ -215,67 +213,29 @@ class LoginView(QDialog):
             card_layout.addWidget(logo_label)
             card_layout.addSpacing(28)
 
-        # USER SELECTOR - Button with dropdown
-        user_container = QWidget()
-        user_container.setStyleSheet("background: transparent;")
-        user_layout = QVBoxLayout(user_container)
-        user_layout.setContentsMargins(0, 0, 0, 0)
-        user_layout.setSpacing(4)
-
-        # User button
-        self.user_btn = QPushButton("👤 Admin")
-        self.user_btn.setFixedHeight(36)
-        self.user_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.user_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #F8FAFC;
-                border: 1px solid #E2E8F0;
-                border-radius: 8px;
-                padding: 6px 16px;
-                font-size: 13px;
-                font-weight: 500;
-                color: #0F172A;
-            }
-            QPushButton:hover {
-                border: 1px solid #2563EB;
-            }
-        """)
-        self.user_btn.clicked.connect(self.toggle_user_dropdown)
-        user_layout.addWidget(self.user_btn)
-
-        # User dropdown (hidden)
-        self.user_dropdown = QListWidget()
-        self.user_dropdown.setVisible(False)
-        self.user_dropdown.setFixedWidth(200)
-        self.user_dropdown.setStyleSheet("""
-            QListWidget {
+        # USERNAME INPUT
+        username_input = QLineEdit()
+        username_input.setPlaceholderText("👤 Usuario")
+        username_input.setFixedHeight(44)
+        username_input.setStyleSheet("""
+            QLineEdit {
                 background-color: #FFFFFF;
                 border: 1px solid #E2E8F0;
                 border-radius: 8px;
-                padding: 4px;
-            }
-            QListWidget::item {
-                padding: 10px 12px;
-                border-radius: 6px;
-                margin: 2px 0;
-                font-size: 13px;
-            }
-            QListWidget::item:hover {
-                background-color: #F1F5F9;
-            }
-            QListWidget::item:selected {
-                background-color: #DBEAFE;
+                padding: 0 16px;
+                font-size: 14px;
                 color: #0F172A;
             }
+            QLineEdit:focus {
+                border: 2px solid #2563EB;
+            }
+            QLineEdit::placeholder {
+                color: #94A3B8;
+            }
         """)
-        self.user_dropdown.itemClicked.connect(self.select_user)
-        user_layout.addWidget(self.user_dropdown)
-
-        # Load users
-        self.load_users()
-
-        card_layout.addWidget(user_container)
-        card_layout.addSpacing(32)
+        self.username_input = username_input
+        card_layout.addWidget(username_input)
+        card_layout.addSpacing(20)
 
         # PIN LABEL - Hero section
         pin_label = QLabel("Ingresa tu PIN")
@@ -401,67 +361,34 @@ class LoginView(QDialog):
     def get_pin(self):
         return "".join(box.get_value() for box in self.pin_boxes)
 
-    def load_users(self):
-        """Load users from database into dropdown"""
-        self.user_dropdown.clear()
-        try:
-            from tucajero.services.cajero_service import CajeroService
-            cajero_service = CajeroService(self.session)
-            cajeros = cajero_service.get_all()
-
-            for cajero in cajeros:
-                item = QListWidgetItem(f"👤 {cajero.nombre}")
-                item.setData(Qt.ItemDataRole.UserRole, cajero)
-                self.user_dropdown.addItem(item)
-
-            # Auto-select first user
-            if cajeros:
-                self.selected_cajero = cajeros[0]
-                self.user_btn.setText(f"👤 {cajeros[0].nombre}")
-        except Exception:
-            pass
-
-    def toggle_user_dropdown(self):
-        """Show/hide user dropdown"""
-        if self.user_dropdown.isVisible():
-            self.user_dropdown.setVisible(False)
-        else:
-            self.user_dropdown.setVisible(True)
-
-    def select_user(self, item):
-        """Select user from dropdown"""
-        cajero = item.data(Qt.ItemDataRole.UserRole)
-        if cajero:
-            self.selected_cajero = cajero
-            self.user_btn.setText(f"👤 {cajero.nombre}")
-        self.user_dropdown.setVisible(False)
-
     def login(self):
         pin = self.get_pin()
+        username = self.username_input.text().strip()
+        
+        if not username:
+            QMessageBox.warning(self, "Error", "Ingresa tu nombre de usuario")
+            self.username_input.setFocus()
+            return
+            
         if len(pin) != 4:
             QMessageBox.warning(self, "Error", "Ingresa un PIN de 4 dígitos")
             return
 
-        # Authenticate PIN against selected user
+        # Authenticate user by username and PIN
         from tucajero.services.cajero_service import CajeroService
 
         cajero_service = CajeroService(self.session)
         cajero_service.crear_admin_default()
 
-        # Verify PIN for selected user
-        if hasattr(self, 'selected_cajero') and self.selected_cajero:
-            if not self.selected_cajero.verificar_pin(pin):
-                cajero_encontrado = None
-            else:
-                cajero_encontrado = self.selected_cajero
-        else:
-            # Fallback: search all users
-            cajeros = cajero_service.get_all()
-            cajero_encontrado = None
-            for cajero in cajeros:
+        # Find user by name (case-insensitive)
+        cajeros = cajero_service.get_all()
+        cajero_encontrado = None
+        
+        for cajero in cajeros:
+            if cajero.nombre.lower() == username.lower():
                 if cajero.verificar_pin(pin):
                     cajero_encontrado = cajero
-                    break
+                break
 
         if not cajero_encontrado:
             QMessageBox.warning(self, "Error", "PIN incorrecto. Intenta de nuevo.")
