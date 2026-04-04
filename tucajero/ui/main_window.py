@@ -57,6 +57,8 @@ class MainWindow(QMainWindow):
         content_area = QWidget()
         content_layout = QVBoxLayout()
         content_area.setLayout(content_layout)
+        content_layout.setContentsMargins(0, 0, 0, 0)
+        content_layout.setSpacing(0)
 
         self.header = self._build_header()
         content_layout.addWidget(self.header)
@@ -88,7 +90,7 @@ class MainWindow(QMainWindow):
             }}
         """)
         layout = QHBoxLayout(header)
-        layout.setContentsMargins(24, 10, 24, 10)
+        layout.setContentsMargins(24, 8, 24, 8)
         layout.setSpacing(20)
 
         # Logo del negocio
