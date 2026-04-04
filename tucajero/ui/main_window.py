@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon, QPixmap
 from tucajero.ui.design_tokens import Colors, Typography, Spacing, BorderRadius
+from tucajero.ui.components_premium import ButtonPremium
 from tucajero.utils.store_config import (
     get_store_name,
     get_logo_path,
@@ -21,8 +22,6 @@ from tucajero.utils.store_config import (
     get_email,
     get_address,
 )
-from tucajero.ui.design_tokens import Colors, Typography, Spacing, BorderRadius
-from tucajero.ui.components_premium import ButtonPremium
 import os
 
 
@@ -71,7 +70,6 @@ class MainWindow(QMainWindow):
         self._nav_buttons = {}
 
     def _build_header(self):
-        from tucajero.utils.theme import get_colors
         from tucajero.utils.store_config import (
             get_store_name,
             get_nit,
@@ -81,14 +79,12 @@ class MainWindow(QMainWindow):
         )
         import os
 
-        c = get_colors()
-
         header = QWidget()
         header.setFixedHeight(70)
         header.setStyleSheet(f"""
             QWidget {{
-                background-color: {c["bg_card"]};
-                border-bottom: 1px solid {c["border"]};
+                background-color: {Colors.BG_CARD};
+                border-bottom: 1px solid {Colors.BORDER_DEFAULT};
             }}
         """)
         layout = QHBoxLayout(header)
@@ -110,11 +106,11 @@ class MainWindow(QMainWindow):
                 Qt.TransformationMode.SmoothTransformation,
             )
             logo.setPixmap(pix)
-            logo.setStyleSheet(f"border-radius: 21px; border: 2px solid {c['border']};")
+            logo.setStyleSheet(f"border-radius: 21px; border: 2px solid {Colors.BORDER_DEFAULT};")
         else:
             logo.setText("🏪")
             logo.setStyleSheet(
-                f"background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 {c['primary']}, stop:1 {c['info']}); border-radius: 21px; font-size: 20px; border: none;"
+                f"background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 {Colors.PRIMARY}, stop:1 {Colors.INFO}); border-radius: 21px; font-size: 20px; border: none;"
             )
         layout.addWidget(logo)
 
@@ -125,7 +121,7 @@ class MainWindow(QMainWindow):
 
         store_lbl = QLabel(get_store_name())
         store_lbl.setStyleSheet(
-            f"color: {c['text_primary']}; font-size: 16px; font-weight: 700; background: transparent; border: none;"
+            f"color: {Colors.TEXT_PRIMARY}; font-size: 16px; font-weight: 700; background: transparent; border: none;"
         )
         info_col.addWidget(store_lbl)
 
@@ -139,7 +135,7 @@ class MainWindow(QMainWindow):
         if parts:
             sub = QLabel("  |  ".join(parts))
             sub.setStyleSheet(
-                f"color: {c['text_muted']}; font-size: 11px; background: transparent; border: none;"
+                f"color: {Colors.TEXT_MUTED}; font-size: 11px; background: transparent; border: none;"
             )
             info_col.addWidget(sub)
 
@@ -150,9 +146,9 @@ class MainWindow(QMainWindow):
         user_w = QWidget()
         user_w.setStyleSheet(f"""
             QWidget {{
-                background-color: {c["bg_input"]};
+                background-color: {Colors.BG_INPUT};
                 border-radius: 22px;
-                border: 1px solid {c["border"]};
+                border: 1px solid {Colors.BORDER_DEFAULT};
                 padding: 4px;
             }}
         """)
@@ -164,7 +160,7 @@ class MainWindow(QMainWindow):
         av.setFixedSize(32, 32)
         av.setAlignment(Qt.AlignmentFlag.AlignCenter)
         av.setStyleSheet(
-            f"background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 {c['primary']}, stop:1 {c['primary_container']}); border-radius: 16px; font-size: 14px; border: none;"
+            f"background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 {Colors.PRIMARY}, stop:1 {Colors.PRIMARY_DARK}); border-radius: 16px; font-size: 14px; border: none;"
         )
         ul.addWidget(av)
 
@@ -173,11 +169,11 @@ class MainWindow(QMainWindow):
         u_info.setContentsMargins(0, 0, 0, 0)
         self.lbl_cajero = QLabel("Administrador")
         self.lbl_cajero.setStyleSheet(
-            f"color: {c['text_primary']}; font-size: 13px; font-weight: 600; background: transparent; border: none;"
+            f"color: {Colors.TEXT_PRIMARY}; font-size: 13px; font-weight: 600; background: transparent; border: none;"
         )
         lbl_rol = QLabel("EXECUTIVE LEVEL")
         lbl_rol.setStyleSheet(
-            f"color: {c['text_muted']}; font-size: 9px; letter-spacing: 0.5px; background: transparent; border: none; text-transform: uppercase;"
+            f"color: {Colors.TEXT_MUTED}; font-size: 9px; letter-spacing: 0.5px; background: transparent; border: none; text-transform: uppercase;"
         )
         u_info.addWidget(self.lbl_cajero)
         u_info.addWidget(lbl_rol)
@@ -187,11 +183,8 @@ class MainWindow(QMainWindow):
         return header
 
     def _build_sidebar(self):
-        from tucajero.utils.theme import get_colors, btn_sidebar
         from tucajero.utils.store_config import get_logo_path
         import os
-
-        c = get_colors()
 
         sidebar = QWidget()
         sidebar.setFixedWidth(240)
@@ -256,7 +249,7 @@ class MainWindow(QMainWindow):
         else:
             logo.setText("TC")
             logo.setStyleSheet(
-                f"background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 {c['primary']}, stop:1 {c['primary_container']}); color: white; border-radius: 10px; font-size: 13px; font-weight: 700; border: none;"
+                f"background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 {Colors.PRIMARY}, stop:1 {Colors.PRIMARY_DARK}); color: white; border-radius: 10px; font-size: 13px; font-weight: 700; border: none;"
             )
 
         app_name = QLabel("TuCajero")
@@ -342,7 +335,7 @@ class MainWindow(QMainWindow):
         # ── Separador ──────────────────────────────────────────
         sep = QFrame()
         sep.setFrameShape(QFrame.Shape.HLine)
-        sep.setStyleSheet(f"background-color: {c['border']}; border: none; max-height: 1px;")
+        sep.setStyleSheet(f"background-color: {Colors.BORDER_DEFAULT}; border: none; max-height: 1px;")
         layout.addWidget(sep)
 
         # ── Footer ─────────────────────────────────────────────
@@ -553,15 +546,10 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "📦 Stock bajo", mensaje)
 
         except Exception as e:
-            from tucajero.utils.theme import get_colors
-
             pass
 
     def actualizar_badge_productos(self, num_alertas):
         """Actualiza el botón de Productos con badge de alertas"""
-        from tucajero.utils.theme import get_colors
-
-        c = get_colors()
         btn = self._nav_buttons.get("productos")
         if btn:
             if num_alertas > 0:

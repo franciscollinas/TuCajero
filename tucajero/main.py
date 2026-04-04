@@ -35,6 +35,32 @@ def global_exception_handler(exc_type, exc_value, exc_traceback):
         msg.setWindowTitle("Error inesperado")
         msg.setText("Ocurrió un error inesperado.\nLa aplicación seguirá funcionando.")
         msg.setDetailedText(str(exc_value))
+        # Override global dark styles for this dialog
+        msg.setStyleSheet("""
+            QMessageBox {
+                background-color: #FFFFFF;
+            }
+            QMessageBox QLabel {
+                color: #0F172A;
+                background: transparent;
+            }
+            QPushButton {
+                background-color: #2563EB;
+                color: #FFFFFF;
+                border: none;
+                border-radius: 6px;
+                padding: 8px 16px;
+                font-weight: 600;
+                min-width: 80px;
+            }
+            QPushButton:hover {
+                background-color: #1D4ED8;
+            }
+            QPushButton#qt_msgbox_detailsbutton {
+                background-color: #E2E8F0;
+                color: #0F172A;
+            }
+        """)
         msg.exec()
     except:
         pass
