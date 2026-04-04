@@ -450,7 +450,7 @@ class MainWindow(QMainWindow):
 
             view = SetupView(self.session, parent=self)
         elif name == "dashboard":
-            from tucajero.ui.dashboard_view import DashboardView
+            from tucajero.app.ui.views.dashboard.dashboard_view import DashboardView
 
             view = DashboardView(self.session, parent=self)
         elif name == "cajeros":
