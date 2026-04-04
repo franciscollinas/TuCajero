@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QDoubleSpinBox,
     QDialogButtonBox,
+    QFrame,
 )
 from PySide6.QtCore import Qt
 from datetime import datetime
@@ -37,125 +38,190 @@ class CorteView(QWidget):
         c = get_colors()
         self.setStyleSheet(f"background-color: {c['bg_app']};")
 
-        layout = QVBoxLayout()
-        self.setLayout(layout)
+        # Main layout with scroll
+        main_layout = QVBoxLayout()
+        main_layout.setContentsMargins(24, 24, 24, 24)
+        main_layout.setSpacing(24)
+        self.setLayout(main_layout)
 
+        # Title - centered
         titulo = QLabel("Corte de Caja")
-        titulo.setStyleSheet("font-size: 24px; font-weight: bold;")
-        layout.addWidget(titulo)
+        titulo.setStyleSheet(
+            f"font-size: 28px; font-weight: 700; color: {c['text_primary']}; "
+            f"background: transparent;"
+        )
+        titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        main_layout.addWidget(titulo)
 
-        from tucajero.utils.theme import card_style
+        # Centered container (max-width: 600px)
+        container = QWidget()
+        container.setMaximumWidth(600)
+        container_layout = QVBoxLayout()
+        container_layout.setContentsMargins(0, 0, 0, 0)
+        container_layout.setSpacing(24)
+        container.setLayout(container_layout)
 
-        self.info_widget = QWidget()
+        # --- Info Card ---
+        self.info_widget = QFrame()
         self.info_widget.setObjectName("infoCard")
         self.info_widget.setStyleSheet(f"""
-            QWidget#infoCard {{
-                background-color: {c["bg_card"]};
-                border-radius: 16px;
-                border: 1.5px solid {c["border"]};
+            QFrame#infoCard {{
+                background-color: #FFFFFF;
+                border-radius: 12px;
+                border: 1px solid #E2E8F0;
             }}
         """)
-        info_layout = QVBoxLayout()
-        info_layout.setContentsMargins(20, 20, 20, 20)
-        self.info_widget.setLayout(info_layout)
+        info_inner = QVBoxLayout()
+        info_inner.setContentsMargins(24, 24, 24, 24)
+        info_inner.setSpacing(12)
+        self.info_widget.setLayout(info_inner)
 
         self.lbl_fecha = QLabel(f"Fecha: {datetime.now().strftime('%d/%m/%Y')}")
         self.lbl_fecha.setStyleSheet(
-            f"color: {c['text_secondary']}; font-size: 13px; background: transparent;"
+            f"color: #64748B; font-size: 14px; background: transparent;"
         )
-        info_layout.addWidget(self.lbl_fecha)
+        info_inner.addWidget(self.lbl_fecha)
 
         self.lbl_estado = QLabel("Caja: ABIERTA")
         self.lbl_estado.setStyleSheet(
-            f"color: {c['success']}; font-size: 15px; font-weight: bold; background: transparent;"
+            f"color: {c['success']}; font-size: 15px; font-weight: 600; background: transparent;"
         )
-        info_layout.addWidget(self.lbl_estado)
+        info_inner.addWidget(self.lbl_estado)
 
         self.lbl_total = QLabel(f"Total vendido: {fmt_moneda(0)}")
         self.lbl_total.setStyleSheet(
-            f"color: {c['success']}; font-size: 26px; font-weight: bold; background: transparent;"
+            f"color: #0F172A; font-size: 28px; font-weight: 700; background: transparent;"
         )
-        info_layout.addWidget(self.lbl_total)
+        info_inner.addWidget(self.lbl_total)
 
-        self.lbl_num_ventas = QLabel("Número de ventas: 0")
+        self.lbl_num_ventas = QLabel("Numero de ventas: 0")
         self.lbl_num_ventas.setStyleSheet(
-            f"color: {c['text_secondary']}; font-size: 13px; background: transparent;"
+            f"color: #64748B; font-size: 14px; background: transparent;"
         )
-        info_layout.addWidget(self.lbl_num_ventas)
+        info_inner.addWidget(self.lbl_num_ventas)
 
-        layout.addWidget(self.info_widget)
+        container_layout.addWidget(self.info_widget)
 
+        # --- Buttons Card ---
+        buttons_card = QFrame()
+        buttons_card.setObjectName("buttonsCard")
+        buttons_card.setStyleSheet(f"""
+            QFrame#buttonsCard {{
+                background-color: #FFFFFF;
+                border-radius: 12px;
+                border: 1px solid #E2E8F0;
+            }}
+        """)
+        buttons_inner = QVBoxLayout()
+        buttons_inner.setContentsMargins(24, 24, 24, 24)
+        buttons_inner.setSpacing(12)
+        buttons_card.setLayout(buttons_inner)
+
+        # Row 1: Abrir + Cerrar
         fila1 = QHBoxLayout()
-        fila1.setSpacing(8)
+        fila1.setSpacing(12)
 
         self.btn_abrir = QPushButton("ABRIR CAJA")
-        self.btn_abrir.setFixedHeight(32)
-        self.btn_abrir.setMinimumWidth(160)
-        self.btn_abrir.setMaximumWidth(280)
+        self.btn_abrir.setFixedHeight(44)
         self.btn_abrir.setStyleSheet(btn_primary())
         self.btn_abrir.clicked.connect(self.abrir_caja)
         fila1.addWidget(self.btn_abrir)
 
         self.btn_cerrar = QPushButton("CERRAR CAJA")
-        self.btn_cerrar.setFixedHeight(32)
-        self.btn_cerrar.setMinimumWidth(160)
-        self.btn_cerrar.setMaximumWidth(280)
+        self.btn_cerrar.setFixedHeight(44)
         self.btn_cerrar.setStyleSheet(btn_danger())
         self.btn_cerrar.clicked.connect(self.cerrar_caja)
         fila1.addWidget(self.btn_cerrar)
 
+        buttons_inner.addLayout(fila1)
+
+        # Row 2: Gasto
+        fila1b = QHBoxLayout()
+        fila1b.setSpacing(12)
+
         self.btn_gasto = QPushButton("Registrar Gasto de Caja")
-        self.btn_gasto.setFixedHeight(32)
-        self.btn_gasto.setMinimumWidth(160)
-        self.btn_gasto.setMaximumWidth(280)
+        self.btn_gasto.setFixedHeight(44)
         self.btn_gasto.setStyleSheet(btn_primary())
         self.btn_gasto.clicked.connect(self.registrar_gasto)
-        fila1.addWidget(self.btn_gasto)
+        fila1b.addWidget(self.btn_gasto)
 
+        buttons_inner.addLayout(fila1b)
+
+        # Row 3: Anular + Facturas
         fila2 = QHBoxLayout()
-        fila2.setSpacing(8)
+        fila2.setSpacing(12)
 
         self.btn_anular = QPushButton("Anular Venta")
-        self.btn_anular.setFixedHeight(32)
-        self.btn_anular.setMinimumWidth(160)
-        self.btn_anular.setMaximumWidth(280)
+        self.btn_anular.setFixedHeight(44)
         self.btn_anular.setStyleSheet(btn_danger())
         self.btn_anular.clicked.connect(self.anular_venta)
         fila2.addWidget(self.btn_anular)
 
         self.btn_facturas = QPushButton("Ver Facturas del Dia")
-        self.btn_facturas.setFixedHeight(32)
-        self.btn_facturas.setMinimumWidth(160)
-        self.btn_facturas.setMaximumWidth(280)
+        self.btn_facturas.setFixedHeight(44)
         self.btn_facturas.setStyleSheet(btn_primary())
         self.btn_facturas.clicked.connect(self.ver_facturas_dia)
         fila2.addWidget(self.btn_facturas)
 
+        buttons_inner.addLayout(fila2)
+
+        # Row 4: Reimprimir
+        fila2b = QHBoxLayout()
+        fila2b.setSpacing(12)
+
         self.btn_reimprimir = QPushButton("Reimprimir ultimo ticket")
-        self.btn_reimprimir.setFixedHeight(32)
-        self.btn_reimprimir.setMinimumWidth(160)
-        self.btn_reimprimir.setMaximumWidth(280)
+        self.btn_reimprimir.setFixedHeight(44)
         self.btn_reimprimir.setStyleSheet(btn_secondary())
         self.btn_reimprimir.clicked.connect(self.reimprimir_ultimo)
-        fila2.addWidget(self.btn_reimprimir)
+        fila2b.addWidget(self.btn_reimprimir)
 
-        btn_layout = QVBoxLayout()
-        btn_layout.setSpacing(4)
-        btn_layout.addLayout(fila1)
-        btn_layout.addLayout(fila2)
-        layout.addLayout(btn_layout, stretch=0)
+        buttons_inner.addLayout(fila2b)
+
+        container_layout.addWidget(buttons_card)
+
+        # --- Ganancia Card ---
+        ganancia_card = QFrame()
+        ganancia_card.setObjectName("gananciaCard")
+        ganancia_card.setStyleSheet(f"""
+            QFrame#gananciaCard {{
+                background-color: #FFFFFF;
+                border-radius: 12px;
+                border: 1px solid #E2E8F0;
+            }}
+        """)
+        ganancia_inner = QVBoxLayout()
+        ganancia_inner.setContentsMargins(24, 20, 24, 20)
+        ganancia_card.setLayout(ganancia_inner)
 
         self.lbl_ganancia = QLabel(f"Ganancia neta: {fmt_moneda(0)}")
         self.lbl_ganancia.setStyleSheet(
-            f"font-size: 18px; font-weight: bold; color: {c['purple']}; padding: 6px;"
+            f"font-size: 20px; font-weight: 700; color: {c['purple']}; background: transparent;"
         )
-        layout.addWidget(self.lbl_ganancia, stretch=0)
+        self.lbl_ganancia.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        ganancia_inner.addWidget(self.lbl_ganancia)
+
+        container_layout.addWidget(ganancia_card)
+
+        # --- Ventas Table Card ---
+        ventas_card = QFrame()
+        ventas_card.setObjectName("ventasCard")
+        ventas_card.setStyleSheet(f"""
+            QFrame#ventasCard {{
+                background-color: #FFFFFF;
+                border-radius: 12px;
+                border: 1px solid #E2E8F0;
+            }}
+        """)
+        ventas_inner = QVBoxLayout()
+        ventas_inner.setContentsMargins(24, 20, 24, 24)
+        ventas_inner.setSpacing(16)
+        ventas_card.setLayout(ventas_inner)
 
         historial_label = QLabel("Ventas del dia")
         historial_label.setStyleSheet(
-            "font-size: 16px; font-weight: bold; margin-top: 10px;"
+            f"font-size: 16px; font-weight: 600; color: #0F172A; background: transparent;"
         )
-        layout.addWidget(historial_label, stretch=0)
+        ventas_inner.addWidget(historial_label)
 
         self.tabla_ventas = QTableWidget()
         self.tabla_ventas.setColumnCount(3)
@@ -165,13 +231,30 @@ class CorteView(QWidget):
         )
         self.tabla_ventas.setStyleSheet("font-size: 14px;")
         self.tabla_ventas.setMinimumHeight(120)
-        layout.addWidget(self.tabla_ventas, stretch=3)
+        ventas_inner.addWidget(self.tabla_ventas)
+
+        container_layout.addWidget(ventas_card)
+
+        # --- Gastos Table Card ---
+        gastos_card = QFrame()
+        gastos_card.setObjectName("gastosCard")
+        gastos_card.setStyleSheet(f"""
+            QFrame#gastosCard {{
+                background-color: #FFFFFF;
+                border-radius: 12px;
+                border: 1px solid #E2E8F0;
+            }}
+        """)
+        gastos_inner = QVBoxLayout()
+        gastos_inner.setContentsMargins(24, 20, 24, 24)
+        gastos_inner.setSpacing(16)
+        gastos_card.setLayout(gastos_inner)
 
         gastos_label = QLabel("Gastos del dia")
         gastos_label.setStyleSheet(
-            "font-size: 16px; font-weight: bold; margin-top: 10px;"
+            f"font-size: 16px; font-weight: 600; color: #0F172A; background: transparent;"
         )
-        layout.addWidget(gastos_label, stretch=0)
+        gastos_inner.addWidget(gastos_label)
 
         self.tabla_gastos = QTableWidget()
         self.tabla_gastos.setColumnCount(3)
@@ -181,10 +264,16 @@ class CorteView(QWidget):
         )
         self.tabla_gastos.setStyleSheet("font-size: 13px;")
         self.tabla_gastos.setMinimumHeight(80)
-        layout.addWidget(self.tabla_gastos, stretch=2)
+        gastos_inner.addWidget(self.tabla_gastos)
+
+        container_layout.addWidget(gastos_card)
+
+        # Center the container
+        main_layout.addWidget(container, alignment=Qt.AlignmentFlag.AlignCenter)
+        main_layout.addStretch(1)
 
     def cargar_estadisticas(self):
-        """Carga las estadísticas del día"""
+        """Carga las estadisticas del dia"""
         from tucajero.services.corte_service import CorteCajaService
 
         service = CorteCajaService(self.session)
@@ -211,7 +300,7 @@ class CorteView(QWidget):
             self.btn_anular.setEnabled(False)
 
         self.lbl_total.setText(f"Total vendido: {fmt_moneda(stats['total'])}")
-        self.lbl_num_ventas.setText(f"Número de ventas: {stats['num_ventas']}")
+        self.lbl_num_ventas.setText(f"Numero de ventas: {stats['num_ventas']}")
         self.lbl_ganancia.setText(
             f"Ganancia neta: {fmt_moneda(stats['ganancia_neta'])} "
             f"(Gastos: {fmt_moneda(stats['total_gastos'])})"
@@ -253,14 +342,14 @@ class CorteView(QWidget):
         self.cargar_estadisticas()
 
     def registrar_gasto(self):
-        """Abre diálogo para registrar gasto"""
+        """Abre dialogo para registrar gasto"""
         dialog = QDialog(self)
         dialog.setWindowTitle("Registrar Gasto de Caja")
         dialog.setMinimumWidth(380)
         layout = QFormLayout()
         dialog.setLayout(layout)
 
-        info = QLabel("El monto será descontado de la ganancia del día.")
+        info = QLabel("El monto sera descontado de la ganancia del dia.")
         info.setObjectName("info_label")
         layout.addRow("", info)
 
@@ -308,31 +397,31 @@ class CorteView(QWidget):
                 QMessageBox.critical(self, "Error", str(e))
 
     def cerrar_caja(self):
-        """Cierra la caja con validación de diferencias"""
+        """Cierra la caja con validacion de diferencias"""
         from tucajero.services.corte_service import CorteCajaService
 
         service = CorteCajaService(self.session)
         stats = service.get_estadisticas_hoy()
-        
+
         # Calcular total esperado en caja
         total_esperado = stats['total']
         total_gastos = stats['total_gastos']
-        
-        # Dialogo para ingresar el monto físico en caja
+
+        # Dialogo para ingresar el monto fisico en caja
         from PySide6.QtWidgets import QInputDialog, QMessageBox
         from PySide6.QtGui import QDoubleValidator
-        
+
         # Calcular efectivo esperado (ventas - gastos)
         efectivo_esperado = total_esperado - total_gastos
-        
+
         mensaje = (
             f"Total vendido hoy: {fmt_moneda(total_esperado)}\n"
             f"Total gastos: {fmt_moneda(total_gastos)}\n"
             f"--------------------------------\n"
             f"Efectivo esperado en caja: {fmt_moneda(efectivo_esperado)}\n\n"
-            "Ingrese el monto físico contado en caja:"
+            "Ingrese el monto fisico contado en caja:"
         )
-        
+
         efectivo_real, ok = QInputDialog.getDouble(
             self,
             "Cerrar Caja - Arqueo",
@@ -342,46 +431,46 @@ class CorteView(QWidget):
             max=9999999,
             decimals=2,
         )
-        
+
         if not ok:
             return
-        
+
         # Calcular diferencia
         diferencia = efectivo_real - efectivo_esperado
-        
-        # Mostrar confirmación con la diferencia
+
+        # Mostrar confirmacion con la diferencia
         if abs(diferencia) > 0.01:
             tipo_diferencia = "SOBRANTE" if diferencia > 0 else "FALTANTE"
             color_diferencia = "verde" if diferencia > 0 else "rojo"
             mensaje_confirmacion = (
-                f"⚠️ ATENCIÓN: Hay un(a) {tipo_diferencia} de {fmt_moneda(abs(diferencia))}\n\n"
+                f"\u26a0\ufe0f ATENCION: Hay un(a) {tipo_diferencia} de {fmt_moneda(abs(diferencia))}\n\n"
                 f"Efectivo esperado: {fmt_moneda(efectivo_esperado)}\n"
                 f"Efectivo contado: {fmt_moneda(efectivo_real)}\n"
                 f"Diferencia: {fmt_moneda(diferencia)} ({color_diferencia})\n\n"
-                "¿Desea continuar con el cierre de caja?"
+                "Desea continuar con el cierre de caja?"
             )
         else:
             mensaje_confirmacion = (
-                f"✅ CUADRE PERFECTO\n\n"
+                f"\u2705 CUADRE PERFECTO\n\n"
                 f"Efectivo esperado: {fmt_moneda(efectivo_esperado)}\n"
                 f"Efectivo contado: {fmt_moneda(efectivo_real)}\n\n"
-                "¿Desea continuar con el cierre de caja?"
+                "Desea continuar con el cierre de caja?"
             )
-        
+
         respuesta = QMessageBox.question(
             self,
             "Confirmar Cierre",
             mensaje_confirmacion,
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
-        
+
         if respuesta != QMessageBox.StandardButton.Yes:
             return
-        
+
         # Registrar el cierre con la diferencia
         try:
             corte = service.cerrar_caja(diferencia=diferencia)
-            
+
             if corte:
                 mensaje_final = (
                     f"Corte de caja cerrado!\n\n"
@@ -392,19 +481,19 @@ class CorteView(QWidget):
                 )
                 if abs(diferencia) > 0.01:
                     tipo = "Sobrante" if diferencia > 0 else "Faltante"
-                    mensaje_final += f"\n⚠️ {tipo}: {fmt_moneda(abs(diferencia))}"
-                
+                    mensaje_final += f"\n\u26a0\ufe0f {tipo}: {fmt_moneda(abs(diferencia))}"
+
                 QMessageBox.information(self, "Corte de Caja", mensaje_final)
             else:
                 QMessageBox.warning(self, "Error", "No hay caja abierta")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error al cerrar caja: {str(e)}")
             return
-        
+
         self.cargar_estadisticas()
 
     def anular_venta(self):
-        """Anula una venta del día"""
+        """Anula una venta del dia"""
         from tucajero.services.corte_service import CorteCajaService
         from tucajero.services.producto_service import VentaService
         from tucajero.ui.ventas_view import VentasView
@@ -434,28 +523,28 @@ class CorteView(QWidget):
 
         venta_id = int(venta_id_str)
 
-        # Solicitar motivo de anulación
+        # Solicitar motivo de anulacion
         motivo, ok = QInputDialog.getText(
             self,
-            "Motivo de Anulación",
-            "Ingrese el motivo de la anulación (obligatorio):",
+            "Motivo de Anulacion",
+            "Ingrese el motivo de la anulacion (obligatorio):",
         )
 
         if not ok or not motivo.strip():
             QMessageBox.warning(
                 self,
                 "Motivo requerido",
-                "Es obligatorio ingresar el motivo de la anulación.",
+                "Es obligatorio ingresar el motivo de la anulacion.",
             )
             return
 
-        # Confirmación antes de anular
+        # Confirmacion antes de anular
         respuesta = QMessageBox.question(
             self,
-            "Confirmar Anulación",
-            f"¿Está seguro de anular la venta #{venta_id}?\n"
+            "Confirmar Anulacion",
+            f"Esta seguro de anular la venta #{venta_id}?\n"
             f"Motivo: {motivo}\n"
-            "El stock de los productos será restaurado.",
+            "El stock de los productos sera restaurado.",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
 
@@ -481,7 +570,7 @@ class CorteView(QWidget):
             QMessageBox.critical(self, "Error", f"Error al anular venta: {str(e)}")
 
     def ver_facturas_dia(self):
-        """Abre o genera el PDF de facturas del día"""
+        """Abre o genera el PDF de facturas del dia"""
         from tucajero.utils.factura_diaria import get_factura_diaria_path
         import subprocess
         import os
@@ -491,7 +580,7 @@ class CorteView(QWidget):
             QMessageBox.information(
                 self,
                 "Sin facturas",
-                "No hay facturas registradas para el día de hoy.",
+                "No hay facturas registradas para el dia de hoy.",
             )
             return
 
