@@ -47,24 +47,6 @@ class PaymentDialog(QDialog):
         self.setMinimumSize(450, 550)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
-        # Estilo glassmorphism para el diálogo
-        from tucajero.utils.theme import (
-            get_colors,
-            glass_style,
-            btn_primary,
-            btn_success,
-            btn_warning,
-            btn_secondary,
-        )
-
-        c = get_colors()
-
-        self.setStyleSheet(f"""
-            QDialog {{
-                {glass_style()}
-            }}
-        """)
-
         layout = QVBoxLayout()
         self.setLayout(layout)
         layout.setSpacing(16)
@@ -75,7 +57,7 @@ class PaymentDialog(QDialog):
         # Header con nombre del negocio
         store_name_label = QLabel(get_store_name())
         store_name_label.setStyleSheet(
-            f"font-size: 22px; font-weight: 700; color: {c['text_primary']}; background: transparent;"
+            f"font-size: 22px; font-weight: 700; color: {Colors.TEXT_PRIMARY};"
         )
         store_name_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(store_name_label)
@@ -84,7 +66,7 @@ class PaymentDialog(QDialog):
         sep = QFrame()
         sep.setFrameShape(QFrame.Shape.HLine)
         sep.setStyleSheet(
-            f"background-color: {c['border']}; max-height: 1px; border: none;"
+            f"background-color: {Colors.BORDER_DEFAULT}; max-height: 1px; border: none;"
         )
         layout.addWidget(sep)
 
@@ -92,9 +74,9 @@ class PaymentDialog(QDialog):
         total_container = QWidget()
         total_container.setStyleSheet(f"""
             QWidget {{
-                background-color: {c["bg_surface"]};
+                background-color: {Colors.BG_ELEVATED};
                 border-radius: 16px;
-                border: 1px solid {c["border"]};
+                border: 1px solid {Colors.BORDER_DEFAULT};
                 padding: 16px;
             }}
         """)
@@ -105,13 +87,13 @@ class PaymentDialog(QDialog):
         total_label.setObjectName("total_label")
         total_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         total_label.setStyleSheet(
-            f"color: {c['text_secondary']}; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; background: transparent;"
+            f"color: {Colors.TEXT_SECONDARY}; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;"
         )
         total_layout.addWidget(total_label)
 
         self.lbl_total = QLabel(fmt_moneda(self.total))
         self.lbl_total.setStyleSheet(
-            f"font-size: 36px; font-weight: 700; color: {c['success']}; background: transparent;"
+            f"font-size: 36px; font-weight: 700; color: {Colors.SUCCESS};"
         )
         self.lbl_total.setAlignment(Qt.AlignmentFlag.AlignCenter)
         total_layout.addWidget(self.lbl_total)
@@ -119,7 +101,7 @@ class PaymentDialog(QDialog):
         if self.descuento > 0:
             lbl_desc = QLabel(f"Descuento: -{fmt_moneda(self.descuento)}")
             lbl_desc.setStyleSheet(
-                f"font-size:14px; color:{c['danger']}; font-weight: 600; background: transparent;"
+                f"font-size:14px; color:{Colors.DANGER}; font-weight: 600;"
             )
             lbl_desc.setAlignment(Qt.AlignmentFlag.AlignCenter)
             total_layout.addWidget(lbl_desc)
@@ -129,7 +111,7 @@ class PaymentDialog(QDialog):
         # Métodos de pago
         metodo_label = QLabel("MÉTODO DE PAGO")
         metodo_label.setStyleSheet(
-            f"font-size: 11px; font-weight: 700; color: {c['text_muted']}; text-transform: uppercase; letter-spacing: 0.5px; background: transparent;"
+            f"font-size: 11px; font-weight: 700; color: {Colors.TEXT_MUTED}; text-transform: uppercase; letter-spacing: 0.5px;"
         )
         layout.addWidget(metodo_label)
 
@@ -143,22 +125,21 @@ class PaymentDialog(QDialog):
         self.metodo_buttons = []
 
         metodos = [
-            ("💵 Efectivo", "Efectivo", c["primary"]),
-            ("📱 Nequi", "Nequi", c["primary"]),
-            ("📲 Daviplata", "Daviplata", c["warning"]),
-            ("🏦 Transferencia", "Transferencia", c["info"]),
+            ("💵 Efectivo", "Efectivo", Colors.PRIMARY),
+            ("📱 Nequi", "Nequi", Colors.PRIMARY),
+            ("📲 Daviplata", "Daviplata", Colors.WARNING),
+            ("🏦 Transferencia", "Transferencia", Colors.INFO),
         ]
         if self.cliente:
-            # Fiado con color ÁMBAR (warning) - NO rojo para diferenciar de errores
-            metodos.append(("🟡 Fiado (crédito)", "Fiado", c["warning"]))
+            metodos.append(("🟡 Fiado (crédito)", "Fiado", Colors.WARNING))
 
         for idx, (texto, valor, color) in enumerate(metodos):
             radio = QRadioButton(texto)
             radio.setStyleSheet(f"""
                 QRadioButton {{
-                    background-color: {c["bg_input"]};
-                    color: {c["text_primary"]};
-                    border: 2px solid {c["border"]};
+                    background-color: {Colors.BG_INPUT};
+                    color: {Colors.TEXT_PRIMARY};
+                    border: 2px solid {Colors.BORDER_DEFAULT};
                     border-radius: 12px;
                     padding: 14px 16px;
                     font-size: 14px;
@@ -167,7 +148,7 @@ class PaymentDialog(QDialog):
                 }}
                 QRadioButton:hover {{
                     border-color: {color};
-                    background-color: {c["bg_card_hover"]};
+                    background-color: {Colors.BG_HOVER};
                 }}
                 QRadioButton:checked {{
                     border-color: {color};
@@ -178,8 +159,8 @@ class PaymentDialog(QDialog):
                     width: 20px;
                     height: 20px;
                     border-radius: 10px;
-                    border: 2px solid {c["border"]};
-                    background: {c["bg_input"]};
+                    border: 2px solid {Colors.BORDER_DEFAULT};
+                    background: {Colors.BG_INPUT};
                 }}
                 QRadioButton::indicator:hover {{
                     border-color: {color};
@@ -207,7 +188,7 @@ class PaymentDialog(QDialog):
         efectivo_layout.setContentsMargins(0, 0, 0, 0)
         self.efectivo_container.setStyleSheet(f"""
             QWidget {{
-                background-color: {c["bg_surface"]};
+                background-color: {Colors.BG_ELEVATED};
                 border-radius: 12px;
                 padding: 16px;
             }}
@@ -215,7 +196,7 @@ class PaymentDialog(QDialog):
 
         pago_label = QLabel("Monto recibido:")
         pago_label.setStyleSheet(
-            f"font-size: 13px; color: {c['text_secondary']}; font-weight: 500; background: transparent;"
+            f"font-size: 13px; color: {Colors.TEXT_SECONDARY}; font-weight: 500;"
         )
         efectivo_layout.addWidget(pago_label)
 
@@ -224,16 +205,16 @@ class PaymentDialog(QDialog):
         self.pago_input.setDecimals(2)
         self.pago_input.setStyleSheet(f"""
             QDoubleSpinBox {{
-                background-color: {c["bg_input"]};
-                color: {c["text_primary"]};
-                border: 1.5px solid {c["border"]};
+                background-color: {Colors.BG_INPUT};
+                color: {Colors.TEXT_PRIMARY};
+                border: 1.5px solid {Colors.BORDER_DEFAULT};
                 border-radius: 12px;
                 padding: 12px 16px;
                 font-size: 20px;
                 font-weight: 600;
             }}
             QDoubleSpinBox:focus {{
-                border-color: {c["primary"]};
+                border-color: {Colors.PRIMARY};
             }}
         """)
         self.pago_input.setMinimumWidth(200)
@@ -243,7 +224,7 @@ class PaymentDialog(QDialog):
 
         self.lbl_cambio = QLabel(f"Cambio: {fmt_moneda(0)}")
         self.lbl_cambio.setStyleSheet(
-            f"font-size: 20px; font-weight: 700; color: {c['success']}; background: transparent;"
+            f"font-size: 20px; font-weight: 700; color: {Colors.SUCCESS};"
         )
         self.lbl_cambio.setAlignment(Qt.AlignmentFlag.AlignCenter)
         efectivo_layout.addWidget(self.lbl_cambio)
@@ -255,17 +236,14 @@ class PaymentDialog(QDialog):
         buttons_layout.setSpacing(12)
 
         # Botón Cancelar
-        btn_cancel = QPushButton("CANCELAR")
-        btn_cancel.setStyleSheet(btn_secondary())
+        btn_cancel = ButtonPremium("CANCELAR", style="secondary")
         btn_cancel.setFixedHeight(48)
         btn_cancel.clicked.connect(self.reject)
         buttons_layout.addWidget(btn_cancel)
 
         # Botón Confirmar
-        btn_confirm = QPushButton("CONFIRMAR PAGO")
-        btn_confirm.setStyleSheet(btn_success())
+        btn_confirm = ButtonPremium("CONFIRMAR PAGO", style="success")
         btn_confirm.setFixedHeight(48)
-        btn_confirm.setFont(btn_confirm.font())
         btn_confirm.clicked.connect(self.accept)
         buttons_layout.addWidget(btn_confirm)
 
@@ -284,22 +262,18 @@ class PaymentDialog(QDialog):
 
     def calcular_cambio(self):
         """Calculate change from payment"""
-        from tucajero.utils.theme import get_colors
-
-        c = get_colors()
-
         pago = self.pago_input.value()
         cambio = pago - self.total
         if cambio >= 0:
             self.lbl_cambio.setText(f"Cambio: {fmt_moneda(cambio)}")
             self.lbl_cambio.setStyleSheet(
-                f"font-size: 20px; font-weight: 700; color: {c['success']}; background: transparent;"
+                f"font-size: 20px; font-weight: 700; color: {Colors.SUCCESS};"
             )
             self.payment_amount = pago
         else:
             self.lbl_cambio.setText(f"Faltan: {fmt_moneda(abs(cambio))}")
             self.lbl_cambio.setStyleSheet(
-                f"font-size: 20px; font-weight: 700; color: {c['danger']}; background: transparent;"
+                f"font-size: 20px; font-weight: 700; color: {Colors.DANGER};"
             )
             self.payment_amount = 0
 
@@ -335,15 +309,12 @@ class VentasView(QWidget):
         self.txt_codigo.setFocus()
 
     def init_ui(self):
-        from tucajero.utils.theme import get_colors, btn_secondary
-        from tucajero.utils.formato import fmt_moneda
         from PySide6.QtWidgets import (
             QHBoxLayout,
             QVBoxLayout,
             QWidget,
             QLabel,
             QLineEdit,
-            QPushButton,
             QTableWidget,
             QHeaderView,
             QFrame,
@@ -352,8 +323,6 @@ class VentasView(QWidget):
             QGraphicsDropShadowEffect,
         )
         from PySide6.QtGui import QColor
-
-        c = get_colors()
 
         # Fondo oscuro premium
         self.setStyleSheet(f"background: {Colors.BG_APP};")
@@ -377,7 +346,7 @@ class VentasView(QWidget):
         hdr_card.setObjectName("hdrCard")
         hdr_card.setStyleSheet(f"""
             QWidget#hdrCard {{
-                background-color: {c["bg_card"]};
+                background-color: {Colors.BG_CARD};
                 border-radius: 12px;
                 border: none;
             }}
@@ -389,38 +358,26 @@ class VentasView(QWidget):
 
         title_lbl = QLabel("Nueva Venta")
         title_lbl.setStyleSheet(
-            f"color: {c['text_primary']}; font-size: 18px; font-weight: bold; background: transparent;"
+            f"color: {Colors.TEXT_PRIMARY}; font-size: 18px; font-weight: bold;"
         )
         hdr_l.addWidget(title_lbl)
         hdr_l.addStretch()
 
         self.lbl_cliente = QLabel("👤  Sin cliente")
         self.lbl_cliente.setStyleSheet(
-            f"color: {c['text_muted']}; font-size: 12px; background: transparent;"
+            f"color: {Colors.TEXT_MUTED}; font-size: 12px;"
         )
         hdr_l.addWidget(self.lbl_cliente)
 
-        self.btn_cliente = QPushButton("Seleccionar cliente")
+        self.btn_cliente = ButtonPremium("Seleccionar cliente", style="primary")
         self.btn_cliente.setFixedHeight(32)
-        self.btn_cliente.setStyleSheet(f"""
-            QPushButton {{
-                background: {c["accent_light"]};
-                color: {c["accent"]};
-                border: 1.5px solid {c["accent"]};
-                border-radius: 8px;
-                padding: 4px 14px;
-                font-size: 12px;
-                font-weight: bold;
-            }}
-            QPushButton:hover {{ background: {c["accent"]}; color: white; }}
-        """)
         self.btn_cliente.clicked.connect(self.seleccionar_cliente)
         hdr_l.addWidget(self.btn_cliente)
         self.btn_quitar_cliente = QPushButton("✕")
         self.btn_quitar_cliente.setFixedSize(28, 28)
         self.btn_quitar_cliente.setVisible(False)
         self.btn_quitar_cliente.setStyleSheet(
-            f"background: {c['danger_light']}; color: {c['danger']}; border-radius: 14px; border: none; font-weight: bold;"
+            f"background: {Colors.DANGER}22; color: {Colors.DANGER}; border-radius: 14px; border: none; font-weight: bold;"
         )
         self.btn_quitar_cliente.clicked.connect(self.quitar_cliente)
         hdr_l.addWidget(self.btn_quitar_cliente)
@@ -431,7 +388,7 @@ class VentasView(QWidget):
         search_card.setObjectName("searchCard")
         search_card.setStyleSheet(f"""
             QWidget#searchCard {{
-                background-color: {c["bg_card"]};
+                background-color: {Colors.BG_CARD};
                 border-radius: 12px;
                 border: none;
             }}
@@ -483,7 +440,7 @@ class VentasView(QWidget):
         cart_card.setObjectName("cartCard")
         cart_card.setStyleSheet(f"""
             QWidget#cartCard {{
-                background-color: {c["bg_card"]};
+                background-color: {Colors.BG_CARD};
                 border-radius: 12px;
                 border: none;
             }}
@@ -522,8 +479,8 @@ class VentasView(QWidget):
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
         )
         actions_bar.setStyleSheet(
-            f"background: {c['bg_input']}; border-radius: 0 0 12px 12px; "
-            f"border-top: 1px solid {c['border']};"
+            f"background: {Colors.BG_INPUT}; border-radius: 0 0 12px 12px; "
+            f"border-top: 1px solid {Colors.BORDER_DEFAULT};"
         )
         actions_l = QHBoxLayout(actions_bar)
         actions_l.setContentsMargins(12, 8, 12, 8)
@@ -560,7 +517,7 @@ class VentasView(QWidget):
         resumen_card.setObjectName("resumenCard")
         resumen_card.setStyleSheet(f"""
             QWidget#resumenCard {{
-                background-color: {c["bg_card"]};
+                background-color: {Colors.BG_CARD};
                 border-radius: 12px;
                 border: none;
             }}
@@ -573,24 +530,24 @@ class VentasView(QWidget):
 
         res_title = QLabel("Resumen de Pago")
         res_title.setStyleSheet(
-            f"color: {c['text_primary']}; font-size: 15px; font-weight: bold; background: transparent;"
+            f"color: {Colors.TEXT_PRIMARY}; font-size: 15px; font-weight: bold;"
         )
         res_l.addWidget(res_title)
 
         sep = QFrame()
         sep.setFrameShape(QFrame.Shape.HLine)
-        sep.setStyleSheet(f"background: {c['border']}; border: none; max-height: 1px;")
+        sep.setStyleSheet(f"background: {Colors.BORDER_DEFAULT}; border: none; max-height: 1px;")
         res_l.addWidget(sep)
 
         def make_row(label_text, value_text, color=None):
             row = QHBoxLayout()
             lbl = QLabel(label_text)
             lbl.setStyleSheet(
-                f"color: {c['text_secondary']}; font-size: 13px; background: transparent;"
+                f"color: {Colors.TEXT_SECONDARY}; font-size: 13px;"
             )
             val = QLabel(value_text)
             val.setStyleSheet(
-                f"color: {color or c['text_primary']}; font-size: 13px; font-weight: bold; background: transparent;"
+                f"color: {color or Colors.TEXT_PRIMARY}; font-size: 13px; font-weight: bold;"
             )
             val.setAlignment(Qt.AlignmentFlag.AlignRight)
             row.addWidget(lbl)
@@ -603,23 +560,23 @@ class VentasView(QWidget):
         iva_row, self.lbl_iva = make_row("IVA (19%)", fmt_moneda(0))
         res_l.addLayout(iva_row)
 
-        desc_row, self.lbl_descuento_val = make_row("Descuento", "-$0.00", c["success"])
+        desc_row, self.lbl_descuento_val = make_row("Descuento", "-$0.00", Colors.SUCCESS)
         res_l.addLayout(desc_row)
 
         sep2 = QFrame()
         sep2.setFrameShape(QFrame.Shape.HLine)
-        sep2.setStyleSheet(f"background: {c['border']}; border: none; max-height: 1px;")
+        sep2.setStyleSheet(f"background: {Colors.BORDER_DEFAULT}; border: none; max-height: 1px;")
         res_l.addWidget(sep2)
 
         # TOTAL A PAGAR
         total_row = QHBoxLayout()
         total_lbl = QLabel("TOTAL A PAGAR")
         total_lbl.setStyleSheet(
-            f"color: {c['text_secondary']}; font-size: 11px; font-weight: bold; letter-spacing: 0.5px; background: transparent;"
+            f"color: {Colors.TEXT_SECONDARY}; font-size: 11px; font-weight: bold; letter-spacing: 0.5px;"
         )
         self.lbl_total = QLabel(fmt_moneda(0))
         self.lbl_total.setStyleSheet(
-            f"color: {c['accent']}; font-size: 24px; font-weight: bold; background: transparent;"
+            f"color: {Colors.PRIMARY}; font-size: 24px; font-weight: bold;"
         )
         self.lbl_total.setAlignment(Qt.AlignmentFlag.AlignRight)
         total_row.addWidget(total_lbl)
@@ -632,7 +589,7 @@ class VentasView(QWidget):
         metodo_card.setObjectName("metodoCard")
         metodo_card.setStyleSheet(f"""
             QWidget#metodoCard {{
-                background-color: {c["bg_card"]};
+                background-color: {Colors.BG_CARD};
                 border-radius: 12px;
                 border: none;
             }}
@@ -645,7 +602,7 @@ class VentasView(QWidget):
 
         met_title = QLabel("MÉTODO DE PAGO")
         met_title.setStyleSheet(
-            f"color: {c['text_muted']}; font-size: 10px; font-weight: bold; letter-spacing: 1px; background: transparent;"
+            f"color: {Colors.TEXT_MUTED}; font-size: 10px; font-weight: bold; letter-spacing: 1px;"
         )
         met_l.addWidget(met_title)
 
@@ -835,22 +792,16 @@ class VentasView(QWidget):
                     else ""
                 )
             )
-            from tucajero.utils.theme import get_colors
-
-            c = get_colors()
             self.lbl_cliente.setStyleSheet(
-                f"color: {c['accent']}; font-size: 12px; font-weight: bold;"
+                f"color: {Colors.PRIMARY}; font-size: 12px; font-weight: bold;"
             )
             self.btn_quitar_cliente.setVisible(True)
 
     def quitar_cliente(self):
-        from tucajero.utils.theme import get_colors
-
-        c = get_colors()
         self.cliente_seleccionado = None
         self.lbl_cliente.setText("👤 Sin cliente")
         self.lbl_cliente.setStyleSheet(
-            f"color: {c['text_secondary']}; font-size: 12px;"
+            f"color: {Colors.TEXT_SECONDARY}; font-size: 12px;"
         )
         self.btn_quitar_cliente.setVisible(False)
 
@@ -929,11 +880,8 @@ class VentasView(QWidget):
             )
 
     def _highlight_ultima_fila(self):
-        from tucajero.utils.theme import get_colors
         from PySide6.QtGui import QColor, QBrush
         from PySide6.QtCore import QTimer
-
-        c = get_colors()
 
         last_row = self.tabla_carrito.rowCount() - 1
         if last_row < 0:
@@ -942,7 +890,7 @@ class VentasView(QWidget):
         for col in range(self.tabla_carrito.columnCount()):
             item = self.tabla_carrito.item(last_row, col)
             if item:
-                item.setBackground(QBrush(QColor(c["success"] + "44")))
+                item.setBackground(QBrush(QColor(Colors.SUCCESS + "44")))
 
         def quitar_highlight():
             if last_row < self.tabla_carrito.rowCount():
@@ -955,10 +903,7 @@ class VentasView(QWidget):
         QTimer.singleShot(1500, quitar_highlight)
 
     def mostrar_feedback(self, mensaje, tipo="success"):
-        from tucajero.utils.theme import get_colors
-
-        c = get_colors()
-        color = c["success"] if tipo == "success" else c["danger"]
+        color = Colors.SUCCESS if tipo == "success" else Colors.DANGER
 
         toast = QLabel(mensaje, self)
         toast.setStyleSheet(f"""
@@ -979,10 +924,6 @@ class VentasView(QWidget):
 
     def actualizar_tabla(self):
         """Update cart table"""
-        from tucajero.utils.theme import get_colors
-
-        c = get_colors()
-
         self.tabla_carrito.setRowCount(0)
         self.tabla_carrito.setRowCount(len(self.carrito))
 
@@ -1045,11 +986,8 @@ class VentasView(QWidget):
         self.tabla_carrito.scrollToBottom()
 
     def _crear_widget_cantidad(self, row, cantidad):
-        from tucajero.utils.theme import get_colors
         from PySide6.QtWidgets import QWidget, QHBoxLayout, QPushButton, QLineEdit
         from PySide6.QtGui import QIntValidator
-
-        c = get_colors()
 
         qty_widget = QWidget()
         qty_widget.setFixedSize(130, 55)  # Ancho fijo para centrar en la celda
@@ -1075,7 +1013,7 @@ class VentasView(QWidget):
         lbl_qty.setFixedWidth(75)
         lbl_qty.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lbl_qty.setStyleSheet(
-            f"color: {c['text_primary']}; font-weight: bold; font-size: 15px; "
+            f"color: {Colors.TEXT_PRIMARY}; font-weight: bold; font-size: 15px; "
             "background: transparent; border: none; padding: 0px; margin: 0px;"
         )
         lbl_qty.setFixedHeight(35)
@@ -1177,14 +1115,11 @@ class VentasView(QWidget):
         if dialog.exec() == QDialog.DialogCode.Accepted:
             self.descuento = dialog.descuento_resultado
             self.actualizar_tabla()
-            from tucajero.utils.theme import get_colors
-
-            c = get_colors()
             if self.descuento["total"] > 0:
                 self.btn_descuento.setText(f"🏷 -{fmt_moneda(self.descuento['total'])}")
                 self.btn_descuento.setStyleSheet(f"""
                     QPushButton {{
-                        background-color: {c["success"]};
+                        background-color: {Colors.SUCCESS};
                         color: white; padding: 4px 12px;
                         font-weight: bold; border-radius: 8px; border: none;
                     }}
@@ -1193,13 +1128,13 @@ class VentasView(QWidget):
                 self.btn_descuento.setText("% Descuento")
                 self.btn_descuento.setStyleSheet(f"""
                     QPushButton {{
-                        background-color: {c["warning_light"]};
-                        color: {c["warning"]};
-                        border: 1px solid {c["warning"]};
+                        background-color: {Colors.BG_HOVER};
+                        color: {Colors.WARNING};
+                        border: 1px solid {Colors.WARNING};
                         border-radius: 8px; padding: 4px 12px;
                         font-size: 12px; font-weight: bold;
                     }}
-                    QPushButton:hover {{ background-color: {c["warning"]}; color: white; }}
+                    QPushButton:hover {{ background-color: {Colors.WARNING}; color: white; }}
                 """)
 
     def eliminar_item(self):
@@ -1224,19 +1159,16 @@ class VentasView(QWidget):
         if respuesta == QMessageBox.StandardButton.Yes:
             self.carrito = []
             self.descuento = {"tipo": None, "valor": 0, "total": 0}
-            from tucajero.utils.theme import get_colors
-
-            c = get_colors()
             self.btn_descuento.setText("% Descuento")
             self.btn_descuento.setStyleSheet(f"""
                 QPushButton {{
-                    background-color: {c["warning_light"]};
-                    color: {c["warning"]};
-                    border: 1px solid {c["warning"]};
+                    background-color: {Colors.BG_HOVER};
+                    color: {Colors.WARNING};
+                    border: 1px solid {Colors.WARNING};
                     border-radius: 8px; padding: 4px 12px;
                     font-size: 12px; font-weight: bold;
                 }}
-                QPushButton:hover {{ background-color: {c["warning"]}; color: white; }}
+                QPushButton:hover {{ background-color: {Colors.WARNING}; color: white; }}
             """)
             self.actualizar_tabla()
             self.txt_codigo.setFocus()
@@ -1248,10 +1180,6 @@ class VentasView(QWidget):
 
         if getattr(self, "_procesando_pago", False):
             return
-
-        from tucajero.utils.theme import get_colors
-
-        c = get_colors()
 
         if not self.carrito:
             return
@@ -1270,9 +1198,9 @@ class VentasView(QWidget):
         self.cobro_widget = QWidget()
         self.cobro_widget.setStyleSheet(f"""
             QWidget {{
-                background-color: {c["bg_elevated"]};
+                background-color: {Colors.BG_ELEVATED};
                 border-radius: 12px;
-                border: 1.5px solid {c["accent"]};
+                border: 1.5px solid {Colors.PRIMARY};
             }}
         """)
         cobro_layout = QVBoxLayout(self.cobro_widget)
@@ -1281,13 +1209,13 @@ class VentasView(QWidget):
 
         total_lbl = QLabel("💳 Total a cobrar")
         total_lbl.setStyleSheet(
-            f"color: {c['text_secondary']}; font-size: 11px; font-weight: bold;"
+            f"color: {Colors.TEXT_SECONDARY}; font-size: 11px; font-weight: bold;"
         )
         cobro_layout.addWidget(total_lbl)
 
         self.lbl_total_cobro = QLabel(self.lbl_total.text())
         self.lbl_total_cobro.setStyleSheet(
-            f"color: {c['success']}; font-size: 28px; font-weight: bold;"
+            f"color: {Colors.SUCCESS}; font-size: 28px; font-weight: bold;"
         )
         self.lbl_total_cobro.setAlignment(Qt.AlignmentFlag.AlignCenter)
         cobro_layout.addWidget(self.lbl_total_cobro)
@@ -1299,16 +1227,16 @@ class VentasView(QWidget):
                 else "Monto recibido:"
             )
             recibido_lbl = QLabel(texto_lbl)
-            recibido_lbl.setStyleSheet(f"color: {c['text_primary']}; font-size: 13px;")
+            recibido_lbl.setStyleSheet(f"color: {Colors.TEXT_PRIMARY}; font-size: 13px;")
             cobro_layout.addWidget(recibido_lbl)
 
             self.txt_recibido = QLineEdit()
             self.txt_recibido.setPlaceholderText("$0.00")
             self.txt_recibido.setStyleSheet(f"""
                 QLineEdit {{
-                    background: {c["bg_input"]};
-                    color: {c["text_primary"]};
-                    border: 1.5px solid {c["accent"]};
+                    background: {Colors.BG_INPUT};
+                    color: {Colors.TEXT_PRIMARY};
+                    border: 1.5px solid {Colors.PRIMARY};
                     border-radius: 8px;
                     padding: 10px;
                     font-size: 20px;
@@ -1325,7 +1253,7 @@ class VentasView(QWidget):
             )
             self.lbl_cambio_inline = QLabel(texto_cambio)
             self.lbl_cambio_inline.setStyleSheet(
-                f"color: {c['info']}; font-size: 14px; font-weight: bold;"
+                f"color: {Colors.INFO}; font-size: 14px; font-weight: bold;"
             )
             self.lbl_cambio_inline.setAlignment(Qt.AlignmentFlag.AlignCenter)
             cobro_layout.addWidget(self.lbl_cambio_inline)
@@ -1363,23 +1291,20 @@ class VentasView(QWidget):
             recibido = float(recibido_txt.replace("$", "").replace(",", "") or 0)
             total = self._get_total_float()
             cambio = recibido - total
-            from tucajero.utils.theme import get_colors
-
-            c = get_colors()
 
             if self._metodo_seleccionado == "Mixto":
                 restante = total - recibido
                 if recibido < 0:
                     self.lbl_cambio_inline.setText("⚠️ El monto no puede ser negativo")
                     self.lbl_cambio_inline.setStyleSheet(
-                        f"color: {c['danger']}; font-size: 14px; font-weight: bold;"
+                        f"color: {Colors.DANGER}; font-size: 14px; font-weight: bold;"
                     )
                 elif recibido == 0:
                     self.lbl_cambio_inline.setText(
                         f"💳 Pagadero con electrónico: {fmt_moneda(total)}"
                     )
                     self.lbl_cambio_inline.setStyleSheet(
-                        f"color: {c['info']}; font-size: 14px; font-weight: bold;"
+                        f"color: {Colors.INFO}; font-size: 14px; font-weight: bold;"
                     )
                 elif recibido >= total:
                     # El efectivo cubre todo - mostrar cambio
@@ -1387,7 +1312,7 @@ class VentasView(QWidget):
                         f"✓ Pago completo - Cambio: {fmt_moneda(cambio)}"
                     )
                     self.lbl_cambio_inline.setStyleSheet(
-                        f"color: {c['success']}; font-size: 14px; font-weight: bold;"
+                        f"color: {Colors.SUCCESS}; font-size: 14px; font-weight: bold;"
                     )
                 else:
                     # Pago mixto válido: muestra cuánto falta por pagar electrónicamente
@@ -1395,23 +1320,23 @@ class VentasView(QWidget):
                         f"💳 Restante Electrónico: {fmt_moneda(restante)}"
                     )
                     self.lbl_cambio_inline.setStyleSheet(
-                        f"color: {c['warning']}; font-size: 14px; font-weight: bold;"
+                        f"color: {Colors.WARNING}; font-size: 14px; font-weight: bold;"
                     )
             else:
                 if recibido < 0:
                     self.lbl_cambio_inline.setText("⚠️ El monto no puede ser negativo")
                     self.lbl_cambio_inline.setStyleSheet(
-                        f"color: {c['danger']}; font-size: 14px; font-weight: bold;"
+                        f"color: {Colors.DANGER}; font-size: 14px; font-weight: bold;"
                     )
                 elif cambio >= 0:
                     self.lbl_cambio_inline.setText(f"✓ Cambio: {fmt_moneda(cambio)}")
                     self.lbl_cambio_inline.setStyleSheet(
-                        f"color: {c['success']}; font-size: 14px; font-weight: bold;"
+                        f"color: {Colors.SUCCESS}; font-size: 14px; font-weight: bold;"
                     )
                 else:
                     self.lbl_cambio_inline.setText(f"⚠️ Faltan: {fmt_moneda(abs(cambio))}")
                     self.lbl_cambio_inline.setStyleSheet(
-                        f"color: {c['danger']}; font-size: 14px; font-weight: bold;"
+                        f"color: {Colors.DANGER}; font-size: 14px; font-weight: bold;"
                     )
         except:
             pass
@@ -1558,19 +1483,16 @@ class VentasView(QWidget):
         self.descuento = {"tipo": None, "valor": 0, "total": 0}
         self.btn_cobrar.setEnabled(True)
         self._procesando_pago = False
-        from tucajero.utils.theme import get_colors
-
-        c = get_colors()
         self.btn_descuento.setText("% Descuento")
         self.btn_descuento.setStyleSheet(f"""
             QPushButton {{
-                background-color: {c["warning_light"]};
-                color: {c["warning"]};
-                border: 1px solid {c["warning"]};
+                background-color: {Colors.BG_HOVER};
+                color: {Colors.WARNING};
+                border: 1px solid {Colors.WARNING};
                 border-radius: 8px; padding: 4px 12px;
                 font-size: 12px; font-weight: bold;
             }}
-            QPushButton:hover {{ background-color: {c["warning"]}; color: white; }}
+            QPushButton:hover {{ background-color: {Colors.WARNING}; color: white; }}
         """)
         self.actualizar_tabla()
         self.recargar_productos()
@@ -1644,34 +1566,28 @@ class VentasView(QWidget):
 
         if cliente:
             self.cliente_seleccionado = cliente
-            from tucajero.utils.theme import get_colors
-
-            c = get_colors()
             self.lbl_cliente.setText(f"👤 {cliente.nombre}")
             self.lbl_cliente.setStyleSheet(
-                f"color: {c['accent']}; font-size: 12px; font-weight: bold;"
+                f"color: {Colors.PRIMARY}; font-size: 12px; font-weight: bold;"
             )
         else:
             self.cliente_seleccionado = None
-            from tucajero.utils.theme import get_colors
-
-            c = get_colors()
             self.lbl_cliente.setText("👤 Sin cliente")
             self.lbl_cliente.setStyleSheet(
-                f"color: {c['text_secondary']}; font-size: 12px;"
+                f"color: {Colors.TEXT_SECONDARY}; font-size: 12px;"
             )
 
         self.descuento = {"tipo": None, "valor": 0, "total": 0}
         self.btn_descuento.setText("% Descuento")
         self.btn_descuento.setStyleSheet(f"""
             QPushButton {{
-                background-color: {c["warning_light"]};
-                color: {c["warning"]};
-                border: 1px solid {c["warning"]};
+                background-color: {Colors.BG_HOVER};
+                color: {Colors.WARNING};
+                border: 1px solid {Colors.WARNING};
                 border-radius: 8px; padding: 4px 12px;
                 font-size: 12px; font-weight: bold;
             }}
-            QPushButton:hover {{ background-color: {c["warning"]}; color: white; }}
+            QPushButton:hover {{ background-color: {Colors.WARNING}; color: white; }}
         """)
         self.actualizar_tabla()
         self.txt_codigo.setFocus()
