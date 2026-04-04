@@ -76,7 +76,6 @@ from tucajero.ui.activate_view import ActivationDialog
 from tucajero.security.license_manager import validar_licencia
 from tucajero.utils.store_config import load_store_config, is_setup_complete
 from tucajero.ui.setup_view import SetupDialog
-from tucajero.app.ui.theme.theme import app_style
 
 
 def configurar_logging():
@@ -113,7 +112,6 @@ def main():
     # Iniciar aplicación Qt
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
-    app.setStyleSheet(app_style())
     app.setWindowIcon(QIcon(ICON_PATH))
 
     # Validar licencia antes de abrir la app
