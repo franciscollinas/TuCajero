@@ -51,4 +51,4 @@ class CajeroService:
         """Crea cajero admin por defecto si no existe ninguno"""
         total = self.session.query(Cajero).count()
         if total == 0:
-            self.crear("Administrador", "0000", rol="admin")
+            self.crear("Admin", "0000", rol="admin")
