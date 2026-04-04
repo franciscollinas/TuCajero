@@ -1,6 +1,6 @@
 # 📋 ESTADO DEL PROYECTO - TuCajero POS
 **Fecha:** 2026-04-03
-**Último Commit:** `739e34f` - Add Enter key support for login flow
+**Último Commit:** `6126c97` - Refactor proveedores_view.py - Centered container layout
 **Tag:** `v3.0.0-ui-premium`
 
 ---
@@ -39,7 +39,24 @@
 - ✅ Diseño compacto y profesional (420px ancho)
 - ✅ Migración automática de "Administrador" → "Admin"
 
-### 4. Fixes Adicionales
+### 4. Refactorización de Formularios (SaaS Layout)
+**Objetivo:** Estandarizar layouts de formularios con contenedor centrado (max-width 600px), cards blancas y espaciado consistente.
+
+| Vista | Commit | Estado |
+|-------|--------|--------|
+| **clientes_view.py** | `563b89d` | ✅ Refactorizado (Clientes, Abono, Historial) |
+| **setup_view.py** | `6981d67` | ✅ Refactorizado (Configuración inicial y setup) |
+| **corte_view.py** | `711e99f` | ✅ Refactorizado (Corte de caja, estadísticas) |
+| **proveedores_view.py** | `6126c97` | ✅ Refactorizado (Proveedores, órdenes, dialogs) |
+
+**Reglas aplicadas:**
+- Contenedor centrado max-width: 600px
+- Inputs: 40-44px height, border-radius 8px
+- Botones: 44px height, width auto
+- Cards: #FFFFFF, border-radius 12px, border #E2E8F0, padding 24px
+- Spacing: 16px entre inputs, 24px entre secciones
+
+### 5. Fixes Adicionales
 - ✅ Stock duplicado corregido (venta_repo.py)
 - ✅ Nombres reales de clientes en dashboard
 - ✅ Total en botón de pago se actualiza correctamente
@@ -69,6 +86,11 @@ LOGIN:
 #F8FAFC - Input backgrounds
 #DBEAFE - Focus states (primary light)
 
+FORMULARIOS (SaaS Layout):
+#FFFFFF - Card background
+#E2E8F0 - Card border
+#F8FAFC - Info boxes / secondary backgrounds
+
 GRADIENTES:
 Cyan:   #00d4ff → #00a3cc
 Green:  #00ff88 → #00cc66
@@ -81,7 +103,7 @@ TEXTO:
 #cbd5e1 - Secondary (80%)
 #94a3b8 - Tertiary (60%)
 #64748b - Muted (40%)
-#0F172A - Text primary (login)
+#0F172A - Text primary (login/forms)
 
 PRIMARY: #2563EB
 SUCCESS: #00ff88
@@ -102,6 +124,10 @@ WARNING: #fbbf24
 | `tucajero/ui/productos_view.py` | Fondo oscuro, tabla premium, botones ButtonPremium |
 | `tucajero/ui/main_window.py` | Sidebar premium con hover/active states |
 | `tucajero/ui/login_view.py` | Login completo: username input, PIN boxes, autenticación, Enter key |
+| `tucajero/ui/clientes_view.py` | Refactorizado: contenedor centrado, cards, inputs 42px |
+| `tucajero/ui/setup_view.py` | Refactorizado: contenedor centrado, cards, botones auto-width |
+| `tucajero/ui/corte_view.py` | Refactorizado: contenedor centrado, cards para estadísticas |
+| `tucajero/ui/proveedores_view.py` | Refactorizado: contenedor centrado, dialogs con cards |
 | `tucajero/services/cajero_service.py` | Default admin "Admin"/"0000", migración automática |
 | `tucajero/main.py` | Integración del nuevo login |
 | `tucajero/repositories/venta_repo.py` | Fix descuento duplicado de stock |
@@ -129,41 +155,47 @@ WARNING: #fbbf24
 ## 📝 PRÓXIMOS PASOS RECOMENDADOS
 
 ### Prioridad Alta
-1. **Implementar cálculo de tendencias en Dashboard**
+1. **Refactorizar vistas restantes (POS/Inventario)**
+   - `ventas_view.py` (Punto de Venta) - Layout complejo, requiere atención especial
+   - `productos_view.py` (Inventario) - Aplicar contenedor centrado y cards
+   - `historial_view.py` - Aplicar contenedor centrado y cards
+   - `cotizaciones_view.py` - Aplicar contenedor centrado y cards
+
+2. **Implementar cálculo de tendencias en Dashboard**
    - Comparar ventas de hoy vs ayer
    - Comparar ventas del mes vs mes anterior
    - Mostrar porcentajes reales
 
-2. **Probar flujo completo de ventas**
+3. **Probar flujo completo de ventas**
    - Agregar productos al carrito
    - Procesar pago
    - Verificar descuento de stock
    - Verificar registro en dashboard
 
-3. **Agregar más cajeros para probar selección de usuario**
+### Prioridad Media
+4. **Agregar más cajeros para probar selección de usuario**
    - Crear usuarios adicionales desde configuración
    - Probar login con diferentes credenciales
 
-### Prioridad Media
-4. **Agregar reimpresión de tickets**
+5. **Agregar reimpresión de tickets**
    - Desde historial de ventas
    - Seleccionar venta y reimprimir
 
-5. **Implementar envío de ticket por email**
+6. **Implementar envío de ticket por email**
    - Opción en pantalla de cobro
    - Usar datos del cliente
 
-6. **Mejorar validación de pago mixto**
+7. **Mejorar validación de pago mixto**
    - Validar que efectivo + electrónico = total
    - Mostrar error si no coincide
 
 ### Prioridad Baja
-7. **Agregar logging de auditoría**
+8. **Agregar logging de auditoría**
    - Registrar quién anuló ventas y por qué
    - Registrar cambios de precio
    - Registrar accesos al sistema
 
-8. **Optimizar rendimiento**
+9. **Optimizar rendimiento**
    - Lazy loading de productos
    - Caché de consultas frecuentes
    - Indexación de base de datos
@@ -190,13 +222,13 @@ WARNING: #fbbf24
 
 | Métrica | Valor |
 |---------|-------|
-| **Commits totales** | ~25 |
-| **Archivos modificados** | 14 |
-| **Líneas agregadas** | ~3,200 |
-| **Líneas eliminadas** | ~1,500 |
+| **Commits totales** | ~30 |
+| **Archivos modificados** | 18 |
+| **Líneas agregadas** | ~4,500 |
+| **Líneas eliminadas** | ~2,000 |
 | **Tests unitarios** | 167 |
 | **Tamaño del EXE** | ~75 MB |
-| **Tiempo invertido** | ~6 horas |
+| **Tiempo invertido** | ~8 horas |
 
 ---
 
@@ -239,23 +271,25 @@ git reset --hard v3.0.0-ui-premium
 1. **Credenciales por defecto:** Usuario: `Admin`, PIN: `0000`
 2. **Migración automática:** Si existe "Administrador" en BD, se renombra a "Admin"
 3. **Login soporta teclado:** Enter navega entre campos y ejecuta login
-4. **Las tendencias del dashboard muestran "+0%"** - Implementar cálculo real comparando períodos.
-5. **El EXE se compila correctamente** - Tamaño ~75 MB, sin errores.
-6. **Todos los cambios están en GitHub** - Branch `main` actualizado.
-7. **Punto de restauración disponible** - Tag `v3.0.0-ui-premium`.
+4. **Layout SaaS estandarizado:** Clientes, Setup, Corte y Proveedores usan contenedor centrado 600px
+5. **Las tendencias del dashboard muestran "+0%"** - Implementar cálculo real comparando períodos.
+6. **El EXE se compila correctamente** - Tamaño ~75 MB, sin errores.
+7. **Todos los cambios están en GitHub** - Branch `main` actualizado.
+8. **Punto de restauración disponible** - Tag `v3.0.0-ui-premium`.
 
 ---
 
 ## 📞 CONTACTO
 
 **Responsable:** Equipo de desarrollo TuCajeroPOS
-**Última actualización:** 2026-04-03
-**Estado:** ✅ FUNCIONAL - Login completo con autenticación real
+**Última actualización:** 2026-04-03 (Noche)
+**Estado:** ✅ FUNCIONAL - Login completo + 4 vistas refactorizadas con layout SaaS
 
 ---
 
-**Para continuar:**
+**Para continuar mañana:**
 1. Revisar este documento
 2. Verificar que la app ejecuta correctamente
-3. Continuar con dashboard trends o nuevas features
-4. Hacer commit después de cada cambio significativo
+3. Continuar refactorizando `ventas_view.py` y `productos_view.py` con layout centrado
+4. Implementar tendencias en dashboard
+5. Hacer commit después de cada cambio significativo
