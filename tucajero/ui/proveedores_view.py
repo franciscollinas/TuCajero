@@ -16,6 +16,8 @@ from PySide6.QtWidgets import (
     QSpinBox,
     QComboBox,
     QDialogButtonBox,
+    QFrame,
+    QScrollArea,
 )
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
@@ -30,45 +32,86 @@ class ProveedoresView(QWidget):
         self.init_ui()
 
     def init_ui(self):
-        layout = QVBoxLayout()
-        self.setLayout(layout)
+        c = get_colors()
+        main_layout = QVBoxLayout()
+        main_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.setLayout(main_layout)
+
+        # Scrollable container for content
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+
+        container = QWidget()
+        container.setMaximumWidth(600)
+        container_layout = QVBoxLayout()
+        container_layout.setSpacing(24)
+        container_layout.setContentsMargins(0, 16, 0, 16)
+        container.setLayout(container_layout)
 
         titulo = QLabel("Proveedores y Compras")
-        titulo.setStyleSheet("font-size: 24px; font-weight: bold;")
-        layout.addWidget(titulo)
+        titulo.setStyleSheet(
+            f"font-size: 26px; font-weight: 700; color: {c['text_primary']}; "
+            f"padding: 8px 0;"
+        )
+        titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        container_layout.addWidget(titulo)
 
         self.tabs = QTabWidget()
         self.tab_proveedores = self._crear_tab_proveedores()
         self.tab_ordenes = self._crear_tab_ordenes()
         self.tabs.addTab(self.tab_proveedores, "🏭 Proveedores")
         self.tabs.addTab(self.tab_ordenes, "📦 Órdenes de Compra")
-        layout.addWidget(self.tabs)
+        container_layout.addWidget(self.tabs)
+
+        scroll.setWidget(container)
+        main_layout.addWidget(scroll)
 
     def _crear_tab_proveedores(self):
+        c = get_colors()
         widget = QWidget()
         layout = QVBoxLayout()
+        layout.setSpacing(16)
+        layout.setContentsMargins(0, 0, 0, 0)
         widget.setLayout(layout)
 
+        # Card wrapper
+        card = QFrame()
+        card.setStyleSheet(
+            f"background-color: {c['bg_card']}; border-radius: 12px; "
+            f"border: 1px solid {c['border']}; padding: 0px;"
+        )
+        card_layout = QVBoxLayout()
+        card_layout.setSpacing(16)
+        card_layout.setContentsMargins(24, 24, 24, 24)
+        card.setLayout(card_layout)
+
+        # Button row
         btn_layout = QHBoxLayout()
-        btn_layout.addStretch()
+        btn_layout.setSpacing(12)
 
         btn_nuevo = QPushButton("+ Nuevo Proveedor")
+        btn_nuevo.setFixedHeight(44)
         btn_nuevo.setStyleSheet(btn_primary())
         btn_nuevo.clicked.connect(self.nuevo_proveedor)
         btn_layout.addWidget(btn_nuevo)
 
         btn_editar = QPushButton("Editar")
-        btn_editar.setStyleSheet(btn_primary())
+        btn_editar.setFixedHeight(44)
+        btn_editar.setStyleSheet(btn_secondary())
         btn_editar.clicked.connect(self.editar_proveedor)
         btn_layout.addWidget(btn_editar)
 
         btn_eliminar = QPushButton("Eliminar")
+        btn_eliminar.setFixedHeight(44)
         btn_eliminar.setStyleSheet(btn_danger())
         btn_eliminar.clicked.connect(self.eliminar_proveedor)
         btn_layout.addWidget(btn_eliminar)
 
-        layout.addLayout(btn_layout)
+        card_layout.addLayout(btn_layout)
 
+        # Table
         self.tabla_prov = QTableWidget()
         self.tabla_prov.setColumnCount(5)
         self.tabla_prov.setHorizontalHeaderLabels(
@@ -79,7 +122,9 @@ class ProveedoresView(QWidget):
         )
         self.tabla_prov.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.tabla_prov.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        layout.addWidget(self.tabla_prov)
+        card_layout.addWidget(self.tabla_prov)
+
+        layout.addWidget(card)
 
         self.proveedores = []
         self.cargar_proveedores()
@@ -132,38 +177,49 @@ class ProveedoresView(QWidget):
             self.cargar_proveedores()
 
     def _crear_tab_ordenes(self):
+        c = get_colors()
         widget = QWidget()
         layout = QVBoxLayout()
+        layout.setSpacing(16)
+        layout.setContentsMargins(0, 0, 0, 0)
         widget.setLayout(layout)
 
-        btn_layout = QHBoxLayout()
-        btn_layout.setSpacing(8)
-        btn_layout.addStretch()
+        # Card wrapper
+        card = QFrame()
+        card.setStyleSheet(
+            f"background-color: {c['bg_card']}; border-radius: 12px; "
+            f"border: 1px solid {c['border']}; padding: 0px;"
+        )
+        card_layout = QVBoxLayout()
+        card_layout.setSpacing(16)
+        card_layout.setContentsMargins(24, 24, 24, 24)
+        card.setLayout(card_layout)
 
-        btn_nueva = QPushButton("+ Nueva Orden de Compra")
-        btn_nueva.setFixedHeight(36)
-        btn_nueva.setMaximumWidth(200)
+        # Button row
+        btn_layout = QHBoxLayout()
+        btn_layout.setSpacing(12)
+
+        btn_nueva = QPushButton("+ Nueva Orden")
+        btn_nueva.setFixedHeight(44)
         btn_nueva.setStyleSheet(btn_primary())
         btn_nueva.clicked.connect(self.nueva_orden)
         btn_layout.addWidget(btn_nueva)
 
-        btn_recibir = QPushButton("✅ Recibir mercancía")
-        btn_recibir.setFixedHeight(36)
-        btn_recibir.setMaximumWidth(200)
+        btn_recibir = QPushButton("✅ Recibir")
+        btn_recibir.setFixedHeight(44)
         btn_recibir.setStyleSheet(btn_primary())
         btn_recibir.clicked.connect(self.recibir_orden)
         btn_layout.addWidget(btn_recibir)
 
-        btn_cancelar = QPushButton("✕ Cancelar orden")
-        btn_cancelar.setFixedHeight(36)
-        btn_cancelar.setMaximumWidth(200)
+        btn_cancelar = QPushButton("✕ Cancelar")
+        btn_cancelar.setFixedHeight(44)
         btn_cancelar.setStyleSheet(btn_danger())
         btn_cancelar.clicked.connect(self.cancelar_orden)
         btn_layout.addWidget(btn_cancelar)
 
-        layout.addLayout(btn_layout)
-        layout.setContentsMargins(8, 8, 8, 8)
+        card_layout.addLayout(btn_layout)
 
+        # Table
         self.tabla_ord = QTableWidget()
         self.tabla_ord.setColumnCount(6)
         self.tabla_ord.setHorizontalHeaderLabels(
@@ -175,16 +231,16 @@ class ProveedoresView(QWidget):
         self.tabla_ord.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.tabla_ord.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.tabla_ord.doubleClicked.connect(self.ver_detalle_orden)
-        layout.addWidget(self.tabla_ord)
+        card_layout.addWidget(self.tabla_ord)
 
+        # Info label
         info = QLabel("💡 Doble clic en una orden para ver el detalle de productos")
-        from tucajero.utils.theme import get_colors
-
-        c = get_colors()
         info.setStyleSheet(
-            f"color: {c['text_secondary']}; font-size: 12px; padding: 4px;"
+            f"color: {c['text_secondary']}; font-size: 12px; padding: 4px 0 0 0;"
         )
-        layout.addWidget(info)
+        card_layout.addWidget(info)
+
+        layout.addWidget(card)
 
         self.ordenes = []
         self.cargar_ordenes()
@@ -301,9 +357,40 @@ class ProveedorDialog(QDialog):
         self.setWindowTitle(
             "Nuevo Proveedor" if not proveedor_id else "Editar Proveedor"
         )
-        self.setMinimumWidth(420)
-        layout = QFormLayout()
-        self.setLayout(layout)
+        self.setMinimumWidth(480)
+        c = get_colors()
+
+        main_layout = QVBoxLayout()
+        main_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.setLayout(main_layout)
+
+        # Card wrapper
+        card = QFrame()
+        card.setStyleSheet(
+            f"background-color: #FFFFFF; border-radius: 12px; "
+            f"border: 1px solid #E2E8F0;"
+        )
+        card_layout = QVBoxLayout()
+        card_layout.setSpacing(16)
+        card_layout.setContentsMargins(24, 24, 24, 24)
+        card.setLayout(card_layout)
+
+        # Title
+        titulo = QLabel(
+            "Nuevo Proveedor" if not proveedor_id else "Editar Proveedor"
+        )
+        titulo.setStyleSheet(
+            f"font-size: 20px; font-weight: 700; color: {c['text_primary']}; "
+            f"padding-bottom: 8px;"
+        )
+        card_layout.addWidget(titulo)
+
+        # Form
+        form_layout = QFormLayout()
+        form_layout.setSpacing(16)
+        form_layout.setContentsMargins(0, 0, 0, 0)
+        form_layout.setLabelAlignment(Qt.AlignmentFlag.AlignLeft)
+        form_layout.setFormAlignment(Qt.AlignmentFlag.AlignLeft)
 
         self.nombre = QLineEdit()
         self.nit = QLineEdit()
@@ -311,14 +398,64 @@ class ProveedorDialog(QDialog):
         self.email = QLineEdit()
         self.direccion = QLineEdit()
 
-        for w in [self.nombre, self.nit, self.telefono, self.email, self.direccion]:
-            w.setStyleSheet("padding: 8px; font-size: 14px;")
+        input_style = (
+            f"background-color: #FFFFFF; color: {c['text_primary']}; "
+            f"border: 1px solid #E2E8F0; border-radius: 8px; "
+            f"padding: 8px 12px; font-size: 14px; min-height: 40px;"
+        )
+        label_style = (
+            f"color: {c['text_secondary']}; font-size: 13px; font-weight: 500;"
+        )
 
-        layout.addRow("Nombre *:", self.nombre)
-        layout.addRow("NIT:", self.nit)
-        layout.addRow("Teléfono:", self.telefono)
-        layout.addRow("Email:", self.email)
-        layout.addRow("Dirección:", self.direccion)
+        for w in [self.nombre, self.nit, self.telefono, self.email, self.direccion]:
+            w.setStyleSheet(input_style)
+
+        nombre_label = QLabel("Nombre *")
+        nombre_label.setStyleSheet(label_style)
+        form_layout.addRow(nombre_label, self.nombre)
+
+        nit_label = QLabel("NIT")
+        nit_label.setStyleSheet(label_style)
+        form_layout.addRow(nit_label, self.nit)
+
+        telefono_label = QLabel("Teléfono")
+        telefono_label.setStyleSheet(label_style)
+        form_layout.addRow(telefono_label, self.telefono)
+
+        email_label = QLabel("Email")
+        email_label.setStyleSheet(label_style)
+        form_layout.addRow(email_label, self.email)
+
+        direccion_label = QLabel("Dirección")
+        direccion_label.setStyleSheet(label_style)
+        form_layout.addRow(direccion_label, self.direccion)
+
+        card_layout.addLayout(form_layout)
+
+        # Separator
+        separator = QFrame()
+        separator.setFrameShape(QFrame.Shape.HLine)
+        separator.setStyleSheet(f"background-color: {c['border']}; border: none; max-height: 1px;")
+        card_layout.addWidget(separator)
+
+        # Buttons
+        btn_layout = QHBoxLayout()
+        btn_layout.setSpacing(12)
+
+        btn_g = QPushButton("Guardar")
+        btn_g.setFixedHeight(44)
+        btn_g.setStyleSheet(btn_primary())
+        btn_g.clicked.connect(self.guardar)
+        btn_layout.addWidget(btn_g)
+
+        btn_c = QPushButton("Cancelar")
+        btn_c.setFixedHeight(44)
+        btn_c.setStyleSheet(btn_secondary())
+        btn_c.clicked.connect(self.reject)
+        btn_layout.addWidget(btn_c)
+
+        card_layout.addLayout(btn_layout)
+        main_layout.addWidget(card)
 
         if proveedor_id:
             from tucajero.services.proveedor_service import ProveedorService
@@ -330,17 +467,6 @@ class ProveedorDialog(QDialog):
                 self.telefono.setText(p.telefono or "")
                 self.email.setText(p.email or "")
                 self.direccion.setText(p.direccion or "")
-
-        btns = QHBoxLayout()
-        btn_g = QPushButton("Guardar")
-        btn_g.setStyleSheet(btn_primary())
-        btn_g.clicked.connect(self.guardar)
-        btns.addWidget(btn_g)
-        btn_c = QPushButton("Cancelar")
-        btn_c.setStyleSheet(btn_secondary())
-        btn_c.clicked.connect(self.reject)
-        btns.addWidget(btn_c)
-        layout.addRow("", btns)
 
     def guardar(self):
         nombre = self.nombre.text().strip()
@@ -379,52 +505,110 @@ class OrdenCompraDialog(QDialog):
         self.session = session
         self.items = []
         self.setWindowTitle("Nueva Orden de Compra")
-        self.setMinimumSize(700, 550)
+        self.setMinimumSize(650, 600)
         self.init_ui()
 
     def init_ui(self):
-        from tucajero.utils.theme import get_colors
-
         c = get_colors()
 
-        layout = QVBoxLayout()
-        self.setLayout(layout)
+        main_layout = QVBoxLayout()
+        main_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.setLayout(main_layout)
 
+        # Card wrapper
+        card = QFrame()
+        card.setStyleSheet(
+            f"background-color: #FFFFFF; border-radius: 12px; "
+            f"border: 1px solid #E2E8F0;"
+        )
+        card_layout = QVBoxLayout()
+        card_layout.setSpacing(16)
+        card_layout.setContentsMargins(24, 24, 24, 24)
+        card.setLayout(card_layout)
+
+        # Title
+        titulo = QLabel("Nueva Orden de Compra")
+        titulo.setStyleSheet(
+            f"font-size: 20px; font-weight: 700; color: {c['text_primary']}; "
+            f"padding-bottom: 8px;"
+        )
+        card_layout.addWidget(titulo)
+
+        # Provider selector
         prov_layout = QHBoxLayout()
-        prov_layout.addWidget(QLabel("Proveedor:"))
+        prov_layout.setSpacing(12)
+        prov_label = QLabel("Proveedor:")
+        prov_label.setStyleSheet(
+            f"color: {c['text_secondary']}; font-size: 13px; font-weight: 500;"
+        )
+        prov_layout.addWidget(prov_label)
         self.combo_prov = QComboBox()
-        self.combo_prov.setStyleSheet("padding: 8px; font-size: 14px;")
+        self.combo_prov.setStyleSheet(
+            f"background-color: #FFFFFF; color: {c['text_primary']}; "
+            f"border: 1px solid #E2E8F0; border-radius: 8px; "
+            f"padding: 8px 12px; font-size: 14px; min-height: 40px;"
+        )
         self._cargar_proveedores()
         prov_layout.addWidget(self.combo_prov, 1)
-        layout.addLayout(prov_layout)
+        card_layout.addLayout(prov_layout)
+
+        # Add product section
+        agregar_label = QLabel("Agregar productos")
+        agregar_label.setStyleSheet(
+            f"color: {c['text_secondary']}; font-size: 13px; font-weight: 600; "
+            f"text-transform: uppercase; letter-spacing: 0.5px; padding-top: 8px;"
+        )
+        card_layout.addWidget(agregar_label)
 
         agregar_layout = QHBoxLayout()
-
-        self.spin_precio = QDoubleSpinBox()
-        self.spin_precio.setRange(0, 9999999)
-        self.spin_precio.setDecimals(2)
-        self.spin_precio.setPrefix("$")
+        agregar_layout.setSpacing(12)
 
         self.combo_prod = QComboBox()
-        self.combo_prod.setStyleSheet("padding: 8px;")
+        self.combo_prod.setStyleSheet(
+            f"background-color: #FFFFFF; color: {c['text_primary']}; "
+            f"border: 1px solid #E2E8F0; border-radius: 8px; "
+            f"padding: 8px 12px; font-size: 14px; min-height: 40px;"
+        )
         agregar_layout.addWidget(self.combo_prod, 3)
 
         self.spin_cant = QSpinBox()
         self.spin_cant.setRange(1, 99999)
         self.spin_cant.setValue(1)
         self.spin_cant.setPrefix("Cant: ")
+        self.spin_cant.setStyleSheet(
+            f"background-color: #FFFFFF; color: {c['text_primary']}; "
+            f"border: 1px solid #E2E8F0; border-radius: 8px; "
+            f"padding: 8px 12px; font-size: 14px; min-height: 40px;"
+        )
         agregar_layout.addWidget(self.spin_cant)
 
+        self.spin_precio = QDoubleSpinBox()
+        self.spin_precio.setRange(0, 9999999)
+        self.spin_precio.setDecimals(2)
+        self.spin_precio.setPrefix("$ ")
+        self.spin_precio.setStyleSheet(
+            f"background-color: #FFFFFF; color: {c['text_primary']}; "
+            f"border: 1px solid #E2E8F0; border-radius: 8px; "
+            f"padding: 8px 12px; font-size: 14px; min-height: 40px;"
+        )
         agregar_layout.addWidget(self.spin_precio)
 
         self._cargar_productos()
 
         btn_agregar = QPushButton("+ Agregar")
+        btn_agregar.setFixedHeight(44)
         btn_agregar.setStyleSheet(btn_primary())
         btn_agregar.clicked.connect(self.agregar_item)
         agregar_layout.addWidget(btn_agregar)
-        layout.addLayout(agregar_layout)
+        card_layout.addLayout(agregar_layout)
 
+        # Separator
+        separator = QFrame()
+        separator.setFrameShape(QFrame.Shape.HLine)
+        separator.setStyleSheet(f"background-color: #E2E8F0; border: none; max-height: 1px;")
+        card_layout.addWidget(separator)
+
+        # Table
         self.tabla = QTableWidget()
         self.tabla.setColumnCount(5)
         self.tabla.setHorizontalHeaderLabels(
@@ -434,30 +618,44 @@ class OrdenCompraDialog(QDialog):
             0, QHeaderView.ResizeMode.Stretch
         )
         self.tabla.setStyleSheet("font-size: 13px;")
-        layout.addWidget(self.tabla)
+        card_layout.addWidget(self.tabla)
 
+        # Total
         self.lbl_total = QLabel("Total: $0.00")
         self.lbl_total.setStyleSheet(
-            f"font-size: 18px; font-weight: bold; color: {c['success']}; padding: 8px;"
+            f"font-size: 18px; font-weight: 700; color: {c['success']}; padding: 8px 0;"
         )
         self.lbl_total.setAlignment(Qt.AlignmentFlag.AlignRight)
-        layout.addWidget(self.lbl_total)
+        card_layout.addWidget(self.lbl_total)
 
+        # Notes
         self.notas = QLineEdit()
         self.notas.setPlaceholderText("Notas (opcional)")
-        self.notas.setStyleSheet("padding: 8px;")
-        layout.addWidget(self.notas)
+        self.notas.setStyleSheet(
+            f"background-color: #FFFFFF; color: {c['text_primary']}; "
+            f"border: 1px solid #E2E8F0; border-radius: 8px; "
+            f"padding: 8px 12px; font-size: 14px; min-height: 40px;"
+        )
+        card_layout.addWidget(self.notas)
 
+        # Buttons
         btns = QHBoxLayout()
-        btn_crear = QPushButton("📦 CREAR ORDEN")
+        btns.setSpacing(12)
+
+        btn_crear = QPushButton("CREAR ORDEN")
+        btn_crear.setFixedHeight(44)
         btn_crear.setStyleSheet(btn_primary())
         btn_crear.clicked.connect(self.crear_orden)
         btns.addWidget(btn_crear)
+
         btn_cancel = QPushButton("Cancelar")
+        btn_cancel.setFixedHeight(44)
         btn_cancel.setStyleSheet(btn_secondary())
         btn_cancel.clicked.connect(self.reject)
         btns.addWidget(btn_cancel)
-        layout.addLayout(btns)
+
+        card_layout.addLayout(btns)
+        main_layout.addWidget(card)
 
     def _cargar_proveedores(self):
         from tucajero.services.proveedor_service import ProveedorService
@@ -560,32 +758,57 @@ class OrdenCompraDialog(QDialog):
 class DetalleOrdenDialog(QDialog):
     def __init__(self, orden, parent=None):
         super().__init__(parent)
-        self.setWindowTitle(f"Detalle — Orden #{orden.id}")
-        self.setMinimumSize(550, 400)
-        from tucajero.utils.theme import get_colors
-
+        self.orden = orden
+        self.setWindowTitle(f"Detalle - Orden #{orden.id}")
+        self.setMinimumSize(600, 450)
         c = get_colors()
-        layout = QVBoxLayout()
-        self.setLayout(layout)
 
+        main_layout = QVBoxLayout()
+        main_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.setLayout(main_layout)
+
+        # Card wrapper
+        card = QFrame()
+        card.setStyleSheet(
+            f"background-color: #FFFFFF; border-radius: 12px; "
+            f"border: 1px solid #E2E8F0;"
+        )
+        card_layout = QVBoxLayout()
+        card_layout.setSpacing(16)
+        card_layout.setContentsMargins(24, 24, 24, 24)
+        card.setLayout(card_layout)
+
+        # Title
+        titulo = QLabel(f"Orden #{orden.id}")
+        titulo.setStyleSheet(
+            f"font-size: 20px; font-weight: 700; color: {c['text_primary']}; "
+            f"padding-bottom: 8px;"
+        )
+        card_layout.addWidget(titulo)
+
+        # Info section
         info = QLabel(
-            f"<b>Proveedor:</b> {orden.proveedor.nombre}  |  "
-            f"<b>Fecha:</b> {orden.fecha.strftime('%d/%m/%Y %I:%M %p')}  |  "
-            f"<b>Estado:</b> {orden.estado.capitalize()}  |  "
+            f"<b>Proveedor:</b> {orden.proveedor.nombre}<br>"
+            f"<b>Fecha:</b> {orden.fecha.strftime('%d/%m/%Y %I:%M %p')}<br>"
+            f"<b>Estado:</b> {orden.estado.capitalize()}<br>"
             f"<b>Total:</b> {fmt_moneda(orden.total)}"
         )
         info.setStyleSheet(
-            f"font-size:13px; padding:8px; background: {c['bg_card']}; border-radius:4px;"
+            f"font-size: 13px; color: {c['text_primary']}; padding: 12px; "
+            f"background-color: #F8FAFC; border-radius: 8px; "
+            f"border: 1px solid #E2E8F0;"
         )
         info.setWordWrap(True)
-        layout.addWidget(info)
+        card_layout.addWidget(info)
 
+        # Table
         tabla = QTableWidget(len(orden.items), 4)
         tabla.setHorizontalHeaderLabels(
             ["Producto", "Cantidad", "Precio compra", "Subtotal"]
         )
         tabla.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         tabla.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        card_layout.addWidget(tabla)
 
         from tucajero.models.producto import Producto
 
@@ -602,16 +825,30 @@ class DetalleOrdenDialog(QDialog):
             tabla.setItem(i, 1, QTableWidgetItem(str(item.cantidad)))
             tabla.setItem(i, 2, QTableWidgetItem(fmt_moneda(item.precio_compra)))
             tabla.setItem(i, 3, QTableWidgetItem(fmt_moneda(item.subtotal)))
-        layout.addWidget(tabla)
 
+        # Notes
         if orden.notas:
-            nota = QLabel(f"📝 Notas: {orden.notas}")
+            nota = QLabel(f"Notas: {orden.notas}")
             nota.setStyleSheet(
-                f"color: {c['text_secondary']}; font-size: 12px; padding: 4px;"
+                f"color: {c['text_secondary']}; font-size: 12px; padding: 4px 0;"
             )
-            layout.addWidget(nota)
+            nota.setWordWrap(True)
+            card_layout.addWidget(nota)
 
+        # Separator
+        separator = QFrame()
+        separator.setFrameShape(QFrame.Shape.HLine)
+        separator.setStyleSheet(f"background-color: #E2E8F0; border: none; max-height: 1px;")
+        card_layout.addWidget(separator)
+
+        # Close button
+        btn_layout = QHBoxLayout()
+        btn_layout.setAlignment(Qt.AlignmentFlag.AlignRight)
         btn_cerrar = QPushButton("Cerrar")
+        btn_cerrar.setFixedHeight(44)
         btn_cerrar.setStyleSheet(btn_secondary())
         btn_cerrar.clicked.connect(self.accept)
-        layout.addWidget(btn_cerrar)
+        btn_layout.addWidget(btn_cerrar)
+        card_layout.addLayout(btn_layout)
+
+        main_layout.addWidget(card)
