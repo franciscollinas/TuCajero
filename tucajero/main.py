@@ -152,37 +152,130 @@ def main():
         logging.error(f"Error al abrir caja: {e}")
 
     logging.info("Creando MainWindow...")
-    window = MainWindow()
-    window.session = session
-    logging.info("MainWindow creado, configurando iconos...")
-    window.setWindowIcon(QIcon(ICON_PATH))
-    logging.info("Iconos configurados")
-
-    # Nuevo dashboard estilo SaaS
-    from tucajero.app.ui.views.dashboard.dashboard_view import DashboardView
-
-    dashboard_view = DashboardView(session)
-    window.add_view(dashboard_view, "dashboard")
-
-    ventas_view = VentasView(session, cajero_activo=cajero_activo)
-    window.add_view(ventas_view, "ventas")
-    ventas_view.sale_completed.connect(dashboard_view.refresh)
-
     try:
-        from tucajero.ui.setup_view import SetupView
+        window = MainWindow()
+        window.session = session
+        logging.info("MainWindow creado, configurando iconos...")
+        window.setWindowIcon(QIcon(ICON_PATH))
+        logging.info("Iconos configurados")
 
-        config_view = SetupView(session, parent=window)
-        window.add_view(config_view, "setup")
+        # Dashboard
+        logging.info("Creando Dashboard...")
+        from tucajero.app.ui.views.dashboard.dashboard_view import DashboardView
+        dashboard_view = DashboardView(session)
+        window.add_view(dashboard_view, "dashboard")
+        logging.info("Dashboard creado OK")
+
+        # Ventas
+        logging.info("Creando Ventas...")
+        ventas_view = VentasView(session, cajero_activo=cajero_activo)
+        window.add_view(ventas_view, "ventas")
+        ventas_view.sale_completed.connect(dashboard_view.refresh)
+        logging.info("Ventas creado OK")
+
+        # Config
+        logging.info("Creando Config...")
+        try:
+            from tucajero.ui.setup_view import SetupView
+            config_view = SetupView(session, parent=window)
+            window.add_view(config_view, "setup")
+            logging.info("Config creado OK")
+        except Exception as e:
+            logging.error(f"Error al crear vista de config: {e}", exc_info=True)
+
+        # Productos
+        logging.info("Creando Productos...")
+        try:
+            from tucajero.ui.productos_view import ProductosView
+            prod_view = ProductosView(session, parent=window)
+            window.add_view(prod_view, "productos")
+            logging.info("Productos creado OK")
+        except Exception as e:
+            logging.error(f"Error al crear vista de productos: {e}", exc_info=True)
+
+        # Clientes
+        logging.info("Creando Clientes...")
+        try:
+            from tucajero.ui.clientes_view import ClientesView
+            cli_view = ClientesView(session, parent=window)
+            window.add_view(cli_view, "clientes")
+            logging.info("Clientes creado OK")
+        except Exception as e:
+            logging.error(f"Error al crear vista de clientes: {e}", exc_info=True)
+
+        # Cotizaciones
+        logging.info("Creando Cotizaciones...")
+        try:
+            from tucajero.ui.cotizaciones_view import CotizacionesView
+            cot_view = CotizacionesView(session, parent=window)
+            window.add_view(cot_view, "cotizaciones")
+            logging.info("Cotizaciones creado OK")
+        except Exception as e:
+            logging.error(f"Error al crear vista de cotizaciones: {e}", exc_info=True)
+
+        # Corte
+        logging.info("Creando Corte...")
+        try:
+            from tucajero.ui.corte_view import CorteView
+            corte_view = CorteView(session, cajero_activo=cajero_activo, parent=window)
+            window.add_view(corte_view, "corte")
+            logging.info("Corte creado OK")
+        except Exception as e:
+            logging.error(f"Error al crear vista de corte: {e}", exc_info=True)
+
+        # Historial
+        logging.info("Creando Historial...")
+        try:
+            from tucajero.ui.historial_view import HistorialView
+            hist_view = HistorialView(session, parent=window)
+            window.add_view(hist_view, "historial")
+            logging.info("Historial creado OK")
+        except Exception as e:
+            logging.error(f"Error al crear vista de historial: {e}", exc_info=True)
+
+        # Proveedores
+        logging.info("Creando Proveedores...")
+        try:
+            from tucajero.ui.proveedores_view import ProveedoresView
+            prov_view = ProveedoresView(session, parent=window)
+            window.add_view(prov_view, "proveedores")
+            logging.info("Proveedores creado OK")
+        except Exception as e:
+            logging.error(f"Error al crear vista de proveedores: {e}", exc_info=True)
+
+        # Cajeros
+        logging.info("Creando Cajeros...")
+        try:
+            from tucajero.ui.cajeros_view import CajerosView
+            caj_view = CajerosView(session, parent=window)
+            window.add_view(caj_view, "cajeros")
+            logging.info("Cajeros creado OK")
+        except Exception as e:
+            logging.error(f"Error al crear vista de cajeros: {e}", exc_info=True)
+
+        window.set_cajero_activo(cajero_activo)
+        logging.info("Cajero activo configurado")
+        window.switch_view_by_name("dashboard")
+        logging.info("Vista dashboard activada")
+        window.show()
+        logging.info("MainWindow shown!")
+        sys.exit(app.exec())
     except Exception as e:
-        logging.error(f"Error al crear vista de config: {e}")
-
-    window.set_cajero_activo(cajero_activo)
-    window.switch_view_by_name("dashboard")
-
-    window.switch_to_ventas()
-    window.show()
-
-    sys.exit(app.exec())
+        logging.critical(f"FATAL ERROR en main: {e}", exc_info=True)
+        import traceback
+        error_msg = traceback.format_exc()
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Critical)
+        msg.setWindowTitle("Error fatal")
+        msg.setText(f"Error al iniciar la aplicación:\n{e}")
+        msg.setDetailedText(error_msg)
+        msg.setStyleSheet("""
+            QMessageBox { background-color: #FFFFFF; }
+            QMessageBox QLabel { color: #0F172A; background: transparent; }
+            QPushButton { background-color: #2563EB; color: #FFFFFF; border: none; border-radius: 6px; padding: 8px 16px; font-weight: 600; }
+        """)
+        msg.exec()
+        sys.exit(1)
 
 
 if __name__ == "__main__":
