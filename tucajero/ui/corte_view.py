@@ -401,7 +401,6 @@ class CorteView(QWidget):
 
         # Dialogo para ingresar el monto fisico en caja
         from PySide6.QtWidgets import QInputDialog, QMessageBox
-        from PySide6.QtGui import QDoubleValidator
 
         # Calcular efectivo esperado (ventas - gastos)
         efectivo_esperado = total_esperado - total_gastos

@@ -6,7 +6,6 @@ from PySide6.QtWidgets import (
     QPushButton,
     QStackedWidget,
     QLabel,
-    QSizePolicy,
     QFrame,
     QButtonGroup,
     QMessageBox,
@@ -14,7 +13,6 @@ from PySide6.QtWidgets import (
     QApplication,
 )
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QIcon, QPixmap
 from tucajero.ui.design_tokens import Colors, Typography, Spacing, BorderRadius
 from tucajero.ui.components_premium import ButtonPremium
 from tucajero.utils.store_config import (
@@ -643,37 +641,6 @@ class MainWindow(QMainWindow):
             cotizaciones.cargar_en_ventas.connect(
                 lambda carrito, cliente: self.switch_view_by_name("ventas")
             )
-
-    def switch_view(self, index):
-        """Cambia a una vista específica"""
-        self.content_stack.setCurrentIndex(index)
-
-    def switch_to_ventas(self):
-        self.switch_view_by_name("ventas")
-
-    def switch_to_productos(self):
-        self.switch_view_by_name("productos")
-
-    def switch_to_clientes(self):
-        self.switch_view_by_name("clientes")
-
-    def switch_to_cajeros(self):
-        self.switch_view_by_name("cajeros")
-
-    def switch_to_cotizaciones(self):
-        self.switch_view_by_name("cotizaciones")
-
-    def switch_to_corte(self):
-        self.switch_view_by_name("corte")
-
-    def switch_to_historial(self):
-        self.switch_view_by_name("historial")
-
-    def switch_to_config(self):
-        self.switch_view_by_name("setup")
-
-    def switch_to_proveedores(self):
-        self.switch_view_by_name("proveedores")
 
     def set_cajero_activo(self, cajero):
         self.cajero_activo = cajero

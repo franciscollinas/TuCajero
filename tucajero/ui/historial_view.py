@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
     QDialog,
 )
 from PySide6.QtCore import Qt, QDate
-from datetime import datetime, timedelta
+from datetime import datetime
 from tucajero.ui.design_tokens import Colors, Typography, Spacing, BorderRadius
 from tucajero.ui.components_premium import ButtonPremium
 import os

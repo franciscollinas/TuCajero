@@ -124,7 +124,7 @@ class ConfigNegocioDialog(QDialog):
         layout.addStretch()
 
         # ── Sección Backup ────────────────────────
-        from PySide6.QtWidgets import QGroupBox, QHBoxLayout, QLabel
+        from PySide6.QtWidgets import QGroupBox
 
         backup_group = QGroupBox("💾  Backup de Datos")
         backup_group.setStyleSheet(f"""
@@ -283,7 +283,6 @@ class ConfigNegocioDialog(QDialog):
             QMessageBox.critical(self, "Error", "No se pudo guardar la configuración.")
 
     def _exportar_datos(self):
-        from PySide6.QtWidgets import QFileDialog, QMessageBox
         from tucajero.utils.data_manager import exportar_datos
         from datetime import datetime
 
@@ -319,7 +318,6 @@ class ConfigNegocioDialog(QDialog):
             )
 
     def _importar_datos(self):
-        from PySide6.QtWidgets import QFileDialog, QMessageBox
         from tucajero.utils.data_manager import importar_datos
 
         # Advertencia antes de importar

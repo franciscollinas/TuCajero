@@ -1078,23 +1078,6 @@ class VentasView(QWidget):
             else:
                 self.lbl_descuento_val.setText("")
 
-    def aumentar_cantidad(self):
-        """Increase quantity of selected product"""
-        row = self.tabla_carrito.currentRow()
-        if row >= 0 and row < len(self.carrito):
-            self.carrito[row]["cantidad"] += 1
-            self.actualizar_tabla()
-
-    def disminuir_cantidad(self):
-        """Decrease quantity of selected product"""
-        row = self.tabla_carrito.currentRow()
-        if row >= 0 and row < len(self.carrito):
-            if self.carrito[row]["cantidad"] > 1:
-                self.carrito[row]["cantidad"] -= 1
-            else:
-                self.carrito.pop(row)
-            self.actualizar_tabla()
-
     def aplicar_descuento(self):
         if not self.carrito:
             QMessageBox.warning(
