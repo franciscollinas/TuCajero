@@ -17,7 +17,6 @@ from tucajero.ui.design_tokens import Colors, Typography, Spacing, BorderRadius
 from tucajero.ui.components_premium import ButtonPremium
 from tucajero.utils.store_config import (
     get_store_name,
-    get_logo_path,
     get_nit,
     get_phone,
     get_email,
@@ -81,7 +80,6 @@ class MainWindow(QMainWindow):
             get_nit,
             get_phone,
             get_address,
-            get_logo_path,
         )
         import os
 
@@ -97,35 +95,14 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(24, 8, 24, 8)
         layout.setSpacing(20)
 
-        # ── LOGO: TuCajero POS (nuestra empresa) ─────────────────
-        logo = QLabel()
-        logo.setFixedSize(180, 56)
-        logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        # Usar el logo de TuCajero POS desde assets/store/logo.png
-        store_logo = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            "assets", "store", "logo.png"
+        # ── LOGO: TuCajero POS (texto limpio, sin imagen pixelada) ──
+        logo_text = QLabel("📊 TuCajero")
+        logo_text.setStyleSheet(
+            f"font-size: 22px; font-weight: {Typography.BOLD}; "
+            f"color: {Colors.TEXT_PRIMARY}; background: transparent; "
+            f"border: none; padding-left: 8px;"
         )
-        if os.path.exists(store_logo):
-            from PySide6.QtGui import QPixmap
-
-            # Escalar manteniendo proporción horizontal (logo ancho)
-            pix = QPixmap(store_logo).scaled(
-                170,
-                52,
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation,
-            )
-            logo.setPixmap(pix)
-            logo.setStyleSheet("background: transparent; border: none;")
-        else:
-            logo.setText("🏪")
-            logo.setStyleSheet(
-                f"background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 {Colors.PRIMARY}, stop:1 {Colors.INFO}); "
-                f"border-radius: 12px; font-size: 28px; border: none;"
-            )
-        layout.addWidget(logo)
+        layout.addWidget(logo_text)
 
         # ── INFO: TuCajero POS (nuestro producto) ────────────────
         from tucajero.config.app_config import APP_NAME, VERSION as APP_VERSION
@@ -191,9 +168,6 @@ class MainWindow(QMainWindow):
         return header
 
     def _build_sidebar(self):
-        from tucajero.utils.store_config import get_logo_path
-        import os
-
         sidebar = QWidget()
         sidebar.setFixedWidth(240)
         sidebar.setStyleSheet(f"""
@@ -220,59 +194,14 @@ class MainWindow(QMainWindow):
         h_layout.setContentsMargins(16, 8, 16, 8)
         h_layout.setSpacing(14)
 
-        # Logo
-        logo = QLabel()
-        logo.setFixedSize(48, 48)
-        logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        app_icon = os.path.join(
-            os.path.dirname(__file__), "..", "assets", "icons", "tucajero.ico"
+        # Logo texto limpio (sin imagen pixelada)
+        logo_text = QLabel("📊 TuCajero")
+        logo_text.setStyleSheet(
+            f"font-size: 20px; font-weight: {Typography.BOLD}; "
+            f"color: {Colors.TEXT_PRIMARY}; background: transparent; "
+            f"border: none;"
         )
-        store_logo = get_logo_path()
-        if os.path.exists(app_icon):
-            from PySide6.QtGui import QPixmap
-
-            pix = QPixmap(app_icon).scaled(
-                42,
-                42,
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation,
-            )
-            logo.setPixmap(pix)
-            logo.setStyleSheet(
-                "border-radius: 12px; background: transparent; border: none;"
-            )
-        elif store_logo and os.path.exists(store_logo):
-            from PySide6.QtGui import QPixmap
-
-            pix = QPixmap(store_logo).scaled(
-                42,
-                42,
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation,
-            )
-            logo.setPixmap(pix)
-            logo.setStyleSheet(
-                "border-radius: 12px; background: transparent; border: none;"
-            )
-        else:
-            logo.setText("TC")
-            logo.setStyleSheet(
-                f"background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 {Colors.PRIMARY}, stop:1 {Colors.PRIMARY_DARK}); color: white; border-radius: 12px; font-size: 16px; font-weight: 700; border: none;"
-            )
-
-        app_name = QLabel("TuCajero")
-        app_name.setStyleSheet(f"""
-            QLabel {{
-                color: {Colors.TEXT_PRIMARY};
-                font-size: {Typography.H3}px;
-                font-weight: {Typography.BOLD};
-                background: transparent;
-                border: none;
-            }}
-        """)
-
-        h_layout.addWidget(logo)
-        h_layout.addWidget(app_name)
+        h_layout.addWidget(logo_text)
         h_layout.addStretch()
         layout.addWidget(header)
 
