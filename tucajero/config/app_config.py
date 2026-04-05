@@ -1,3 +1,3 @@
-APP_NAME = "TuCajero"
+APP_NAME = "TuCajero POS"
 VERSION = "3.0"
-AUTHOR = "TuCajero"
+AUTHOR = "TuCajero POS"
