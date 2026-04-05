@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QHeaderView,
     QComboBox,
+    QFrame,
 )
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor
@@ -59,6 +60,20 @@ class CotizacionesView(QWidget):
 
         layout.addLayout(btn_layout)
 
+        # Card wrapper for table
+        card = QFrame()
+        card.setStyleSheet(f"""
+            QFrame {{
+                background-color: {Colors.BG_CARD};
+                border: 1px solid {Colors.BORDER_DEFAULT};
+                border-radius: {BorderRadius.XL}px;
+            }}
+        """)
+        card_layout = QVBoxLayout()
+        card_layout.setContentsMargins(0, 0, 0, 0)
+        card_layout.setSpacing(0)
+        card.setLayout(card_layout)
+
         self.tabla = QTableWidget()
         self.tabla.setColumnCount(6)
         self.tabla.setHorizontalHeaderLabels(
@@ -71,7 +86,9 @@ class CotizacionesView(QWidget):
         self.tabla.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.tabla.setStyleSheet(TABLE_STYLE_PREMIUM)
         self.tabla.doubleClicked.connect(self.convertir_en_venta)
-        layout.addWidget(self.tabla)
+        card_layout.addWidget(self.tabla)
+
+        layout.addWidget(card)
 
         info = QLabel(
             "Doble clic o 'Convertir en venta' para facturar una cotización pendiente"

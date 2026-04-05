@@ -17,6 +17,7 @@ from PySide6.QtWidgets import (
     QComboBox,
     QInputDialog,
     QDateEdit,
+    QFrame,
 )
 from PySide6.QtCore import Qt, QDate
 from PySide6.QtGui import QColor
@@ -123,6 +124,20 @@ class ProductosView(QWidget):
 
         layout.addLayout(btn_layout)
 
+        # Card wrapper for table
+        card = QFrame()
+        card.setStyleSheet(f"""
+            QFrame {{
+                background-color: {Colors.BG_CARD};
+                border: 1px solid {Colors.BORDER_DEFAULT};
+                border-radius: {BorderRadius.XL}px;
+            }}
+        """)
+        card_layout = QVBoxLayout()
+        card_layout.setContentsMargins(0, 0, 0, 0)
+        card_layout.setSpacing(0)
+        card.setLayout(card_layout)
+
         self.tabla = QTableWidget()
         self.tabla.setColumnCount(4)
         self.tabla.setHorizontalHeaderLabels(["Código", "Nombre", "Stock", "Precio"])
@@ -132,7 +147,9 @@ class ProductosView(QWidget):
         self.tabla.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.tabla.setStyleSheet(TABLE_STYLE_PREMIUM)
         self.tabla.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        layout.addWidget(self.tabla)
+        card_layout.addWidget(self.tabla)
+
+        layout.addWidget(card)
 
         btn_layout = QHBoxLayout()
         btn_layout.setContentsMargins(0, 10, 0, 10)  # 10px arriba y abajo

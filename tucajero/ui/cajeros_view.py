@@ -8,6 +8,7 @@ from PySide6.QtWidgets import (
     QTableWidgetItem,
     QMessageBox,
     QHeaderView,
+    QFrame,
 )
 from PySide6.QtCore import Qt
 from tucajero.ui.design_tokens import Colors, Typography, Spacing, BorderRadius
@@ -56,6 +57,20 @@ class CajerosView(QWidget):
 
         layout.addLayout(btn_layout)
 
+        # Card wrapper for table
+        card = QFrame()
+        card.setStyleSheet(f"""
+            QFrame {{
+                background-color: {Colors.BG_CARD};
+                border: 1px solid {Colors.BORDER_DEFAULT};
+                border-radius: {BorderRadius.XL}px;
+            }}
+        """)
+        card_layout = QVBoxLayout()
+        card_layout.setContentsMargins(0, 0, 0, 0)
+        card_layout.setSpacing(0)
+        card.setLayout(card_layout)
+
         self.tabla = QTableWidget()
         self.tabla.setColumnCount(3)
         self.tabla.setHorizontalHeaderLabels(["ID", "Nombre", "Rol"])
@@ -65,7 +80,9 @@ class CajerosView(QWidget):
         self.tabla.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.tabla.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.tabla.setStyleSheet(TABLE_STYLE_PREMIUM)
-        layout.addWidget(self.tabla)
+        card_layout.addWidget(self.tabla)
+
+        layout.addWidget(card)
 
     def cargar_cajeros(self):
         from tucajero.services.cajero_service import CajeroService

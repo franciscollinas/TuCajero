@@ -20,7 +20,7 @@ from tucajero.ui.components_premium import (
     ButtonPremium,
     TABLE_STYLE_PREMIUM,
 )
-from tucajero.ui.design_tokens import Typography, Colors
+from tucajero.ui.design_tokens import Typography, Colors, Spacing, BorderRadius
 
 
 class DashboardView(QWidget):
@@ -136,11 +136,33 @@ class DashboardView(QWidget):
 
         root.addLayout(metrics_row)
 
-        # FILA 4: Tabla de ventas recientes
-        table_card = ChartCardMaxton(title="Ventas Recientes")
-        table_card.setMinimumHeight(400)
+        # FILA 4: Tabla de ventas recientes - CardPremium
+        table_card = QFrame()
+        table_card.setStyleSheet(f"""
+            QFrame {{
+                background-color: {Colors.BG_CARD};
+                border: 1px solid {Colors.BORDER_DEFAULT};
+                border-radius: {BorderRadius.XL}px;
+            }}
+        """)
+        table_card_layout = QVBoxLayout()
+        table_card_layout.setContentsMargins(0, 0, 0, 0)
+        table_card_layout.setSpacing(0)
+        table_card.setLayout(table_card_layout)
 
-        # Tabla dentro de la card
+        # Table title
+        table_title = QLabel("Ventas Recientes")
+        table_title.setStyleSheet(f"""
+            QLabel {{
+                color: {Colors.TEXT_PRIMARY};
+                font-size: {Typography.H4}px;
+                font-weight: {Typography.BOLD};
+                background: transparent;
+                padding: {Spacing.LG}px {Spacing.XL}px {Spacing.SM}px {Spacing.XL}px;
+            }}
+        """)
+        table_card_layout.addWidget(table_title)
+
         self.table_ventas = QTableWidget()
         self.table_ventas.setColumnCount(5)
         self.table_ventas.setHorizontalHeaderLabels([
@@ -151,7 +173,7 @@ class DashboardView(QWidget):
         self.table_ventas.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.table_ventas.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
 
-        table_card.content_layout.addWidget(self.table_ventas)
+        table_card_layout.addWidget(self.table_ventas)
 
         root.addWidget(table_card)
 

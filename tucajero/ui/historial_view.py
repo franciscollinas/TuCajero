@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QInputDialog,
     QDialog,
+    QFrame,
 )
 from PySide6.QtCore import Qt, QDate
 from datetime import datetime
@@ -128,6 +129,20 @@ class HistorialView(QWidget):
         )
         layout.addWidget(cierres_label)
 
+        # Card wrapper for tabla_cierres
+        cierres_card = QFrame()
+        cierres_card.setStyleSheet(f"""
+            QFrame {{
+                background-color: {Colors.BG_CARD};
+                border: 1px solid {Colors.BORDER_DEFAULT};
+                border-radius: {BorderRadius.XL}px;
+            }}
+        """)
+        cierres_card_layout = QVBoxLayout()
+        cierres_card_layout.setContentsMargins(0, 0, 0, 0)
+        cierres_card_layout.setSpacing(0)
+        cierres_card.setLayout(cierres_card_layout)
+
         self.tabla_cierres = QTableWidget()
         self.tabla_cierres.setColumnCount(5)
         self.tabla_cierres.setHorizontalHeaderLabels(
@@ -140,13 +155,29 @@ class HistorialView(QWidget):
         self.tabla_cierres.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.tabla_cierres.setStyleSheet(TABLE_STYLE_PREMIUM)
         self.tabla_cierres.setMinimumHeight(200)
-        layout.addWidget(self.tabla_cierres)
+        cierres_card_layout.addWidget(self.tabla_cierres)
+
+        layout.addWidget(cierres_card)
 
         ranking_label = QLabel("Ranking de productos")
         ranking_label.setStyleSheet(
             f"font-size: {Typography.H4}px; font-weight: {Typography.BOLD}; margin-top: {Spacing.SM}px;"
         )
         layout.addWidget(ranking_label)
+
+        # Card wrapper for tabla_ranking
+        ranking_card = QFrame()
+        ranking_card.setStyleSheet(f"""
+            QFrame {{
+                background-color: {Colors.BG_CARD};
+                border: 1px solid {Colors.BORDER_DEFAULT};
+                border-radius: {BorderRadius.XL}px;
+            }}
+        """)
+        ranking_card_layout = QVBoxLayout()
+        ranking_card_layout.setContentsMargins(0, 0, 0, 0)
+        ranking_card_layout.setSpacing(0)
+        ranking_card.setLayout(ranking_card_layout)
 
         self.tabla_ranking = QTableWidget()
         self.tabla_ranking.setColumnCount(4)
@@ -160,7 +191,9 @@ class HistorialView(QWidget):
         self.tabla_ranking.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.tabla_ranking.setStyleSheet(TABLE_STYLE_PREMIUM)
         self.tabla_ranking.setMaximumHeight(250)
-        layout.addWidget(self.tabla_ranking)
+        ranking_card_layout.addWidget(self.tabla_ranking)
+
+        layout.addWidget(ranking_card)
 
     def on_filtro_rapido_changed(self, text):
         """Aplica filtro rápido"""
