@@ -221,32 +221,44 @@ class SectionHeaderPremium(QWidget):
 
 class MetricCardMaxton(QFrame):
     """
-    Metric card estilo Maxton con gradiente y sombra glow
+    Metric card estilo Maxton con gradiente o color sólido
 
-    USO EXACTO:
+    USO:
     card = MetricCardMaxton(
         value="$262,226",
         label="Ventas hoy",
-        gradient_colors="cyan"  # cyan, green, pink, purple, blue, orange
+        gradient_colors="green"  # cyan, green, pink, purple, blue, orange
+    )
+    card_compact = MetricCardMaxton(
+        value="$2,400",
+        label="Ventas Hoy",
+        gradient_colors="green",
+        compact=True  # Color sólido, más pequeño
     )
     """
 
-    def __init__(self, value, label, gradient_colors="cyan", icon=None, change=None, parent=None):
+    SOLID_COLORS = {
+        "green": "#00cc66",
+        "cyan": "#00d4ff",
+        "pink": "#ff0080",
+        "purple": "#a855f7",
+        "blue": "#3b82f6",
+        "orange": "#ff8c00",
+    }
+
+    def __init__(self, value, label, gradient_colors="cyan", icon=None, change=None, compact=False, parent=None):
         super().__init__(parent)
 
         self.gradient_type = gradient_colors
-        self.setMinimumHeight(140)
-        self.setMinimumWidth(280)
+        self.compact = compact
 
-        # Aplicar sombra glow según gradiente
-        if gradient_colors == "cyan":
-            shadow = Colors.SHADOW_GLOW_CYAN
-        elif gradient_colors == "green":
-            shadow = Colors.SHADOW_GLOW_GREEN
-        elif gradient_colors == "pink":
-            shadow = Colors.SHADOW_GLOW_PINK
+        if compact:
+            self.setMinimumHeight(80)
+            self.setMinimumWidth(180)
+            self.setMaximumWidth(400)  # ~40% de ancho en pantalla estándar
         else:
-            shadow = Colors.SHADOW_MD
+            self.setMinimumHeight(140)
+            self.setMinimumWidth(280)
 
         self.setStyleSheet(f"""
             QFrame {{
@@ -257,19 +269,23 @@ class MetricCardMaxton(QFrame):
 
         # Layout
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(24, 24, 24, 24)
-        layout.setSpacing(8)
+        if compact:
+            layout.setContentsMargins(16, 12, 16, 12)
+            layout.setSpacing(4)
+        else:
+            layout.setContentsMargins(24, 24, 24, 24)
+            layout.setSpacing(8)
 
         # Label (arriba, pequeño)
         label_widget = QLabel(label)
         label_widget.setStyleSheet(f"""
             QLabel {{
-                color: rgba(255, 255, 255, 0.7);
-                font-size: {Typography.CAPTION}px;
+                color: rgba(255, 255, 255, 0.8);
+                font-size: {Typography.CAPTION if compact else Typography.CAPTION}px;
                 font-weight: {Typography.MEDIUM};
                 background: transparent;
                 text-transform: uppercase;
-                letter-spacing: 1px;
+                letter-spacing: 0.5px;
             }}
         """)
         layout.addWidget(label_widget)
@@ -279,10 +295,10 @@ class MetricCardMaxton(QFrame):
         value_widget.setStyleSheet(f"""
             QLabel {{
                 color: rgb(255, 255, 255);
-                font-size: {Typography.H1}px;
+                font-size: {Typography.H3 if compact else Typography.H1}px;
                 font-weight: {Typography.EXTRABOLD};
                 background: transparent;
-                letter-spacing: -1px;
+                letter-spacing: -0.5px;
             }}
         """)
         layout.addWidget(value_widget)
@@ -292,7 +308,7 @@ class MetricCardMaxton(QFrame):
             change_widget = QLabel(change)
             change_widget.setStyleSheet(f"""
                 QLabel {{
-                    color: rgba(255, 255, 255, 0.6);
+                    color: rgba(255, 255, 255, 0.7);
                     font-size: {Typography.CAPTION}px;
                     background: transparent;
                 }}
@@ -302,41 +318,44 @@ class MetricCardMaxton(QFrame):
         layout.addStretch()
 
     def paintEvent(self, event):
-        """Dibuja gradiente de fondo"""
+        """Dibuja fondo (sólido si compact, gradiente si normal)"""
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
-        # Crear gradiente según tipo
-        gradient = QLinearGradient(0, 0, self.width(), self.height())
-
-        if self.gradient_type == "cyan":
-            gradient.setColorAt(0, QColor(Colors.GRADIENT_CYAN_START))
-            gradient.setColorAt(1, QColor(Colors.GRADIENT_CYAN_END))
-        elif self.gradient_type == "green":
-            gradient.setColorAt(0, QColor(Colors.GRADIENT_GREEN_START))
-            gradient.setColorAt(1, QColor(Colors.GRADIENT_GREEN_END))
-        elif self.gradient_type == "pink":
-            gradient.setColorAt(0, QColor(Colors.GRADIENT_PINK_START))
-            gradient.setColorAt(1, QColor(Colors.GRADIENT_PINK_END))
-        elif self.gradient_type == "purple":
-            gradient.setColorAt(0, QColor(Colors.GRADIENT_PURPLE_START))
-            gradient.setColorAt(1, QColor(Colors.GRADIENT_PURPLE_END))
-        elif self.gradient_type == "blue":
-            gradient.setColorAt(0, QColor(Colors.GRADIENT_BLUE_START))
-            gradient.setColorAt(1, QColor(Colors.GRADIENT_BLUE_END))
-        elif self.gradient_type == "orange":
-            gradient.setColorAt(0, QColor(Colors.GRADIENT_ORANGE_START))
-            gradient.setColorAt(1, QColor(Colors.GRADIENT_ORANGE_END))
+        if self.compact:
+            # Color sólido para modo compacto
+            color_hex = self.SOLID_COLORS.get(self.gradient_type, "#3b82f6")
+            painter.setBrush(QColor(color_hex))
         else:
-            # Gradiente por defecto
-            gradient.setColorAt(0, QColor(Colors.PRIMARY))
-            gradient.setColorAt(1, QColor("#1e40af"))
+            # Gradiente para modo normal
+            gradient = QLinearGradient(0, 0, self.width(), self.height())
 
-        painter.setBrush(QBrush(gradient))
+            if self.gradient_type == "cyan":
+                gradient.setColorAt(0, QColor(Colors.GRADIENT_CYAN_START))
+                gradient.setColorAt(1, QColor(Colors.GRADIENT_CYAN_END))
+            elif self.gradient_type == "green":
+                gradient.setColorAt(0, QColor(Colors.GRADIENT_GREEN_START))
+                gradient.setColorAt(1, QColor(Colors.GRADIENT_GREEN_END))
+            elif self.gradient_type == "pink":
+                gradient.setColorAt(0, QColor(Colors.GRADIENT_PINK_START))
+                gradient.setColorAt(1, QColor(Colors.GRADIENT_PINK_END))
+            elif self.gradient_type == "purple":
+                gradient.setColorAt(0, QColor(Colors.GRADIENT_PURPLE_START))
+                gradient.setColorAt(1, QColor(Colors.GRADIENT_PURPLE_END))
+            elif self.gradient_type == "blue":
+                gradient.setColorAt(0, QColor(Colors.GRADIENT_BLUE_START))
+                gradient.setColorAt(1, QColor(Colors.GRADIENT_BLUE_END))
+            elif self.gradient_type == "orange":
+                gradient.setColorAt(0, QColor(Colors.GRADIENT_ORANGE_START))
+                gradient.setColorAt(1, QColor(Colors.GRADIENT_ORANGE_END))
+            else:
+                gradient.setColorAt(0, QColor(Colors.PRIMARY))
+                gradient.setColorAt(1, QColor("#1e40af"))
+
+            painter.setBrush(QBrush(gradient))
+
         painter.setPen(Qt.PenStyle.NoPen)
         painter.drawRoundedRect(self.rect(), BorderRadius.XL, BorderRadius.XL)
-
-        super().paintEvent(event)
 
     def set_value(self, value):
         """Actualiza el valor mostrado en la card"""

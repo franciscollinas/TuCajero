@@ -74,67 +74,68 @@ class DashboardView(QWidget):
 
         root.addWidget(header)
 
-        # GRID PRINCIPAL (2x2)
-        grid = QGridLayout()
-        grid.setSpacing(24)
+        # FILA 1: Cards métricas compactas (40% ancho, colores sólidos, parte superior)
+        metrics_row = QHBoxLayout()
+        metrics_row.setSpacing(16)
 
-        # FILA 1
-        # Card 1: Ventas hoy (arriba izquierda)
         self.card_ventas_hoy = MetricCardMaxton(
             value="$0",
             label="Ventas Hoy",
-            gradient_colors="green"
+            gradient_colors="green",
+            compact=True
         )
-        self.card_ventas_hoy.setMinimumHeight(160)
-        grid.addWidget(self.card_ventas_hoy, 0, 0)
-
-        # Card 2: Gráfico de barras (arriba derecha - ocupa 2 filas)
-        self.card_chart_ventas = ChartCardMaxton(
-            title="Ventas últimos 7 días",
-            subtitle="Comparación diaria"
-        )
-        self.card_chart_ventas.setMinimumHeight(320)
-        grid.addWidget(self.card_chart_ventas, 0, 1, 2, 1)
-
-        # FILA 2
-        # Card 3: Métodos de pago (abajo izquierda)
-        self.card_metodos_pago = ChartCardMaxton(
-            title="Métodos de pago"
-        )
-        self.card_metodos_pago.setMinimumHeight(320)
-        grid.addWidget(self.card_metodos_pago, 1, 0)
-
-        root.addLayout(grid)
-
-        # FILA 3: Cards de métricas pequeñas (horizontal)
-        metrics_row = QHBoxLayout()
-        metrics_row.setSpacing(24)
+        self.card_ventas_hoy.setMinimumHeight(80)
+        metrics_row.addWidget(self.card_ventas_hoy)
 
         self.card_ventas_mes = MetricCardMaxton(
             value="$0",
             label="Ventas Mes",
-            gradient_colors="blue"
+            gradient_colors="blue",
+            compact=True
         )
-        self.card_ventas_mes.setMinimumHeight(140)
+        self.card_ventas_mes.setMinimumHeight(80)
         metrics_row.addWidget(self.card_ventas_mes)
 
         self.card_ticket = MetricCardMaxton(
             value="$0",
             label="Ticket Promedio",
-            gradient_colors="cyan"
+            gradient_colors="cyan",
+            compact=True
         )
-        self.card_ticket.setMinimumHeight(140)
+        self.card_ticket.setMinimumHeight(80)
         metrics_row.addWidget(self.card_ticket)
 
         self.card_num_ventas = MetricCardMaxton(
             value="0",
             label="Nº Ventas",
-            gradient_colors="purple"
+            gradient_colors="purple",
+            compact=True
         )
-        self.card_num_ventas.setMinimumHeight(140)
+        self.card_num_ventas.setMinimumHeight(80)
         metrics_row.addWidget(self.card_num_ventas)
 
         root.addLayout(metrics_row)
+
+        # FILA 2: Gráficos y tabla
+        grid = QGridLayout()
+        grid.setSpacing(24)
+
+        # Card 1: Gráfico de barras
+        self.card_chart_ventas = ChartCardMaxton(
+            title="Ventas últimos 7 días",
+            subtitle="Comparación diaria"
+        )
+        self.card_chart_ventas.setMinimumHeight(300)
+        grid.addWidget(self.card_chart_ventas, 0, 0)
+
+        # Card 2: Métodos de pago
+        self.card_metodos_pago = ChartCardMaxton(
+            title="Métodos de pago"
+        )
+        self.card_metodos_pago.setMinimumHeight(300)
+        grid.addWidget(self.card_metodos_pago, 0, 1)
+
+        root.addLayout(grid)
 
         # FILA 4: Tabla de ventas recientes - CardPremium
         table_card = QFrame()
