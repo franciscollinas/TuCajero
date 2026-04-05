@@ -77,6 +77,7 @@ class MainWindow(QMainWindow):
     def _build_header(self):
         from tucajero.utils.store_config import (
             get_store_name,
+            get_logo_path,
             get_nit,
             get_phone,
             get_address,
@@ -95,34 +96,53 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(24, 8, 24, 8)
         layout.setSpacing(20)
 
-        # ── LOGO: TuCajero POS (texto limpio, sin imagen pixelada) ──
-        logo_text = QLabel("📊 TuCajero")
-        logo_text.setStyleSheet(
-            f"font-size: 22px; font-weight: {Typography.BOLD}; "
-            f"color: {Colors.TEXT_PRIMARY}; background: transparent; "
-            f"border: none; padding-left: 8px;"
-        )
-        layout.addWidget(logo_text)
+        # ── LOGO: Negocio del cliente (imagen) ──────────────────
+        logo = QLabel()
+        logo.setFixedSize(56, 56)
+        logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        logo_path = get_logo_path()
+        if logo_path and os.path.exists(logo_path):
+            from PySide6.QtGui import QPixmap
 
-        # ── INFO: TuCajero POS (nuestro producto) ────────────────
-        from tucajero.config.app_config import APP_NAME, VERSION as APP_VERSION
+            pix = QPixmap(logo_path).scaled(
+                52,
+                52,
+                Qt.AspectRatioMode.KeepAspectRatioByExpanding,
+                Qt.TransformationMode.SmoothTransformation,
+            )
+            logo.setPixmap(pix)
+            logo.setStyleSheet(f"border-radius: 12px; border: 2px solid {Colors.BORDER_DEFAULT}; background: transparent;")
+        else:
+            logo.setText("🏪")
+            logo.setStyleSheet(
+                f"background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 {Colors.PRIMARY}, stop:1 {Colors.INFO}); border-radius: 12px; font-size: 28px; border: none;"
+            )
+        layout.addWidget(logo)
 
+        # ── INFO: Negocio del cliente ───────────────────────────
         info_col = QVBoxLayout()
         info_col.setSpacing(3)
         info_col.setContentsMargins(0, 0, 0, 0)
 
-        store_lbl = QLabel(APP_NAME)
+        store_lbl = QLabel(get_store_name())
         store_lbl.setStyleSheet(
-            f"color: {Colors.TEXT_PRIMARY}; font-size: 18px; font-weight: 700; "
-            f"background: transparent; border: none;"
+            f"color: {Colors.TEXT_PRIMARY}; font-size: 18px; font-weight: 700; background: transparent; border: none;"
         )
         info_col.addWidget(store_lbl)
 
-        sub = QLabel(f"v{APP_VERSION} — Sistema de Punto de Venta")
-        sub.setStyleSheet(
-            f"color: {Colors.TEXT_MUTED}; font-size: 12px; background: transparent; border: none;"
-        )
-        info_col.addWidget(sub)
+        parts = []
+        if get_nit():
+            parts.append(f"NIT: {get_nit()}")
+        if get_phone():
+            parts.append(f"📞 {get_phone()}")
+        if get_address():
+            parts.append(f"📍 {get_address()}")
+        if parts:
+            sub = QLabel("  |  ".join(parts))
+            sub.setStyleSheet(
+                f"color: {Colors.TEXT_MUTED}; font-size: 12px; background: transparent; border: none;"
+            )
+            info_col.addWidget(sub)
 
         layout.addLayout(info_col)
         layout.addStretch()
