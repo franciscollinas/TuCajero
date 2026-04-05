@@ -22,8 +22,8 @@ class RevenueChartCard(QFrame):
         self.data_points = data_points or [100, 150, 120, 180, 140, 160, 190, 170, 200]
 
         # ===================== TAMAÑO =====================
-        self.setMinimumHeight(200)
-        self.setMaximumHeight(220)
+        self.setMinimumHeight(240)
+        self.setMaximumHeight(260)
 
         # ===================== ESTILOS =====================
         self.setStyleSheet("""

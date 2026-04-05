@@ -77,10 +77,10 @@ class LightColors:
 # TEMA OSCURO (Maxton) - MANTENIDO POR COMPATIBILIDAD
 # ============================================================
 class DarkColors:
-    # FONDOS - Inspirado en Maxton
-    BG_APP = "#0f1320"           # Fondo principal ultra oscuro
-    BG_PANEL = "#151825"         # Sidebar y paneles
-    BG_CARD = "#1a1d2e"          # Cards principales
+    # FONDOS - Inspirado en Maxton (Deep Masterpiece)
+    BG_APP = "#060812"           # Fondo principal ultra profundo (Azul Noche)
+    BG_PANEL = "#0b0e1a"         # Sidebar
+    BG_CARD = "#111426"          # Cards principales (Efecto Elevación)
     BG_ELEVATED = "#1f2333"      # Elementos elevados
     BG_INPUT = "#232639"         # Inputs
     BG_HOVER = "#2a2f3e"         # Hover state
@@ -99,35 +99,35 @@ class DarkColors:
     BORDER_STRONG = "#475569"
     BORDER_FOCUS = "#3b82f6"
 
-    # GRADIENTES PREMIUM (Maxton style)
-    GRADIENT_CYAN_START = "#00d4ff"
-    GRADIENT_CYAN_END = "#00a3cc"
-    GRADIENT_GREEN_START = "#00ff88"
-    GRADIENT_GREEN_END = "#00cc66"
-    GRADIENT_PINK_START = "#ff0080"
-    GRADIENT_PINK_END = "#cc0066"
-    GRADIENT_PURPLE_START = "#a855f7"
-    GRADIENT_PURPLE_END = "#7c3aed"
-    GRADIENT_BLUE_START = "#3b82f6"
-    GRADIENT_BLUE_END = "#1e40af"
-    GRADIENT_ORANGE_START = "#ff8c00"
-    GRADIENT_ORANGE_END = "#cc7000"
+    # GRADIENTES PREMIUM (Maxton Deep Glow)
+    GRADIENT_CYAN_START = "#00d2ff"     # Brillo cyan
+    GRADIENT_CYAN_END = "#0060ad"       # Azul profundo
+    GRADIENT_GREEN_START = "#00f5a0"    # Menta brillante
+    GRADIENT_GREEN_END = "#00a16a"      # Esmeralda profundo
+    GRADIENT_PINK_START = "#ff4b91"     # Magenta suave
+    GRADIENT_PINK_END = "#910048"       # Vino profundo
+    GRADIENT_PURPLE_START = "#9d50bb"   # Amatista
+    GRADIENT_PURPLE_END = "#491c88"     # Violeta oscuro
+    GRADIENT_BLUE_START = "#4facfe"     # Azul cielo
+    GRADIENT_BLUE_END = "#003efd"       # Azul real profundo
+    GRADIENT_ORANGE_START = "#f8ae56"   # Ámbar suave
+    GRADIENT_ORANGE_END = "#960000"     # Óxido (Contraste alto)
 
     # COLORES PLANOS (para elementos sin gradiente)
     PRIMARY = "#3b82f6"
-    PRIMARY_DARK = "#1e40af"
-    SUCCESS = "#00ff88"
-    SUCCESS_DARK = "#00cc66"
-    SUCCESS_LIGHT = "#34d399"
-    WARNING = "#fbbf24"
+    PRIMARY_DARK = "#1e3a8a"
+    SUCCESS = "#10b981"
+    SUCCESS_DARK = "#059669"
+    SUCCESS_LIGHT = "#6ee7b7"
+    WARNING = "#f59e0b"
     WARNING_DARK = "#b45309"
-    DANGER = "#ff0080"
-    DANGER_DARK = "#cc0066"
-    DANGER_LIGHT = "#f87171"
-    INFO = "#00d4ff"
+    DANGER = "#ef4444"
+    DANGER_DARK = "#dc2626"
+    DANGER_LIGHT = "#fca5a5"
+    INFO = "#06b6d4"
     INFO_DARK = "#0e7490"
-    PURPLE = "#a855f7"
-    PURPLE_DARK = "#6d28d9"
+    PURPLE = "#8b5cf6"
+    PURPLE_DARK = "#5b21b6"
 
     # SOMBRAS
     SHADOW_SM = "0 1px 3px 0 rgba(0, 0, 0, 0.4)"

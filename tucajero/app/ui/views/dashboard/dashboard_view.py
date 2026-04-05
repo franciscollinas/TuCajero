@@ -1,396 +1,311 @@
+"""
+Dashboard View — Réplica PIXEL PERFECT del diseño Falcon Light
+"""
+
 from PySide6.QtWidgets import (
     QWidget,
     QVBoxLayout,
     QHBoxLayout,
     QLabel,
     QFrame,
-    QSizePolicy,
     QTableWidget,
     QTableWidgetItem,
-    QGridLayout,
     QHeaderView,
+    QPushButton,
+    QScrollArea,
+    QAbstractItemView,
 )
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QPointF
+from PySide6.QtGui import (
+    QColor,
+    QPainter,
+    QPen,
+    QBrush,
+    QFont,
+    QLinearGradient,
+    QPainterPath,
+)
+from datetime import datetime, timedelta
+from sqlalchemy import func, and_, desc
 
-from tucajero.app.ui.theme.theme import app_style, PRIMARY, SECONDARY, SUCCESS, WARNING, ACCENT
-from tucajero.ui.chart_widget import ChartWidget
-from tucajero.ui.components_premium import (
-    MetricCardMaxton,
-    ChartCardMaxton,
-    ButtonPremium,
-    TABLE_STYLE_PREMIUM,
-)
-from tucajero.ui.chart_revenue import RevenueChartCard
-from tucajero.ui.period_selector import PeriodSelector
-from tucajero.ui.design_tokens import Typography, Colors, Spacing, BorderRadius
+from tucajero.ui.design_tokens import LightColors as Colors, Typography, BorderRadius
+from tucajero.ui.components_premium import FalconHeroCard, FalconMetricCard
+from tucajero.models.producto import Venta, VentaItem, Producto
+from tucajero.models.cliente import Cliente
 
 
 class DashboardView(QWidget):
     def __init__(self, session, parent=None):
         super().__init__(parent)
         self.session = session
-        self.setup_ui()
-        self.load_data()
+        self.colors = Colors
+        self._init_ui()
+        self.refresh()
 
-    def setup_ui(self):
-        """Layout principal del dashboard estilo Falcon"""
-        c = Colors
+    def _init_ui(self):
+        """Layout principal del dashboard estilo Falcon Light"""
+        self.setStyleSheet(f"background-color: {Colors.BG_APP}; font-family: 'Inter', 'Segoe UI';")
+        
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        
+        # Area de scroll
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
+        scroll.setStyleSheet(f"QScrollArea {{ background-color: {Colors.BG_APP}; border: none; }}")
+        
+        content = QWidget()
+        content.setStyleSheet(f"background-color: {Colors.BG_APP};")
+        content_layout = QVBoxLayout(content)
+        content_layout.setContentsMargins(32, 24, 32, 32)
+        content_layout.setSpacing(16)
 
-        self.setStyleSheet(f"""
-            QWidget {{
-                background-color: #ffffff;
-                color: #1a1a1a;
-                font-family: 'Segoe UI', 'Inter', sans-serif;
-            }}
-        """)
-
-        root = QVBoxLayout(self)
-        root.setContentsMargins(32, 24, 32, 32)
-        root.setSpacing(20)
-
-        # ===================== HEADER =====================
-        header = QWidget()
-        header.setStyleSheet("background: transparent;")
-        header_layout = QHBoxLayout(header)
-        header_layout.setContentsMargins(0, 0, 0, 0)
-        header_layout.setSpacing(16)
-
-        title = QLabel("Dashboard")
-        title.setStyleSheet(f"color: {c.TEXT_PRIMARY}; font-size: {Typography.H2}px; font-weight: {Typography.BOLD}; background: transparent;")
-        header_layout.addWidget(title)
-
-        from datetime import datetime
-        now = datetime.now()
-        fecha = QLabel(now.strftime("%A, %d de %B %Y"))
-        fecha.setStyleSheet(f"color: {c.TEXT_SECONDARY}; font-size: {Typography.BODY}px; background: transparent;")
-        header_layout.addWidget(fecha)
-
+        # 0. HEADER (Título + Refresh)
+        header_layout = QHBoxLayout()
+        self.title_lbl = QLabel("Panel de Control")
+        self.title_lbl.setStyleSheet(f"color: #344050; font-size: 24px; font-weight: 800;")
+        header_layout.addWidget(self.title_lbl)
         header_layout.addStretch()
+        
+        self.btn_refresh = QPushButton("Refrescar Datos")
+        self.btn_refresh.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_refresh.setStyleSheet("""
+            QPushButton {
+                background-color: white;
+                color: #2c7be5;
+                font-weight: 700;
+                padding: 10px 20px;
+                border-radius: 6px;
+                border: 1px solid #d8e2ef;
+            }
+            QPushButton:hover { background-color: #f9fafd; border-color: #2c7be5; }
+        """)
+        self.btn_refresh.clicked.connect(self.refresh)
+        header_layout.addWidget(self.btn_refresh)
+        content_layout.addLayout(header_layout)
 
-        btn_refresh = ButtonPremium("🔄 Actualizar", style="secondary")
-        btn_refresh.clicked.connect(self.refresh_data)
-        header_layout.addWidget(btn_refresh)
-
-        root.addWidget(header)
-
-        # ===================== PERÍODO SELECTOR =====================
-        self.period_selector = PeriodSelector()
-        self.period_selector.period_changed.connect(self.on_period_changed)
-        root.addWidget(self.period_selector)
-
-        # ===================== GRÁFICO DE INGRESOS SUPERIOR =====================
-        self.revenue_chart = RevenueChartCard(
-            title="Ventas de Hoy",
-            amount="$0.00",
-            subtitle="Comparación con ayer",
-            data_points=[100, 150, 120, 180, 140, 160, 190, 170, 200]
+        # 1. HERO CARD (Azul con gráfico de línea)
+        self.hero_card = FalconHeroCard(
+            title="Hoy $0.00", 
+            subtitle="Ayer $0.00"
         )
-        root.addWidget(self.revenue_chart)
+        content_layout.addWidget(self.hero_card)
 
-        # ===================== METRIC CARDS (Estilo Falcon) =====================
-        cards_row = QHBoxLayout()
-        cards_row.setSpacing(16)
-
-        self.card_ventas_hoy = MetricCardMaxton(
-            title="Ventas Hoy",
-            value="$0",
-            change_percent=0,
-            change_positive=True,
-            accent_color="#10b981"  # Verde
-        )
-        cards_row.addWidget(self.card_ventas_hoy)
-
-        self.card_ventas_mes = MetricCardMaxton(
-            title="Ventas Mes",
-            value="$0",
-            change_percent=0,
-            change_positive=True,
-            accent_color="#3b82f6"  # Azul
-        )
-        cards_row.addWidget(self.card_ventas_mes)
-
-        self.card_ticket = MetricCardMaxton(
-            title="Ticket Prom.",
-            value="$0",
-            change_percent=0,
-            change_positive=True,
-            accent_color="#8b5cf6"  # Púrpura
-        )
-        cards_row.addWidget(self.card_ticket)
-
-        self.card_num_ventas = MetricCardMaxton(
-            title="Nº Ventas",
-            value="0",
-            change_percent=0,
-            change_positive=True,
-            accent_color="#f59e0b"  # Ámbar
-        )
-        cards_row.addWidget(self.card_num_ventas)
-
-        cards_row.setStretch(0, 1)
-        cards_row.setStretch(1, 1)
-        cards_row.setStretch(2, 1)
-        cards_row.setStretch(3, 1)
-
-        root.addLayout(cards_row)
-
-        # ===================== GRÁFICOS INFERIORES =====================
-        grid = QGridLayout()
-        grid.setSpacing(24)
-
-        self.card_chart_ventas = ChartCardMaxton(
-            title="Ventas últimos 7 días",
-            subtitle="Comparación diaria"
-        )
-        self.card_chart_ventas.setMinimumHeight(300)
-        grid.addWidget(self.card_chart_ventas, 0, 0)
-
-        self.card_metodos_pago = ChartCardMaxton(
-            title="Métodos de pago"
-        )
-        self.card_metodos_pago.setMinimumHeight(300)
-        grid.addWidget(self.card_metodos_pago, 0, 1)
-
-        root.addLayout(grid)
-
-        # ===================== TABLA DE VENTAS RECIENTES =====================
-        table_card = QFrame()
-        table_card.setStyleSheet(f"""
+        # 2. INFO BAR (Payout info)
+        self.info_bar = QFrame()
+        self.info_bar.setMinimumHeight(48)
+        self.info_bar.setStyleSheet(f"""
             QFrame {{
-                background: transparent;
-                border: 1px solid {Colors.BORDER_DEFAULT};
-                border-radius: {BorderRadius.XL}px;
+                background-color: #edf2f9;
+                border: 1px solid #d8e2ef;
+                border-radius: {BorderRadius.MD}px;
             }}
         """)
-        table_card_layout = QVBoxLayout()
-        table_card_layout.setContentsMargins(8, 8, 8, 8)
-        table_card_layout.setSpacing(0)
-        table_card.setLayout(table_card_layout)
+        info_layout = QHBoxLayout(self.info_bar)
+        info_layout.setContentsMargins(15, 0, 15, 0)
+        
+        icon_lbl = QLabel("⇅")
+        icon_lbl.setStyleSheet("color: #2c7be5; font-weight: bold; font-size: 16px;")
+        info_layout.addWidget(icon_lbl)
+        
+        self.info_text = QLabel("Un pago de $0.00 fue depositado hace 0 días. Tu próximo depósito se espera pronto.")
+        self.info_text.setStyleSheet("color: #5e6e82; font-size: 13px; font-weight: 500;")
+        info_layout.addWidget(self.info_text)
+        info_layout.addStretch()
+        content_layout.addWidget(self.info_bar)
 
-        table_title = QLabel("Ventas Recientes")
-        table_title.setStyleSheet(f"""
-            QLabel {{
-                color: {Colors.TEXT_PRIMARY};
-                font-size: {Typography.H4}px;
-                font-weight: {Typography.BOLD};
-                background: transparent;
-                padding: {Spacing.LG}px {Spacing.XL}px {Spacing.SM}px {Spacing.XL}px;
+        # 3. METRICS ROW (3 Cards)
+        metrics_row = QHBoxLayout()
+        metrics_row.setSpacing(16)
+        
+        self.card_customers = FalconMetricCard("Clientes", "0", "0.0%", "#fef2f2")
+        self.card_orders = FalconMetricCard("Ventas", "0", "0.0%", "#ffffff")
+        self.card_revenue = FalconMetricCard("Ingresos", "$0", "0.0%", "#ecfdf5")
+        
+        metrics_row.addWidget(self.card_customers)
+        metrics_row.addWidget(self.card_orders)
+        metrics_row.addWidget(self.card_revenue)
+        content_layout.addLayout(metrics_row)
+
+        # 4. TABLA DE COMPRAS RECIENTES
+        table_container = QFrame()
+        table_container.setStyleSheet(f"""
+            QFrame {{
+                background-color: white;
+                border: 1px solid #edf2f9;
+                border-radius: {BorderRadius.LG}px;
             }}
         """)
-        table_card_layout.addWidget(table_title)
+        table_layout = QVBoxLayout(table_container)
+        table_layout.setContentsMargins(20, 20, 20, 20)
+        
+        # Header de tabla
+        t_header = QHBoxLayout()
+        t_title = QLabel("Ventas Recientes")
+        t_title.setStyleSheet("color: #344050; font-size: 18px; font-weight: 700;")
+        t_header.addWidget(t_title)
+        t_header.addStretch()
+        
+        for action in ["+ Nueva", "Filtrar", "Exportar"]:
+            act_btn = QPushButton(action)
+            act_btn.setStyleSheet("""
+                QPushButton { background: #f9fafd; color: #5e6e82; border: 1px solid #d8e2ef; 
+                padding: 6px 12px; border-radius: 6px; font-weight: 600; font-size: 12px; }
+                QPushButton:hover { background: #edf2f9; }
+            """)
+            t_header.addWidget(act_btn)
+        table_layout.addLayout(t_header)
 
-        self.table_ventas = QTableWidget()
-        self.table_ventas.setColumnCount(5)
-        self.table_ventas.setHorizontalHeaderLabels([
-            "Fecha", "Cliente", "Total", "Método", "Productos"
-        ])
-        self.table_ventas.setStyleSheet(TABLE_STYLE_PREMIUM)
-        self.table_ventas.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-        self.table_ventas.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.table_ventas.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-
-        table_card_layout.addWidget(self.table_ventas)
-        root.addWidget(table_card)
-
-    # =========================
-    # PERÍODO SELECTOR CALLBACK
-    # =========================
-    def on_period_changed(self, period):
-        """Llamado cuando el usuario cambia el período"""
-        print(f"Período cambiado a: {period}")
-        # Aquí llamarías a tu lógica de BD para traer datos del período
-        self.load_data()
-
-    # =========================
-    # LOAD DATA
-    # =========================
-    def load_data(self):
-        try:
-            self.get_kpis()
-        except Exception as e:
-            print(f"Error loading KPIs: {e}")
-
-        try:
-            self.get_ventas_7_dias()
-        except Exception as e:
-            print(f"Error loading chart: {e}")
-
-        try:
-            self.get_metodos_pago()
-        except Exception as e:
-            print(f"Error loading payment methods: {e}")
-
-        try:
-            self.get_ventas_recientes()
-        except Exception as e:
-            print(f"Error loading recent sales: {e}")
+        # Configuración de tabla
+        self.table = QTableWidget()
+        self.table.setColumnCount(6)
+        self.table.setHorizontalHeaderLabels(["", "Cliente", "Email", "Producto", "Estado", "Monto"])
+        self.table.setStyleSheet(f"""
+            QTableWidget {{
+                background-color: white;
+                border: none;
+                gridline-color: transparent;
+                color: #5e6e82;
+                font-family: 'Inter';
+            }}
+            QHeaderView::section {{
+                background-color: #f9fafd;
+                color: #5e6e82;
+                padding: 12px;
+                border: none;
+                border-bottom: 1px solid #edf2f9;
+                font-weight: 700;
+                font-size: 11px;
+                text-transform: uppercase;
+            }}
+            QTableWidget::item {{
+                padding: 12px;
+                border-bottom: 1px solid #edf2f9;
+                background-color: white;
+            }}
+        """)
+        self.table.verticalHeader().setVisible(False)
+        self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.table.setShowGrid(False)
+        self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        
+        h_header = self.table.horizontalHeader()
+        h_header.setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed)
+        self.table.setColumnWidth(0, 40)
+        h_header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        h_header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
+        h_header.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
+        h_header.setSectionResizeMode(4, QHeaderView.ResizeMode.Fixed)
+        self.table.setColumnWidth(4, 120)
+        h_header.setSectionResizeMode(5, QHeaderView.ResizeMode.Fixed)
+        self.table.setColumnWidth(5, 100)
+        
+        self.table.setMinimumHeight(550)
+        
+        table_layout.addWidget(self.table)
+        content_layout.addWidget(table_container)
+        
+        content_layout.addStretch()
+        scroll.setWidget(content)
+        main_layout.addWidget(scroll)
 
     def refresh(self):
-        self.load_data()
-
-    def refresh_data(self):
-        """Método para actualizar los datos del dashboard"""
-        self.load_data()
-
-    def get_kpis(self):
+        """Actualizar datos reales en layout Falcon"""
         try:
-            from tucajero.services.venta_service import VentaService
+            # Consultar ventas de hoy y ayer
+            hoy = datetime.now().date()
+            ayer = hoy - timedelta(days=1)
+            
+            total_hoy = self.session.query(func.sum(Venta.total)).filter(and_(func.date(Venta.fecha) == hoy, Venta.anulada == False)).scalar() or 0
+            total_ayer = self.session.query(func.sum(Venta.total)).filter(and_(func.date(Venta.fecha) == ayer, Venta.anulada == False)).scalar() or 0
+            
+            # Actualizar Hero
+            self.hero_card.lbl_title.setText(f"Hoy ${total_hoy:,.2f}")
+            self.hero_card.lbl_subtitle.setText(f"Ayer ${total_ayer:,.2f}")
+            
+            # Métricas
+            n_cust = self.session.query(func.count(func.distinct(Venta.cliente_id))).filter(Venta.anulada == False).scalar() or 0
+            n_orders = self.session.query(func.count(Venta.id)).filter(Venta.anulada == False).scalar() or 0
+            total_rev = self.session.query(func.sum(Venta.total)).filter(Venta.anulada == False).scalar() or 0
+            
+            self.card_customers.lbl_value.setText(f"{n_cust:,}")
+            self.card_orders.lbl_value.setText(f"{n_orders:,}")
+            self.card_revenue.lbl_value.setText(f"${total_rev:,.0f}")
+            
+            self.info_text.setText(f"Un pago de ${total_hoy:,.2f} fue depositado hace 0 días. Tu próximo depósito se espera pronto.")
 
-            venta_service = VentaService(self.session)
-
-            total_hoy = venta_service.get_total_hoy()
-            total_mes = venta_service.get_total_mes()
-            num_ventas_hoy = venta_service.get_num_ventas_hoy()
-            ticket_prom = total_hoy / num_ventas_hoy if num_ventas_hoy > 0 else 0
-
-            # Calcular tendencias comparando con período anterior
-            total_ayer = venta_service.get_total_ayer()
-            if total_ayer > 0:
-                cambio_hoy = ((total_hoy - total_ayer) / total_ayer) * 100
-                tendencia_hoy = round(cambio_hoy)
-                hoy_positivo = cambio_hoy >= 0
-            else:
-                tendencia_hoy = 0
-                hoy_positivo = True
-
-            total_mes_ant = venta_service.get_total_mes_anterior()
-            if total_mes_ant > 0:
-                cambio_mes = ((total_mes - total_mes_ant) / total_mes_ant) * 100
-                tendencia_mes = round(cambio_mes)
-                mes_positivo = cambio_mes >= 0
-            else:
-                tendencia_mes = 0
-                mes_positivo = True
-
-            num_ventas_ayer = venta_service.get_num_ventas_ayer()
-            if num_ventas_ayer > 0:
-                cambio_num = ((num_ventas_hoy - num_ventas_ayer) / num_ventas_ayer) * 100
-                tendencia_num = round(cambio_num)
-                num_positivo = cambio_num >= 0
-            else:
-                tendencia_num = 0
-                num_positivo = True
-
-            # Calcular tendencia de ticket promedio
-            tendencia_ticket = 0
-
-            # Actualizar cards con tendencias (estilo Falcon)
-            self.card_ventas_hoy.set_value(f"${total_hoy:,.0f}")
-            self.card_ventas_hoy.set_change(tendencia_hoy, hoy_positivo)
-
-            self.card_ventas_mes.set_value(f"${total_mes:,.0f}")
-            self.card_ventas_mes.set_change(tendencia_mes, mes_positivo)
-
-            self.card_ticket.set_value(f"${ticket_prom:,.0f}")
-            if tendencia_ticket:
-                self.card_ticket.set_change(tendencia_ticket, True)
-
-            self.card_num_ventas.set_value(str(num_ventas_hoy))
-            self.card_num_ventas.set_change(tendencia_num, num_positivo)
-
-            # Actualizar gráfico de ingresos
-            self.revenue_chart.update_data(
-                amount=f"${total_hoy:,.2f}",
-                subtitle=f"Ayer: ${total_ayer:,.2f}" if total_ayer > 0 else "Sin datos ayer"
-            )
-
+            # Actualizar Tabla
+            self._update_table()
+            
         except Exception as e:
-            print(f"Error in get_kpis: {e}")
+            print(f"Error refreshing dashboard: {e}")
 
-    def get_ventas_7_dias(self):
-        try:
-            from tucajero.services.venta_service import VentaService
-
-            venta_service = VentaService(self.session)
-            labels, valores = venta_service.get_ventas_ultimos_7_dias()
-
-            chart_widget = ChartWidget()
-            chart_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-            chart_widget.setMinimumHeight(250)
-            chart_widget.plot_bar(labels, valores, "")
-
-            while self.card_chart_ventas.content_layout.count():
-                item = self.card_chart_ventas.content_layout.takeAt(0)
-                if item.widget():
-                    item.widget().deleteLater()
-
-            self.card_chart_ventas.content_layout.addWidget(chart_widget)
-        except Exception as e:
-            print(f"Error in get_ventas_7_dias: {e}")
-
-    def get_metodos_pago(self):
-        try:
-            from tucajero.services.venta_service import VentaService
-
-            venta_service = VentaService(self.session)
-            metodos_labels, metodos_valores = venta_service.get_ventas_por_metodo()
-
-            pie_chart = ChartWidget()
-            pie_chart.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-            pie_chart.setMinimumHeight(250)
-            pie_chart.plot_pie(metodos_labels, metodos_valores, "")
-
-            while self.card_metodos_pago.content_layout.count():
-                item = self.card_metodos_pago.content_layout.takeAt(0)
-                if item.widget():
-                    item.widget().deleteLater()
-
-            self.card_metodos_pago.content_layout.addWidget(pie_chart)
-        except Exception as e:
-            print(f"Error in get_metodos_pago: {e}")
-
-    def get_ventas_recientes(self):
-        try:
-            from tucajero.models.producto import Venta, VentaItem, Producto
-            from sqlalchemy import desc
-
-            try:
-                ventas = (
-                    self.session.query(Venta)
-                    .order_by(desc(Venta.fecha))
-                    .limit(10)
-                    .all()
-                )
-            except:
-                ventas = []
-
-            self.table_ventas.setRowCount(len(ventas))
-
-            for i, venta in enumerate(ventas):
-                fecha = (
-                    venta.fecha.strftime("%Y-%m-%d %H:%M")
-                    if hasattr(venta.fecha, "strftime")
-                    else str(venta.fecha)
-                )
-                cliente = getattr(venta, "cliente_nombre", "Mostrador") or "Mostrador"
-                total = f"${venta.total:,.0f}"
-                metodo = venta.metodo_pago or "Efectivo"
-
-                try:
-                    items_venta = (
-                        self.session.query(VentaItem)
-                        .filter(VentaItem.venta_id == venta.id)
-                        .all()
-                    )
-                    productos_nombres = []
-                    for vp in items_venta:
-                        if vp.producto:
-                            productos_nombres.append(vp.producto.nombre)
-                    productos_str = ", ".join(productos_nombres[:3])
-                    if len(productos_nombres) > 3:
-                        productos_str += f" +{len(productos_nombres) - 3}"
-                    if not productos_str:
-                        productos_str = "Sin detalle"
-                except Exception as e:
-                    print(f"Error obteniendo productos: {e}")
-                    productos_str = "Sin detalle"
-
-                items = [fecha, cliente, total, metodo, productos_str]
-                for j, text in enumerate(items):
-                    item = QTableWidgetItem(text)
-                    item.setForeground(Qt.GlobalColor.black)
-                    self.table_ventas.setItem(i, j, item)
-
-            self.table_ventas.resizeColumnsToContents()
-        except Exception as e:
-            print(f"Error in get_ventas_recientes: {e}")
+    def _update_table(self):
+        # Obtener las últimas 10 ventas reales
+        ventas_q = (self.session.query(Venta)
+                   .order_by(desc(Venta.fecha)).limit(10).all())
+        
+        self.table.setRowCount(len(ventas_q))
+        for i, v in enumerate(ventas_q):
+            # 0. Checkbox
+            chk_widget = QWidget()
+            chk_layout = QHBoxLayout(chk_widget)
+            chk_layout.setContentsMargins(10, 0, 0, 0)
+            chk_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            from PySide6.QtWidgets import QCheckBox
+            chk = QCheckBox()
+            chk_layout.addWidget(chk)
+            self.table.setCellWidget(i, 0, chk_widget)
+            
+            # 1. Customer (Bold Blue)
+            cliente_nombre = v.cliente.nombre if v.cliente else "Mostrador"
+            it_name = QTableWidgetItem(cliente_nombre)
+            it_name.setForeground(QColor("#2c7be5"))
+            it_name.setFont(QFont("Inter", 10, QFont.Weight.Bold))
+            self.table.setItem(i, 1, it_name)
+            
+            # 2. Email
+            it_mail = QTableWidgetItem("N/A")
+            self.table.setItem(i, 2, it_mail)
+            
+            # 3. Product (Summary)
+            prod_summary = "Varios productos"
+            if v.items:
+                prod_summary = v.items[0].producto.nombre[:25] + "..." if len(v.items[0].producto.nombre) > 25 else v.items[0].producto.nombre
+            it_prod = QTableWidgetItem(prod_summary)
+            self.table.setItem(i, 3, it_prod)
+            
+            # 4. Payment (Badge style pill)
+            status_widget = QWidget()
+            status_layout = QHBoxLayout(status_widget)
+            status_layout.setContentsMargins(0, 0, 0, 0)
+            status_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            
+            badge = QLabel("EXITOSA" if not v.anulada else "ANULADA")
+            bg_color = "#eaf6f1" if not v.anulada else "#fdf2f2"
+            text_color = "#00a65a" if not v.anulada else "#dd4b39"
+            
+            badge.setStyleSheet(f"""
+                QLabel {{
+                    background-color: {bg_color};
+                    color: {text_color};
+                    border-radius: 10px;
+                    padding: 4px 10px;
+                    font-size: 10px;
+                    font-weight: 800;
+                    min-width: 70px;
+                }}
+            """)
+            badge.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            status_layout.addWidget(badge)
+            self.table.setCellWidget(i, 4, status_widget)
+            
+            # 5. Amount
+            it_amt = QTableWidgetItem(f"${v.total:,.2f}")
+            it_amt.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+            it_amt.setForeground(QColor("#344050"))
+            it_amt.setFont(QFont("Inter", 10, QFont.Weight.Medium))
+            self.table.setItem(i, 5, it_amt)
+            
+            self.table.setRowHeight(i, 58)
