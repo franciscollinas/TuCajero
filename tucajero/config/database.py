@@ -102,7 +102,7 @@ def init_db():
     """Initializes the database creating all tables"""
     crear_carpetas()
 
-    from tucajero.models.producto import Producto
+    from tucajero.models.producto import Producto, AuditLog
     from tucajero.models.cliente import Cliente
     from tucajero.models.cajero import Cajero
     from tucajero.models.cotizacion import Cotizacion, CotizacionItem

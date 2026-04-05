@@ -196,10 +196,58 @@ class DashboardView(QWidget):
             num_ventas_hoy = venta_service.get_num_ventas_hoy()
             ticket_prom = total_hoy / num_ventas_hoy if num_ventas_hoy > 0 else 0
 
+            # Calcular tendencias comparando con período anterior
+            total_ayer = venta_service.get_total_ayer()
+            if total_ayer > 0:
+                cambio_hoy = ((total_hoy - total_ayer) / total_ayer) * 100
+                tendencia_hoy = f"{'+' if cambio_hoy >= 0 else ''}{cambio_hoy:.0f}% vs ayer"
+            else:
+                tendencia_hoy = "Sin datos ayer" if total_hoy == 0 else "Nuevo registro"
+
+            total_mes_ant = venta_service.get_total_mes_anterior()
+            if total_mes_ant > 0:
+                cambio_mes = ((total_mes - total_mes_ant) / total_mes_ant) * 100
+                tendencia_mes = f"{'+' if cambio_mes >= 0 else ''}{cambio_mes:.0f}% vs mes anterior"
+            else:
+                tendencia_mes = "Sin datos mes anterior" if total_mes == 0 else "Nuevo registro"
+
+            num_ventas_ayer = venta_service.get_num_ventas_ayer()
+            if num_ventas_ayer > 0:
+                cambio_num = ((num_ventas_hoy - num_ventas_ayer) / num_ventas_ayer) * 100
+                tendencia_num = f"{'+' if cambio_num >= 0 else ''}{cambio_num:.0f}% vs ayer"
+            else:
+                tendencia_num = "Sin datos ayer" if num_ventas_hoy == 0 else "Nuevo registro"
+
+            # Calcular tendencia de ticket promedio (semana actual vs anterior)
+            num_sem_actual = venta_service.get_num_ventas_semana_actual()
+            num_sem_anterior = venta_service.get_num_ventas_ultima_semana()
+            total_sem_actual = total_hoy  # Aproximación: usamos hoy como referencia
+            if num_sem_anterior > 0:
+                ticket_sem_ant = total_mes_ant / max(num_sem_anterior, 1)  # Aproximación
+                if ticket_sem_ant > 0:
+                    cambio_ticket = ((ticket_prom - ticket_sem_ant) / ticket_sem_ant) * 100
+                    tendencia_ticket = f"{'+' if cambio_ticket >= 0 else ''}{cambio_ticket:.0f}% vs semana anterior"
+                else:
+                    tendencia_ticket = ""
+            else:
+                tendencia_ticket = ""
+
+            # Actualizar cards con tendencias
+            hoy_positivo = total_hoy >= total_ayer if total_ayer > 0 else True
             self.card_ventas_hoy.set_value(f"${total_hoy:,.0f}")
+            self.card_ventas_hoy.set_change(tendencia_hoy, hoy_positivo)
+
+            mes_positivo = total_mes >= total_mes_ant if total_mes_ant > 0 else True
             self.card_ventas_mes.set_value(f"${total_mes:,.0f}")
+            self.card_ventas_mes.set_change(tendencia_mes, mes_positivo)
+
             self.card_ticket.set_value(f"${ticket_prom:,.0f}")
+            if tendencia_ticket:
+                self.card_ticket.set_change(tendencia_ticket, True)
+
             self.card_num_ventas.set_value(str(num_ventas_hoy))
+            num_positivo = num_ventas_hoy >= num_ventas_ayer if num_ventas_ayer > 0 else True
+            self.card_num_ventas.set_change(tendencia_num, num_positivo)
         except Exception as e:
             print(f"Error in get_kpis: {e}")
 

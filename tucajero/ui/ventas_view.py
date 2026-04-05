@@ -1469,6 +1469,23 @@ class VentasView(QWidget):
 
                 logging.warning(f"No se pudo imprimir en termica: {e}")
 
+            # Registrar venta en auditoría
+            try:
+                from tucajero.services.audit_service import AuditService
+                audit = AuditService(self.session)
+                cajero_id_audit = self.cajero_activo.id if self.cajero_activo else None
+                cliente_nombre = self.cliente_seleccionado.nombre if self.cliente_seleccionado else "Mostrador"
+                audit.registrar(
+                    AuditService.VENTA_REGISTRADA,
+                    f"Venta #{venta.id} - {fmt_moneda(venta.total)} - {metodo} - Cliente: {cliente_nombre}",
+                    usuario_id=cajero_id_audit,
+                    entidad_tipo="Venta",
+                    entidad_id=venta.id,
+                    valor_nuevo=fmt_moneda(venta.total),
+                )
+            except Exception:
+                pass
+
             self.mostrar_feedback(f"Venta #{venta.id} exitosa!", "success")
 
         except ValueError as e:

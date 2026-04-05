@@ -110,3 +110,89 @@ class VentaService:
                 valores.append(total or 0.0)
 
         return labels, valores
+
+    def get_total_ayer(self):
+        """Obtiene el total vendido ayer"""
+        ayer = datetime.now().date() - timedelta(days=1)
+        resultado = (
+            self.session.query(func.sum(Venta.total))
+            .filter(
+                and_(
+                    extract("year", Venta.fecha) == ayer.year,
+                    extract("month", Venta.fecha) == ayer.month,
+                    extract("day", Venta.fecha) == ayer.day,
+                    Venta.anulada == False,
+                )
+            )
+            .scalar()
+        )
+        return resultado or 0.0
+
+    def get_num_ventas_ayer(self):
+        """Obtiene el número de ventas de ayer"""
+        ayer = datetime.now().date() - timedelta(days=1)
+        resultado = (
+            self.session.query(func.count(Venta.id))
+            .filter(
+                and_(
+                    extract("year", Venta.fecha) == ayer.year,
+                    extract("month", Venta.fecha) == ayer.month,
+                    extract("day", Venta.fecha) == ayer.day,
+                    Venta.anulada == False,
+                )
+            )
+            .scalar()
+        )
+        return resultado or 0
+
+    def get_total_mes_anterior(self):
+        """Obtiene el total vendido en el mes anterior"""
+        hoy = datetime.now()
+        mes_anterior = hoy.month - 1 if hoy.month > 1 else 12
+        anio_anterior = hoy.year if hoy.month > 1 else hoy.year - 1
+        resultado = (
+            self.session.query(func.sum(Venta.total))
+            .filter(
+                and_(
+                    extract("year", Venta.fecha) == anio_anterior,
+                    extract("month", Venta.fecha) == mes_anterior,
+                    Venta.anulada == False,
+                )
+            )
+            .scalar()
+        )
+        return resultado or 0.0
+
+    def get_num_ventas_ultima_semana(self):
+        """Obtiene el número de ventas de la semana anterior"""
+        hoy = datetime.now()
+        inicio_semana_pasada = hoy - timedelta(days=14)
+        fin_semana_pasada = hoy - timedelta(days=7)
+        resultado = (
+            self.session.query(func.count(Venta.id))
+            .filter(
+                and_(
+                    Venta.fecha >= inicio_semana_pasada,
+                    Venta.fecha < fin_semana_pasada,
+                    Venta.anulada == False,
+                )
+            )
+            .scalar()
+        )
+        return resultado or 0
+
+    def get_num_ventas_semana_actual(self):
+        """Obtiene el número de ventas de la semana actual"""
+        hoy = datetime.now()
+        inicio_semana = hoy - timedelta(days=7)
+        resultado = (
+            self.session.query(func.count(Venta.id))
+            .filter(
+                and_(
+                    Venta.fecha >= inicio_semana,
+                    Venta.anulada == False,
+                )
+            )
+            .scalar()
+        )
+        return resultado or 0

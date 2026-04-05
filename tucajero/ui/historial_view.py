@@ -10,6 +10,8 @@ from PySide6.QtWidgets import (
     QDateEdit,
     QComboBox,
     QMessageBox,
+    QInputDialog,
+    QDialog,
 )
 from PySide6.QtCore import Qt, QDate
 from datetime import datetime, timedelta
@@ -75,6 +77,10 @@ class HistorialView(QWidget):
         btn_exportar = ButtonPremium("Exportar Excel", style="primary")
         btn_exportar.clicked.connect(self.exportar_excel)
         filtros_layout.addWidget(btn_exportar)
+
+        btn_reimprimir = ButtonPremium("🖨 Reimprimir Ticket", style="secondary")
+        btn_reimprimir.clicked.connect(self.reimprimir_ticket)
+        filtros_layout.addWidget(btn_reimprimir)
 
         filtros_layout.addStretch()
         layout.addLayout(filtros_layout)
@@ -361,4 +367,217 @@ class HistorialView(QWidget):
                 self,
                 "Error al exportar",
                 f"No se pudo exportar el archivo:\n{str(e)}",
+            )
+
+    def reimprimir_ticket(self):
+        """Reimprime el ticket de una venta por su ID"""
+        venta_id, ok = QInputDialog.getInt(
+            self,
+            "Reimprimir Ticket",
+            "Ingrese el número de ticket a reimprimir:",
+            1,  # default
+            1,  # min
+            999999,  # max
+            1,  # step
+        )
+        if not ok:
+            return
+
+        try:
+            from tucajero.models.producto import Venta, VentaItem
+            from tucajero.utils.ticket import GeneradorTicket
+
+            venta = (
+                self.session.query(Venta)
+                .filter(Venta.id == venta_id)
+                .first()
+            )
+            if not venta:
+                QMessageBox.warning(
+                    self,
+                    "Ticket no encontrado",
+                    f"No se encontró la venta #{venta_id}.",
+                )
+                return
+
+            if venta.anulada:
+                QMessageBox.warning(
+                    self,
+                    "Venta anulada",
+                    f"La venta #{venta_id} está anulada.\n"
+                    f"Motivo: {getattr(venta, 'motivo_anulacion', 'No especificado')}",
+                )
+                return
+
+            items = (
+                self.session.query(VentaItem)
+                .filter(VentaItem.venta_id == venta.id)
+                .all()
+            )
+            if not items:
+                QMessageBox.warning(
+                    self,
+                    "Sin detalle",
+                    f"La venta #{venta_id} no tiene productos registrados.",
+                )
+                return
+
+            generador = GeneradorTicket()
+            ticket_text = generador.generar(venta, items)
+
+            # Mostrar preview en dialog
+            from PySide6.QtWidgets import QTextEdit
+            preview = QDialog(self)
+            preview.setWindowTitle("Vista previa del ticket")
+            preview.setMinimumSize(400, 600)
+            preview_layout = QVBoxLayout(preview)
+
+            text_edit = QTextEdit()
+            text_edit.setPlainText(ticket_text)
+            text_edit.setReadOnly(True)
+            text_edit.setStyleSheet(f"""
+                QTextEdit {{
+                    background-color: {Colors.BG_INPUT};
+                    color: {Colors.TEXT_PRIMARY};
+                    border: 1px solid {Colors.BORDER_DEFAULT};
+                    border-radius: {BorderRadius.MD}px;
+                    padding: {Spacing.MD}px;
+                    font-family: 'Consolas', 'Courier New', monospace;
+                    font-size: 12px;
+                }}
+            """)
+            preview_layout.addWidget(text_edit)
+
+            btn_layout = QHBoxLayout()
+            btn_print = ButtonPremium("🖨 Imprimir", style="primary")
+            btn_print.clicked.connect(lambda: self._imprimir_venta(venta, items, preview))
+            btn_layout.addWidget(btn_print)
+
+            btn_email = ButtonPremium("📧 Enviar por Email", style="secondary")
+            btn_email.clicked.connect(lambda: self._enviar_email_venta(venta, items, preview))
+            btn_layout.addWidget(btn_email)
+
+            btn_close = ButtonPremium("Cerrar", style="secondary")
+            btn_close.clicked.connect(preview.reject)
+            btn_layout.addWidget(btn_close)
+
+            preview_layout.addLayout(btn_layout)
+            preview.exec()
+
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Error al reimprimir",
+                f"No se pudo reimprimir el ticket:\n{str(e)}",
+            )
+
+    def _imprimir_venta(self, venta, items, parent_dialog=None):
+        """Imprime el ticket usando la impresora térmica"""
+        try:
+            from tucajero.utils.ticket import GeneradorTicket
+            from tucajero.utils.store_config import get_printer_enabled
+            from tucajero.utils.impresora import get_impresora
+
+            generador = GeneradorTicket()
+            generador.imprimir(venta, items)
+
+            if get_printer_enabled():
+                imp = get_impresora()
+                imp.imprimir_ticket(venta, items)
+                imp.desconectar()
+
+            # Registrar en auditoría
+            try:
+                from tucajero.services.audit_service import AuditService
+                audit = AuditService(self.session)
+                audit.registrar(
+                    AuditService.REIMPRESION,
+                    f"Reimpresión de ticket #{venta.id}",
+                    entidad_tipo="Venta",
+                    entidad_id=venta.id,
+                )
+            except Exception:
+                pass
+
+            QMessageBox.information(
+                self,
+                "Impresión exitosa",
+                f"Ticket #{venta.id} enviado a imprimir.",
+            )
+            if parent_dialog:
+                parent_dialog.accept()
+        except Exception as e:
+            QMessageBox.warning(
+                self,
+                "Error de impresión",
+                f"No se pudo imprimir en la impresora térmica:\n{str(e)}\n\n"
+                f"El ticket se guardó en el PDF diario.",
+            )
+
+    def _enviar_email_venta(self, venta, items, parent_dialog=None):
+        """Envía el ticket por email al cliente"""
+        # Intentar obtener email del cliente asociado
+        email_cliente = None
+        try:
+            if hasattr(venta, "cliente_id") and venta.cliente_id:
+                from tucajero.models.cliente import Cliente
+                cliente = (
+                    self.session.query(Cliente)
+                    .filter(Cliente.id == venta.cliente_id)
+                    .first()
+                )
+                if cliente and cliente.email:
+                    email_cliente = cliente.email
+        except Exception:
+            pass
+
+        # Pedir email al usuario
+        email, ok = QInputDialog.getText(
+            self,
+            "Enviar por Email",
+            "Email del destinatario:",
+            text=email_cliente or "",
+        )
+        if not ok or not email.strip():
+            return
+
+        email = email.strip()
+
+        # Confirmar envío
+        respuesta = QMessageBox.question(
+            self,
+            "Confirmar envío",
+            f"¿Enviar ticket #{venta.id} a {email}?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        )
+        if respuesta != QMessageBox.StandardButton.Yes:
+            return
+
+        try:
+            from tucajero.utils.email_envio import enviar_ticket_email
+
+            success, message = enviar_ticket_email(email, venta, items)
+            if success:
+                # Registrar en auditoría
+                try:
+                    from tucajero.services.audit_service import AuditService
+                    audit = AuditService(self.session)
+                    audit.registrar(
+                        AuditService.EMAIL_TICKET,
+                        f"Ticket #{venta.id} enviado a {email}",
+                        entidad_tipo="Venta",
+                        entidad_id=venta.id,
+                    )
+                except Exception:
+                    pass
+                QMessageBox.information(self, "Email enviado", message)
+                if parent_dialog:
+                    parent_dialog.accept()
+            else:
+                QMessageBox.warning(self, "Error al enviar", message)
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Error al enviar email",
+                f"No se pudo enviar el ticket:\n{str(e)}",
             )

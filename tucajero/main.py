@@ -145,6 +145,18 @@ def main():
         sys.exit(0)
     cajero_activo = login.cajero_seleccionado
 
+    # Registrar login en auditoría
+    try:
+        from tucajero.services.audit_service import AuditService
+        audit = AuditService(session)
+        audit.registrar(
+            AuditService.LOGIN,
+            f"Inicio de sesión: {cajero_activo.nombre}",
+            usuario_id=cajero_activo.id,
+        )
+    except Exception as e:
+        logging.warning(f"No se pudo registrar auditoría de login: {e}")
+
     try:
         service = CorteCajaService(session)
         service.abrir_caja()

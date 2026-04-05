@@ -346,6 +346,40 @@ class MetricCardMaxton(QFrame):
                 child.setText(value)
                 break
 
+    def set_change(self, change_text, positive=True):
+        """Actualiza o agrega el indicador de cambio/tendencia"""
+        # Buscar si ya existe un widget de cambio
+        for child in self.findChildren(QLabel):
+            style = child.styleSheet()
+            if "rgba(255, 255, 255, 0.6)" in style or "font-size: {Typography.CAPTION}px" in style:
+                # Es el widget de cambio existente
+                child.setText(change_text)
+                change_color = Colors.SUCCESS if positive else Colors.DANGER
+                # Actualizar color para indicar tendencia positiva/negativa
+                child.setStyleSheet(f"""
+                    QLabel {{
+                        color: {change_color};
+                        font-size: {Typography.CAPTION}px;
+                        font-weight: {Typography.SEMIBOLD};
+                        background: transparent;
+                    }}
+                """)
+                return
+        # Si no existe, crear uno nuevo
+        change_widget = QLabel(change_text)
+        change_color = Colors.SUCCESS if positive else Colors.DANGER
+        change_widget.setStyleSheet(f"""
+            QLabel {{
+                color: {change_color};
+                font-size: {Typography.CAPTION}px;
+                font-weight: {Typography.SEMIBOLD};
+                background: transparent;
+            }}
+        """)
+        # Insertar antes del stretch
+        layout = self.layout()
+        layout.insertWidget(layout.count() - 1, change_widget)
+
 
 class ChartCardMaxton(QFrame):
     """

@@ -548,6 +548,22 @@ class CorteView(QWidget):
             # Obtener usuario activo del cajero
             usuario_id = self.cajero_activo.id if self.cajero_activo else None
             venta_service.anular_venta(venta_id, motivo=motivo, usuario_id=usuario_id)
+
+            # Registrar en auditoría
+            try:
+                from tucajero.services.audit_service import AuditService
+                audit = AuditService(self.session)
+                audit.registrar(
+                    AuditService.ANULACION,
+                    f"Venta #{venta_id} anulada. Motivo: {motivo}",
+                    usuario_id=usuario_id,
+                    entidad_tipo="Venta",
+                    entidad_id=venta_id,
+                    valor_nuevo=motivo,
+                )
+            except Exception:
+                pass
+
             QMessageBox.information(
                 self,
                 "Venta Anulada",

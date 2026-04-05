@@ -219,3 +219,31 @@ class GastoCaja(Base):
 
     def __repr__(self):
         return f"<GastoCaja {self.concepto} - {self.monto}>"
+
+
+class AuditLog(Base):
+    """Modelo para registro de auditoría del sistema"""
+
+    __tablename__ = "audit_log"
+    __table_args__ = (
+        Index("idx_audit_fecha", "fecha"),
+        Index("idx_audit_tipo", "tipo_evento"),
+        Index("idx_audit_usuario", "usuario_id"),
+        {"extend_existing": True},
+    )
+
+    id = Column(Integer, primary_key=True)
+    fecha = Column(DateTime, default=datetime.now, nullable=False)
+    tipo_evento = Column(String(50), nullable=False)  # LOGIN, ANULACION, CAMBIO_PRECIO, REIMPRESION, EMAIL_TICKET
+    descripcion = Column(String(1000), nullable=False)
+    usuario_id = Column(Integer, ForeignKey("cajeros.id"), nullable=True)
+    entidad_tipo = Column(String(50), nullable=True)  # Venta, Producto, etc.
+    entidad_id = Column(Integer, nullable=True)
+    valor_anterior = Column(String(500), nullable=True)
+    valor_nuevo = Column(String(500), nullable=True)
+    ip_equipo = Column(String(50), nullable=True)
+
+    usuario = relationship("Cajero", foreign_keys=[usuario_id])
+
+    def __repr__(self):
+        return f"<AuditLog {self.tipo_evento} - {self.fecha}>"

@@ -9,6 +9,9 @@ from PySide6.QtWidgets import (
     QSizePolicy,
     QFrame,
     QButtonGroup,
+    QMessageBox,
+    QDialog,
+    QApplication,
 )
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon, QPixmap
@@ -23,6 +26,9 @@ from tucajero.utils.store_config import (
     get_address,
 )
 import os
+
+# Module-level reference to the active window (used during logout cycle)
+_current_window = None
 
 
 class MainWindow(QMainWindow):
@@ -294,6 +300,7 @@ class MainWindow(QMainWindow):
             ("📋", "Cotizaciones", "cotizaciones"),
             ("💰", "Corte de Caja", "corte"),
             ("📉", "Historial", "historial"),
+            ("👤", "Cajeros", "cajeros"),
             ("⚙", "Configuración", "setup"),
             ("🏭", "Proveedores", "proveedores"),
         ]
@@ -365,6 +372,64 @@ class MainWindow(QMainWindow):
         """)
         footer_layout.addWidget(self.lbl_cajero_footer)
 
+        # ── Botones de acción (Acerca de / Cerrar sesión) ─────
+        footer_buttons = QHBoxLayout()
+        footer_buttons.setSpacing(Spacing.XS)
+        footer_buttons.setContentsMargins(0, Spacing.XS, 0, 0)
+
+        self.btn_about_footer = QPushButton("ℹ️")
+        self.btn_about_footer.setFixedSize(32, 32)
+        self.btn_about_footer.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_about_footer.setToolTip("Acerca de")
+        self.btn_about_footer.setStyleSheet(f"""
+            QPushButton {{
+                background: {Colors.BG_HOVER};
+                color: {Colors.TEXT_SECONDARY};
+                border: 1px solid {Colors.BORDER_DEFAULT};
+                border-radius: {BorderRadius.SM}px;
+                font-size: {Typography.BODY}px;
+            }}
+            QPushButton:hover {{
+                background: {Colors.BG_ACTIVE};
+                border-color: {Colors.BORDER_STRONG};
+                color: {Colors.TEXT_PRIMARY};
+            }}
+            QPushButton:pressed {{
+                background: {Colors.BORDER_DEFAULT};
+            }}
+        """)
+        self.btn_about_footer.clicked.connect(self.mostrar_acerca)
+        footer_buttons.addWidget(self.btn_about_footer)
+
+        self.btn_logout = QPushButton("🚪")
+        self.btn_logout.setFixedSize(32, 32)
+        self.btn_logout.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_logout.setToolTip("Cerrar sesión")
+        self.btn_logout.setStyleSheet(f"""
+            QPushButton {{
+                background: {Colors.BG_HOVER};
+                color: {Colors.TEXT_SECONDARY};
+                border: 1px solid {Colors.BORDER_DEFAULT};
+                border-radius: {BorderRadius.SM}px;
+                font-size: {Typography.BODY}px;
+            }}
+            QPushButton:hover {{
+                background: {Colors.DANGER_LIGHT};
+                border-color: {Colors.DANGER};
+                color: {Colors.DANGER};
+            }}
+            QPushButton:pressed {{
+                background: {Colors.DANGER};
+                color: white;
+            }}
+        """)
+        self.btn_logout.clicked.connect(self.do_logout)
+        footer_buttons.addWidget(self.btn_logout)
+
+        footer_buttons.addStretch()
+
+        footer_layout.addLayout(footer_buttons)
+
         copyright_label = QLabel("© Ing. Francisco Llinas P.")
         copyright_label.setStyleSheet(f"""
             QLabel {{
@@ -387,6 +452,104 @@ class MainWindow(QMainWindow):
 
         dialog = AboutView(self)
         dialog.exec()
+
+    def do_logout(self):
+        """Cierra sesión y regresa a la pantalla de login"""
+        reply = QMessageBox.question(
+            self,
+            "Cerrar sesión",
+            "¿Está seguro que desea cerrar sesión?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+        if reply != QMessageBox.StandardButton.Yes:
+            return
+
+        # Registrar logout en auditoría
+        if self.session and self.cajero_activo:
+            try:
+                from tucajero.services.audit_service import AuditService
+
+                audit = AuditService(self.session)
+                audit.registrar(
+                    AuditService.LOGOUT,
+                    f"Cierre de sesión: {self.cajero_activo.nombre}",
+                    usuario_id=self.cajero_activo.id,
+                )
+                self.session.commit()
+            except Exception as e:
+                import logging
+
+                logging.warning(f"No se pudo registrar auditoría de logout: {e}")
+
+        # Schedule logout flow after this event returns to avoid
+        # destroying `self` before the rest of the code runs.
+        from PySide6.QtCore import QTimer
+
+        QTimer.singleShot(0, self._do_logout_flow)
+
+    def _do_logout_flow(self):
+        """Executes the logout sequence after the current event loop returns."""
+        import sys
+        import logging
+
+        # Keep a reference to the app so it doesn't get garbage collected
+        app_instance = QApplication.instance()
+
+        # Close current window (triggers closeEvent which closes DB)
+        self.close()
+
+        try:
+            from tucajero.ui.login_view import LoginView
+            from tucajero.config.database import get_session
+
+            session = get_session()
+            login = LoginView(session)
+            result = login.exec()
+            if result != QDialog.DialogCode.Accepted:
+                sys.exit(0)
+
+            cajero_activo = login.cajero_seleccionado
+
+            # Open cash register
+            try:
+                from tucajero.services.corte_service import CorteCajaService
+
+                service = CorteCajaService(session)
+                service.abrir_caja()
+            except Exception as e:
+                logging.error(f"Error al abrir caja en logout: {e}")
+
+            # Create new main window
+            new_window = MainWindow()
+            new_window.session = session
+            new_window.set_cajero_activo(cajero_activo)
+
+            # Build core views (lazy loading for the rest)
+            from tucajero.app.ui.views.dashboard.dashboard_view import DashboardView
+            from tucajero.ui.ventas_view import VentasView
+
+            dashboard_view = DashboardView(session)
+            new_window.add_view(dashboard_view, "dashboard")
+            ventas_view = VentasView(session, cajero_activo=cajero_activo)
+            new_window.add_view(ventas_view, "ventas")
+            ventas_view.sale_completed.connect(dashboard_view.refresh)
+            new_window.switch_view_by_name("dashboard")
+
+            # Store reference globally so it's not GC'd
+            global _current_window
+            _current_window = new_window
+
+            new_window.show()
+
+            # Run event loop (this blocks until the new window is closed)
+            app_instance.exec()
+
+        except Exception as e:
+            import traceback
+
+            logging.critical(f"Error durante logout: {e}\n{traceback.format_exc()}")
+            sys.exit(1)
 
     def add_view(self, widget, name):
         """Agrega una vista al stack"""
@@ -461,8 +624,25 @@ class MainWindow(QMainWindow):
         if view:
             self.content_stack.addWidget(view)
             self._views[name] = view
+            self._wire_cotizacion_venta_signal()
 
         return view
+
+    def _wire_cotizacion_venta_signal(self):
+        """Connect cotizaciones signal to ventas view so quotation items load into cart."""
+        cotizaciones = self._views.get("cotizaciones")
+        ventas = self._views.get("ventas")
+        if cotizaciones and ventas and hasattr(cotizaciones, "cargar_en_ventas"):
+            try:
+                cotizaciones.cargar_en_ventas.disconnect()
+            except Exception:
+                pass
+            cotizaciones.cargar_en_ventas.connect(
+                ventas.cargar_carrito_desde_cotizacion
+            )
+            cotizaciones.cargar_en_ventas.connect(
+                lambda carrito, cliente: self.switch_view_by_name("ventas")
+            )
 
     def switch_view(self, index):
         """Cambia a una vista específica"""
@@ -499,6 +679,8 @@ class MainWindow(QMainWindow):
         self.cajero_activo = cajero
         icono = "👑" if cajero.rol == "admin" else "👤"
         self.lbl_cajero.setText(f"{icono} {cajero.nombre}")
+        if hasattr(self, "lbl_cajero_footer"):
+            self.lbl_cajero_footer.setText(f"{icono}  {cajero.nombre}")
         if hasattr(self, "header_user_label") and self.header_user_label:
             self.header_user_label.setText(cajero.nombre)
         from PySide6.QtCore import QTimer
