@@ -99,7 +99,7 @@ class MainWindow(QMainWindow):
 
         # ── LOGO: TuCajero POS (nuestra empresa) ─────────────────
         logo = QLabel()
-        logo.setFixedSize(56, 56)
+        logo.setFixedSize(180, 56)
         logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         # Usar el logo de TuCajero POS desde assets/store/logo.png
@@ -110,8 +110,9 @@ class MainWindow(QMainWindow):
         if os.path.exists(store_logo):
             from PySide6.QtGui import QPixmap
 
+            # Escalar manteniendo proporción horizontal (logo ancho)
             pix = QPixmap(store_logo).scaled(
-                52,
+                170,
                 52,
                 Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation,
