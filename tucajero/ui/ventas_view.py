@@ -693,7 +693,7 @@ class VentasView(QWidget):
 
     def cargar_productos(self):
         """Load all products for the search"""
-        from services.producto_service import ProductoService
+        from tucajero.services.producto_service import ProductoService
 
         service = ProductoService(self.session)
         self.productos = service.get_all_productos()
@@ -708,7 +708,7 @@ class VentasView(QWidget):
         if not self._initialized:
             return
 
-        from services.producto_service import ProductoService
+        from tucajero.services.producto_service import ProductoService
 
         texto = self.txt_codigo.text().strip()
         if not texto:
@@ -743,7 +743,7 @@ class VentasView(QWidget):
     def mostrar_buscador(self):
         """Show product search dialog"""
         import logging
-        from ui.buscador_productos import BuscadorProductosDialog
+        from tucajero.ui.buscador_productos import BuscadorProductosDialog
 
         dialog = BuscadorProductosDialog(
             self.productos, session=self.session, parent=self
@@ -777,7 +777,7 @@ class VentasView(QWidget):
                 )
 
     def seleccionar_cliente(self):
-        from ui.selector_cliente import SelectorClienteDialog
+        from tucajero.ui.selector_cliente import SelectorClienteDialog
 
         dialog = SelectorClienteDialog(self.session, self)
         if dialog.exec() == QDialog.DialogCode.Accepted and dialog.cliente:
@@ -806,7 +806,7 @@ class VentasView(QWidget):
     def mostrar_buscador_productos(self, productos):
         """Show custom product list when multiple matches"""
         import logging
-        from ui.buscador_productos import BuscadorProductosDialog
+        from tucajero.ui.buscador_productos import BuscadorProductosDialog
 
         dialog = BuscadorProductosDialog(productos, session=self.session, parent=self)
         if (
@@ -1090,7 +1090,7 @@ class VentasView(QWidget):
         )
         total_bruto = subtotal + iva
 
-        from ui.descuento_dialog import DescuentoDialog
+        from tucajero.ui.descuento_dialog import DescuentoDialog
 
         dialog = DescuentoDialog(total_bruto, self.descuento.copy(), self)
         if dialog.exec() == QDialog.DialogCode.Accepted:
@@ -1414,7 +1414,7 @@ class VentasView(QWidget):
             return
 
         try:
-            from services.producto_service import VentaService
+            from tucajero.services.venta_service import VentaService
             from tucajero.utils.ticket import GeneradorTicket
 
             service = VentaService(self.session)
@@ -1505,7 +1505,7 @@ class VentasView(QWidget):
             )
             return
 
-        from services.cotizacion_service import CotizacionService
+        from tucajero.services.cotizacion_service import CotizacionService
 
         notas = ""
         if self.cliente_seleccionado:

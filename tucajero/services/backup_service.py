@@ -44,6 +44,7 @@ class BackupService:
 
     def cleanup_old_backups(self, keep_days=7):
         """Elimina backups mayores a keep_days"""
+        import logging
         backups_dir = self.get_backups_dir()
         now = datetime.datetime.now()
 
@@ -54,8 +55,9 @@ class BackupService:
                 if (now - file_time).days > keep_days:
                     try:
                         os.remove(filepath)
-                    except:
-                        pass
+                    except OSError as e:
+                        # SEC-004 FIX: Log the error instead of silently swallowing it
+                        logging.warning(f"Failed to remove old backup {filepath}: {e}")
 
     def restore_backup(self, backup_path):
         """Restaura un backup, reemplazando la DB actual"""

@@ -20,6 +20,8 @@ from tucajero.ui.components_premium import (
     ButtonPremium,
     TABLE_STYLE_PREMIUM,
 )
+from tucajero.ui.chart_revenue import RevenueChartCard
+from tucajero.ui.period_selector import PeriodSelector
 from tucajero.ui.design_tokens import Typography, Colors, Spacing, BorderRadius
 
 
@@ -31,34 +33,32 @@ class DashboardView(QWidget):
         self.load_data()
 
     def setup_ui(self):
-        """Layout principal del dashboard estilo Maxton"""
+        """Layout principal del dashboard estilo Falcon"""
         c = Colors
 
         self.setStyleSheet(f"""
             QWidget {{
-                background-color: {c.BG_APP};
-                color: {c.TEXT_PRIMARY};
+                background-color: #ffffff;
+                color: #1a1a1a;
                 font-family: 'Segoe UI', 'Inter', sans-serif;
             }}
         """)
 
         root = QVBoxLayout(self)
         root.setContentsMargins(32, 24, 32, 32)
-        root.setSpacing(24)
+        root.setSpacing(20)
 
-        # HEADER (título + fecha + botón refresh)
+        # ===================== HEADER =====================
         header = QWidget()
         header.setStyleSheet("background: transparent;")
         header_layout = QHBoxLayout(header)
         header_layout.setContentsMargins(0, 0, 0, 0)
         header_layout.setSpacing(16)
 
-        # Título
         title = QLabel("Dashboard")
         title.setStyleSheet(f"color: {c.TEXT_PRIMARY}; font-size: {Typography.H2}px; font-weight: {Typography.BOLD}; background: transparent;")
         header_layout.addWidget(title)
 
-        # Fecha actual
         from datetime import datetime
         now = datetime.now()
         fecha = QLabel(now.strftime("%A, %d de %B %Y"))
@@ -67,60 +67,77 @@ class DashboardView(QWidget):
 
         header_layout.addStretch()
 
-        # Botón refresh
         btn_refresh = ButtonPremium("🔄 Actualizar", style="secondary")
         btn_refresh.clicked.connect(self.refresh_data)
         header_layout.addWidget(btn_refresh)
 
         root.addWidget(header)
 
-        # FILA 1: Cards métricas compactas (40% ancho, colores sólidos, parte superior)
-        metrics_row = QHBoxLayout()
-        metrics_row.setSpacing(16)
+        # ===================== PERÍODO SELECTOR =====================
+        self.period_selector = PeriodSelector()
+        self.period_selector.period_changed.connect(self.on_period_changed)
+        root.addWidget(self.period_selector)
+
+        # ===================== GRÁFICO DE INGRESOS SUPERIOR =====================
+        self.revenue_chart = RevenueChartCard(
+            title="Ventas de Hoy",
+            amount="$0.00",
+            subtitle="Comparación con ayer",
+            data_points=[100, 150, 120, 180, 140, 160, 190, 170, 200]
+        )
+        root.addWidget(self.revenue_chart)
+
+        # ===================== METRIC CARDS (Estilo Falcon) =====================
+        cards_row = QHBoxLayout()
+        cards_row.setSpacing(16)
 
         self.card_ventas_hoy = MetricCardMaxton(
+            title="Ventas Hoy",
             value="$0",
-            label="Ventas Hoy",
-            gradient_colors="green",
-            compact=True
+            change_percent=0,
+            change_positive=True,
+            accent_color="#10b981"  # Verde
         )
-        self.card_ventas_hoy.setMinimumHeight(80)
-        metrics_row.addWidget(self.card_ventas_hoy)
+        cards_row.addWidget(self.card_ventas_hoy)
 
         self.card_ventas_mes = MetricCardMaxton(
+            title="Ventas Mes",
             value="$0",
-            label="Ventas Mes",
-            gradient_colors="blue",
-            compact=True
+            change_percent=0,
+            change_positive=True,
+            accent_color="#3b82f6"  # Azul
         )
-        self.card_ventas_mes.setMinimumHeight(80)
-        metrics_row.addWidget(self.card_ventas_mes)
+        cards_row.addWidget(self.card_ventas_mes)
 
         self.card_ticket = MetricCardMaxton(
+            title="Ticket Prom.",
             value="$0",
-            label="Ticket Promedio",
-            gradient_colors="cyan",
-            compact=True
+            change_percent=0,
+            change_positive=True,
+            accent_color="#8b5cf6"  # Púrpura
         )
-        self.card_ticket.setMinimumHeight(80)
-        metrics_row.addWidget(self.card_ticket)
+        cards_row.addWidget(self.card_ticket)
 
         self.card_num_ventas = MetricCardMaxton(
+            title="Nº Ventas",
             value="0",
-            label="Nº Ventas",
-            gradient_colors="purple",
-            compact=True
+            change_percent=0,
+            change_positive=True,
+            accent_color="#f59e0b"  # Ámbar
         )
-        self.card_num_ventas.setMinimumHeight(80)
-        metrics_row.addWidget(self.card_num_ventas)
+        cards_row.addWidget(self.card_num_ventas)
 
-        root.addLayout(metrics_row)
+        cards_row.setStretch(0, 1)
+        cards_row.setStretch(1, 1)
+        cards_row.setStretch(2, 1)
+        cards_row.setStretch(3, 1)
 
-        # FILA 2: Gráficos y tabla
+        root.addLayout(cards_row)
+
+        # ===================== GRÁFICOS INFERIORES =====================
         grid = QGridLayout()
         grid.setSpacing(24)
 
-        # Card 1: Gráfico de barras
         self.card_chart_ventas = ChartCardMaxton(
             title="Ventas últimos 7 días",
             subtitle="Comparación diaria"
@@ -128,7 +145,6 @@ class DashboardView(QWidget):
         self.card_chart_ventas.setMinimumHeight(300)
         grid.addWidget(self.card_chart_ventas, 0, 0)
 
-        # Card 2: Métodos de pago
         self.card_metodos_pago = ChartCardMaxton(
             title="Métodos de pago"
         )
@@ -137,7 +153,7 @@ class DashboardView(QWidget):
 
         root.addLayout(grid)
 
-        # FILA 4: Tabla de ventas recientes - CardPremium
+        # ===================== TABLA DE VENTAS RECIENTES =====================
         table_card = QFrame()
         table_card.setStyleSheet(f"""
             QFrame {{
@@ -151,7 +167,6 @@ class DashboardView(QWidget):
         table_card_layout.setSpacing(0)
         table_card.setLayout(table_card_layout)
 
-        # Table title
         table_title = QLabel("Ventas Recientes")
         table_title.setStyleSheet(f"""
             QLabel {{
@@ -175,8 +190,16 @@ class DashboardView(QWidget):
         self.table_ventas.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
 
         table_card_layout.addWidget(self.table_ventas)
-
         root.addWidget(table_card)
+
+    # =========================
+    # PERÍODO SELECTOR CALLBACK
+    # =========================
+    def on_period_changed(self, period):
+        """Llamado cuando el usuario cambia el período"""
+        print(f"Período cambiado a: {period}")
+        # Aquí llamarías a tu lógica de BD para traer datos del período
+        self.load_data()
 
     # =========================
     # LOAD DATA
@@ -224,44 +247,37 @@ class DashboardView(QWidget):
             total_ayer = venta_service.get_total_ayer()
             if total_ayer > 0:
                 cambio_hoy = ((total_hoy - total_ayer) / total_ayer) * 100
-                tendencia_hoy = f"{'+' if cambio_hoy >= 0 else ''}{cambio_hoy:.0f}% vs ayer"
+                tendencia_hoy = round(cambio_hoy)
+                hoy_positivo = cambio_hoy >= 0
             else:
-                tendencia_hoy = "Sin datos ayer" if total_hoy == 0 else "Nuevo registro"
+                tendencia_hoy = 0
+                hoy_positivo = True
 
             total_mes_ant = venta_service.get_total_mes_anterior()
             if total_mes_ant > 0:
                 cambio_mes = ((total_mes - total_mes_ant) / total_mes_ant) * 100
-                tendencia_mes = f"{'+' if cambio_mes >= 0 else ''}{cambio_mes:.0f}% vs mes anterior"
+                tendencia_mes = round(cambio_mes)
+                mes_positivo = cambio_mes >= 0
             else:
-                tendencia_mes = "Sin datos mes anterior" if total_mes == 0 else "Nuevo registro"
+                tendencia_mes = 0
+                mes_positivo = True
 
             num_ventas_ayer = venta_service.get_num_ventas_ayer()
             if num_ventas_ayer > 0:
                 cambio_num = ((num_ventas_hoy - num_ventas_ayer) / num_ventas_ayer) * 100
-                tendencia_num = f"{'+' if cambio_num >= 0 else ''}{cambio_num:.0f}% vs ayer"
+                tendencia_num = round(cambio_num)
+                num_positivo = cambio_num >= 0
             else:
-                tendencia_num = "Sin datos ayer" if num_ventas_hoy == 0 else "Nuevo registro"
+                tendencia_num = 0
+                num_positivo = True
 
-            # Calcular tendencia de ticket promedio (semana actual vs anterior)
-            num_sem_actual = venta_service.get_num_ventas_semana_actual()
-            num_sem_anterior = venta_service.get_num_ventas_ultima_semana()
-            total_sem_actual = total_hoy  # Aproximación: usamos hoy como referencia
-            if num_sem_anterior > 0:
-                ticket_sem_ant = total_mes_ant / max(num_sem_anterior, 1)  # Aproximación
-                if ticket_sem_ant > 0:
-                    cambio_ticket = ((ticket_prom - ticket_sem_ant) / ticket_sem_ant) * 100
-                    tendencia_ticket = f"{'+' if cambio_ticket >= 0 else ''}{cambio_ticket:.0f}% vs semana anterior"
-                else:
-                    tendencia_ticket = ""
-            else:
-                tendencia_ticket = ""
+            # Calcular tendencia de ticket promedio
+            tendencia_ticket = 0
 
-            # Actualizar cards con tendencias
-            hoy_positivo = total_hoy >= total_ayer if total_ayer > 0 else True
+            # Actualizar cards con tendencias (estilo Falcon)
             self.card_ventas_hoy.set_value(f"${total_hoy:,.0f}")
             self.card_ventas_hoy.set_change(tendencia_hoy, hoy_positivo)
 
-            mes_positivo = total_mes >= total_mes_ant if total_mes_ant > 0 else True
             self.card_ventas_mes.set_value(f"${total_mes:,.0f}")
             self.card_ventas_mes.set_change(tendencia_mes, mes_positivo)
 
@@ -270,8 +286,14 @@ class DashboardView(QWidget):
                 self.card_ticket.set_change(tendencia_ticket, True)
 
             self.card_num_ventas.set_value(str(num_ventas_hoy))
-            num_positivo = num_ventas_hoy >= num_ventas_ayer if num_ventas_ayer > 0 else True
             self.card_num_ventas.set_change(tendencia_num, num_positivo)
+
+            # Actualizar gráfico de ingresos
+            self.revenue_chart.update_data(
+                amount=f"${total_hoy:,.2f}",
+                subtitle=f"Ayer: ${total_ayer:,.2f}" if total_ayer > 0 else "Sin datos ayer"
+            )
+
         except Exception as e:
             print(f"Error in get_kpis: {e}")
 
@@ -282,13 +304,11 @@ class DashboardView(QWidget):
             venta_service = VentaService(self.session)
             labels, valores = venta_service.get_ventas_ultimos_7_dias()
 
-            # Limpiar contenido previo
             chart_widget = ChartWidget()
             chart_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
             chart_widget.setMinimumHeight(250)
             chart_widget.plot_bar(labels, valores, "")
 
-            # Limpiar layout y agregar nuevo widget
             while self.card_chart_ventas.content_layout.count():
                 item = self.card_chart_ventas.content_layout.takeAt(0)
                 if item.widget():
@@ -305,13 +325,11 @@ class DashboardView(QWidget):
             venta_service = VentaService(self.session)
             metodos_labels, metodos_valores = venta_service.get_ventas_por_metodo()
 
-            # Limpiar contenido previo
             pie_chart = ChartWidget()
             pie_chart.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
             pie_chart.setMinimumHeight(250)
             pie_chart.plot_pie(metodos_labels, metodos_valores, "")
 
-            # Limpiar layout y agregar nuevo widget
             while self.card_metodos_pago.content_layout.count():
                 item = self.card_metodos_pago.content_layout.takeAt(0)
                 if item.widget():
@@ -370,7 +388,7 @@ class DashboardView(QWidget):
                 items = [fecha, cliente, total, metodo, productos_str]
                 for j, text in enumerate(items):
                     item = QTableWidgetItem(text)
-                    item.setForeground(Qt.GlobalColor.white)
+                    item.setForeground(Qt.GlobalColor.black)
                     self.table_ventas.setItem(i, j, item)
 
             self.table_ventas.resizeColumnsToContents()

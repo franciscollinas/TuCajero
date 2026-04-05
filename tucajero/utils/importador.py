@@ -121,11 +121,26 @@ def validar_columnas_requeridas(filas):
 
 
 def leer_archivo(filepath):
+    """
+    SEC-014 FIX: Validates file before loading.
+    - Checks extension
+    - Limits file size to 50MB
+    - Uses read_only=True for openpyxl
+    """
     ext = os.path.splitext(filepath)[1].lower()
     filas = []
 
-    if ext in [".xlsx", ".xls"]:
-        wb = openpyxl.load_workbook(filepath, data_only=True)
+    # SEC-014: Validate file extension
+    if ext not in (".xlsx", ".xls", ".csv"):
+        raise ValueError(f"Tipo de archivo no soportado: {ext}. Se espera .xlsx, .xls o .csv")
+
+    # SEC-014: Validate file size (max 50MB)
+    if os.path.getsize(filepath) > 50 * 1024 * 1024:
+        raise ValueError("Archivo demasiado grande (max 50MB)")
+
+    if ext in (".xlsx", ".xls"):
+        # SEC-014: Use read_only=True for memory efficiency and safety
+        wb = openpyxl.load_workbook(filepath, data_only=True, read_only=True)
         ws = wb.active
         headers_raw = [c.value for c in ws[1]]
         mapa = mapear_headers(headers_raw)
@@ -134,8 +149,11 @@ def leer_archivo(filepath):
                 fila = {}
                 for i, val in enumerate(row):
                     if i in mapa:
+                        # SEC-014: Sanitize cell content to prevent formula injection
+                        val = _sanitize_cell_value(val)
                         fila[mapa[i]] = val
                 filas.append(fila)
+        wb.close()
 
     elif ext == ".csv":
         with open(filepath, encoding="utf-8-sig", newline="") as f:
@@ -147,10 +165,24 @@ def leer_archivo(filepath):
                     fila = {}
                     for i, val in enumerate(row):
                         if i < len(mapa) and i in mapa:
+                            # SEC-014: Sanitize cell content
+                            val = _sanitize_cell_value(val)
                             fila[mapa[i]] = val
                     filas.append(fila)
 
     return filas
+
+
+def _sanitize_cell_value(value):
+    """SEC-014: Sanitize cell value to prevent formula injection attacks."""
+    if value is None:
+        return None
+    # Convert to string if needed
+    str_val = str(value) if not isinstance(value, str) else value
+    # SEC-014: Remove formula prefixes that could execute code in Excel
+    if str_val.startswith(('=', '+', '-', '@', '\t', '\r')):
+        str_val = "'" + str_val  # Prefix with single quote to neutralize
+    return str_val
 
 
 def importar_productos(filepath, session):

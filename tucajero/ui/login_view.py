@@ -19,7 +19,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, QEvent
 from PySide6.QtGui import QColor, QPixmap
-from ui.design_tokens import Colors, Typography, Spacing, BorderRadius
+from tucajero.ui.design_tokens import Colors, Typography, Spacing, BorderRadius
 
 
 def get_logo_path():

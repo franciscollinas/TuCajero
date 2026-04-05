@@ -114,6 +114,26 @@ def init_db():
     crear_indices()  # ← AGREGAR ESTA LÍNEA
 
 
+# SEC-002 FIX: Whitelist of allowed table names to prevent SQL injection
+# in any dynamically constructed SQL statements.
+ALLOWED_TABLES = frozenset({
+    "productos", "ventas", "categorias", "clientes", "cajeros",
+    "cotizaciones", "cotizaciones_items", "proveedores", "ordenes_compra",
+    "ordenes_compra_items", "cortes_caja", "movimientos_inventario",
+    "audit_logs", "configuraciones",
+})
+
+
+def _validate_table_name(table_name):
+    """SEC-002: Validate table name against whitelist before using in SQL."""
+    if table_name not in ALLOWED_TABLES:
+        raise ValueError(
+            f"Invalid table name '{table_name}'. "
+            f"Allowed tables: {', '.join(sorted(ALLOWED_TABLES))}"
+        )
+    return table_name
+
+
 def agregar_columnas_si_existen(engine):
     """Agrega las nuevas columnas a las tablas existentes si no existen"""
     from sqlalchemy import text
@@ -135,10 +155,17 @@ def agregar_columnas_si_existen(engine):
         ("ventas", "numero_factura", "VARCHAR(20)"),
         ("ventas", "motivo_anulacion", "VARCHAR(500)"),
         ("ventas", "usuario_anulacion_id", "INTEGER"),
+        # SEC-003 & SEC-011: Rate limiting fields for cajeros
+        ("cajeros", "failed_attempts", "INTEGER DEFAULT 0"),
+        ("cajeros", "locked_until", "VARCHAR(50)"),
+        # SEC-008: Flag to force PIN setup on first login
+        ("cajeros", "pin_must_be_set", "INTEGER DEFAULT 0"),
     ]
     with engine.connect() as conn:
         for tabla, columna, tipo in columnas:
             try:
+                # SEC-002: Validate table name before using in f-string SQL
+                _validate_table_name(tabla)
                 result = conn.execute(text(f"PRAGMA table_info({tabla})"))
                 columnas_tabla = [row[1] for row in result]
                 if columna not in columnas_tabla:
@@ -153,6 +180,9 @@ def agregar_columnas_si_existen(engine):
                             text(f"ALTER TABLE {tabla} ADD COLUMN {columna} {tipo}")
                         )
                     conn.commit()
+            except ValueError:
+                # Re-raise validation errors — these are programming errors
+                raise
             except Exception:
                 pass
 

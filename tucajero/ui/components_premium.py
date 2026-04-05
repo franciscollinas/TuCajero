@@ -1,561 +1,305 @@
 """Componentes UI premium reutilizables - NO MODIFICAR SIN AUTORIZACIÓN"""
 
 from PySide6.QtWidgets import (
-    QWidget, QFrame, QLabel, QVBoxLayout, QHBoxLayout, QPushButton, QLineEdit
+    QWidget, QFrame, QLabel, QVBoxLayout, QHBoxLayout, QPushButton, QLineEdit, QGridLayout
 )
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QPainter, QLinearGradient, QColor, QBrush
+from PySide6.QtGui import QColor, QPainter, QLinearGradient, QBrush, QPen, QPainterPath, Qt, QFont
+from PySide6.QtCore import QSize
 
 from tucajero.ui.design_tokens import Colors, Typography, Spacing, BorderRadius
 
 
-class MetricCardPremium(QFrame):
-    """
-    Card de métrica premium con gradiente
-    """
-
-    def __init__(self, title, value, change=None, change_positive=True,
-                 gradient_type="blue", icon=None, parent=None):
-        super().__init__(parent)
-
-        self.gradient_type = gradient_type
-        self.setMinimumHeight(140)
-        self.setMinimumWidth(200)
-
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(Spacing.XL, Spacing.XL, Spacing.XL, Spacing.XL)
-        layout.setSpacing(Spacing.MD)
-
-        # Header (icono + título)
-        header = QWidget()
-        header.setStyleSheet("background: transparent;")
-        header_layout = QHBoxLayout(header)
-        header_layout.setContentsMargins(0, 0, 0, 0)
-        header_layout.setSpacing(Spacing.SM)
-
-        if icon:
-            icon_label = QLabel(icon)
-            icon_label.setStyleSheet(f"color: rgba(255, 255, 255, 0.9); font-size: 24px; background: transparent;")
-            header_layout.addWidget(icon_label)
-
-        title_label = QLabel(title)
-        title_label.setStyleSheet(f"color: rgba(255, 255, 255, 0.85); font-size: {Typography.CAPTION}px; font-weight: {Typography.MEDIUM}; background: transparent; text-transform: uppercase; letter-spacing: 0.5px;")
-        header_layout.addWidget(title_label)
-        header_layout.addStretch()
-
-        layout.addWidget(header)
-
-        # Valor principal
-        value_label = QLabel(value)
-        value_label.setStyleSheet(f"color: rgb(255, 255, 255); font-size: {Typography.H1}px; font-weight: {Typography.BOLD}; background: transparent; margin-top: {Spacing.XS}px;")
-        layout.addWidget(value_label)
-
-        # Cambio/tendencia
-        if change:
-            change_label = QLabel(change)
-            change_color = Colors.SUCCESS if change_positive else Colors.DANGER
-            change_label.setStyleSheet(f"color: {change_color}; font-size: {Typography.BODY_SM}px; font-weight: {Typography.SEMIBOLD}; background: transparent;")
-            layout.addWidget(change_label)
-
-        layout.addStretch()
-
-    def paintEvent(self, event):
-        """Dibuja el gradiente de fondo"""
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-
-        gradient = QLinearGradient(0, 0, self.width(), self.height())
-
-        if self.gradient_type == "blue":
-            gradient.setColorAt(0, QColor(Colors.PRIMARY))
-            gradient.setColorAt(1, QColor("#1e40af"))
-        elif self.gradient_type == "green":
-            gradient.setColorAt(0, QColor(Colors.SUCCESS))
-            gradient.setColorAt(1, QColor("#00cc66"))
-        elif self.gradient_type == "orange":
-            gradient.setColorAt(0, QColor(Colors.WARNING))
-            gradient.setColorAt(1, QColor("#b45309"))
-        elif self.gradient_type == "cyan":
-            gradient.setColorAt(0, QColor(Colors.INFO))
-            gradient.setColorAt(1, QColor("#0e7490"))
-        elif self.gradient_type == "purple":
-            gradient.setColorAt(0, QColor(Colors.PURPLE))
-            gradient.setColorAt(1, QColor("#6d28d9"))
-        else:
-            gradient.setColorAt(0, QColor(Colors.PRIMARY))
-            gradient.setColorAt(1, QColor("#1e40af"))
-
-        painter.setBrush(QBrush(gradient))
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.drawRoundedRect(self.rect(), BorderRadius.XL, BorderRadius.XL)
-
-
-class CardPremium(QFrame):
-    """Card contenedor premium con sombra y borde sutil"""
-
-    def __init__(self, padding=None, parent=None):
-        super().__init__(parent)
-
-        padding = padding or Spacing.XL
-
-        self.setStyleSheet(f"""
-            QFrame {{
-                background: {Colors.BG_CARD};
-                border: 1px solid {Colors.BORDER_SUBTLE};
-                border-radius: {BorderRadius.XL}px;
-            }}
-        """)
-
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(padding, padding, padding, padding)
-
+# ==============================================================================
+# BOTÓN PREMIUM
+# ==============================================================================
 
 class ButtonPremium(QPushButton):
-    """Botón premium con animación"""
+    """Botón con estilo premium y estados hover/click"""
 
-    STYLES = {
-        "primary": f"""
-            QPushButton {{
-                background: {Colors.PRIMARY};
-                color: white;
-                border: none;
-                border-radius: {BorderRadius.MD}px;
-                padding: {Spacing.MD}px {Spacing.XXL}px;
-                font-size: {Typography.BODY}px;
-                font-weight: {Typography.SEMIBOLD};
-            }}
-            QPushButton:hover {{
-                background: #1e40af;
-            }}
-            QPushButton:pressed {{
-                background: #60a5fa;
-            }}
-            QPushButton:disabled {{
-                background: {Colors.BG_INPUT};
-                color: {Colors.TEXT_MUTED};
-            }}
-        """,
-        "secondary": f"""
-            QPushButton {{
-                background: {Colors.BG_ELEVATED};
-                color: {Colors.TEXT_PRIMARY};
-                border: 1px solid {Colors.BORDER_DEFAULT};
-                border-radius: {BorderRadius.MD}px;
-                padding: {Spacing.MD}px {Spacing.XXL}px;
-                font-size: {Typography.BODY}px;
-                font-weight: {Typography.MEDIUM};
-            }}
-            QPushButton:hover {{
-                background: {Colors.BG_HOVER};
-                border-color: {Colors.BORDER_STRONG};
-            }}
-            QPushButton:pressed {{
-                background: {Colors.BG_ACTIVE};
-            }}
-        """,
-        "danger": f"""
-            QPushButton {{
-                background: {Colors.DANGER};
-                color: white;
-                border: none;
-                border-radius: {BorderRadius.MD}px;
-                padding: {Spacing.MD}px {Spacing.XXL}px;
-                font-size: {Typography.BODY}px;
-                font-weight: {Typography.SEMIBOLD};
-            }}
-            QPushButton:hover {{
-                background: #b91c1c;
-            }}
-            QPushButton:pressed {{
-                background: #f87171;
-            }}
-        """,
-        "success": f"""
-            QPushButton {{
-                background: {Colors.SUCCESS};
-                color: white;
-                border: none;
-                border-radius: {BorderRadius.MD}px;
-                padding: {Spacing.MD}px {Spacing.XXL}px;
-                font-size: {Typography.BODY}px;
-                font-weight: {Typography.SEMIBOLD};
-            }}
-            QPushButton:hover {{
-                background: #00cc66;
-            }}
-            QPushButton:pressed {{
-                background: #34d399;
-            }}
-        """,
-    }
-
-    def __init__(self, text, style="primary", icon=None, parent=None):
+    def __init__(self, text, style="primary", parent=None):
         super().__init__(text, parent)
-
-        self.setStyleSheet(self.STYLES.get(style, self.STYLES["primary"]))
+        self._style = style
         self.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.setMinimumHeight(40)
+        self._update_stylesheet()
+
+    def _update_stylesheet(self):
+        if self._style == "primary":
+            self.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: {Colors.PRIMARY};
+                    color: white;
+                    border: none;
+                    border-radius: {BorderRadius.MD}px;
+                    padding: 10px 24px;
+                    font-size: {Typography.BODY}px;
+                    font-weight: {Typography.BOLD};
+                }}
+                QPushButton:hover {{
+                    background-color: #2563eb;
+                }}
+                QPushButton:pressed {{
+                    background-color: #1e3a8a;
+                }}
+            """)
+        elif self._style == "secondary":
+            self.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: #f3f4f6;
+                    color: {Colors.TEXT_SECONDARY};
+                    border: 1px solid {Colors.BORDER_DEFAULT};
+                    border-radius: {BorderRadius.MD}px;
+                    padding: 10px 24px;
+                    font-size: {Typography.BODY}px;
+                    font-weight: {Typography.SEMIBOLD};
+                }}
+                QPushButton:hover {{
+                    background-color: #e5e7eb;
+                }}
+            """)
+        elif self._style == "success":
+            self.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: #10b981;
+                    color: white;
+                    border: none;
+                    border-radius: {BorderRadius.MD}px;
+                    padding: 10px 24px;
+                    font-size: {Typography.BODY}px;
+                    font-weight: {Typography.BOLD};
+                }}
+                QPushButton:hover {{
+                    background-color: #059669;
+                }}
+            """)
 
 
-class SectionHeaderPremium(QWidget):
-    """Encabezado de sección premium"""
-
-    def __init__(self, title, action_text=None, parent=None):
-        super().__init__(parent)
-
-        layout = QHBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, Spacing.LG)
-        layout.setSpacing(Spacing.MD)
-
-        title_label = QLabel(title)
-        title_label.setStyleSheet(f"color: {Colors.TEXT_PRIMARY}; font-size: {Typography.H3}px; font-weight: {Typography.BOLD};")
-        layout.addWidget(title_label)
-        layout.addStretch()
-
-        if action_text:
-            action_label = QLabel(action_text)
-            action_label.setStyleSheet(f"color: {Colors.PRIMARY}; font-size: {Typography.BODY_SM}px; font-weight: {Typography.SEMIBOLD};")
-            action_label.setCursor(Qt.CursorShape.PointingHandCursor)
-            layout.addWidget(action_label)
-
+# ==============================================================================
+# METRIC CARD MAXTON (Estilo Falcon)
+# ==============================================================================
 
 class MetricCardMaxton(QFrame):
     """
-    Metric card estilo Maxton con gradiente o color sólido
-
-    USO:
-    card = MetricCardMaxton(
-        value="$262,226",
-        label="Ventas hoy",
-        gradient_colors="green"  # cyan, green, pink, purple, blue, orange
-    )
-    card_compact = MetricCardMaxton(
-        value="$2,400",
-        label="Ventas Hoy",
-        gradient_colors="green",
-        compact=True  # Color sólido, más pequeño
-    )
+    Metric card estilo Falcon: compacta, limpia, con tendencia visible
     """
 
-    SOLID_COLORS = {
-        "green": "#00cc66",
-        "cyan": "#00d4ff",
-        "pink": "#ff0080",
-        "purple": "#a855f7",
-        "blue": "#3b82f6",
-        "orange": "#ff8c00",
-    }
-
-    def __init__(self, value, label, gradient_colors="cyan", icon=None, change=None, compact=False, parent=None):
+    def __init__(self, title, value, change_percent=None, change_positive=True,
+                 accent_color="#3b82f6", parent=None):
         super().__init__(parent)
+        self.accent_color = accent_color
 
-        self.gradient_type = gradient_colors
-        self.compact = compact
+        # ===================== TAMAÑO =====================
+        self.setMinimumHeight(100)
+        self.setMaximumHeight(120)
+        self.setMinimumWidth(200)
 
-        if compact:
-            self.setMinimumHeight(80)
-            self.setMinimumWidth(180)
-            self.setMaximumWidth(400)  # ~40% de ancho en pantalla estándar
-        else:
-            self.setMinimumHeight(140)
-            self.setMinimumWidth(280)
-
+        # ===================== ESTILOS =====================
         self.setStyleSheet(f"""
             QFrame {{
-                border-radius: {BorderRadius.XL}px;
-                border: 1px solid rgba(255, 255, 255, 0.1);
+                background-color: #f8f9fa;
+                border-radius: 8px;
+                border: 1px solid #e0e0e0;
+                border-left: 4px solid {accent_color};
             }}
         """)
 
-        # Layout
-        layout = QVBoxLayout(self)
-        if compact:
-            layout.setContentsMargins(16, 12, 16, 12)
-            layout.setSpacing(4)
-        else:
-            layout.setContentsMargins(24, 24, 24, 24)
-            layout.setSpacing(8)
+        # ===================== LAYOUT PRINCIPAL =====================
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(16, 12, 16, 12)
+        main_layout.setSpacing(6)
 
-        # Label (arriba, pequeño)
-        label_widget = QLabel(label)
-        label_widget.setStyleSheet(f"""
-            QLabel {{
-                color: rgba(255, 255, 255, 0.8);
-                font-size: {Typography.CAPTION if compact else Typography.CAPTION}px;
-                font-weight: {Typography.MEDIUM};
+        # ===================== FILA 1: TÍTULO + CAMBIO =====================
+        top_layout = QHBoxLayout()
+
+        title_label = QLabel(title)
+        title_label.setStyleSheet("""
+            QLabel {
+                color: #666666;
+                font-size: 12px;
+                font-weight: 500;
                 background: transparent;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-            }}
+            }
         """)
-        layout.addWidget(label_widget)
+        top_layout.addWidget(title_label)
+        top_layout.addStretch()
 
-        # Valor (grande, bold)
-        value_widget = QLabel(value)
-        value_widget.setStyleSheet(f"""
-            QLabel {{
-                color: rgb(255, 255, 255);
-                font-size: {Typography.H3 if compact else Typography.H1}px;
-                font-weight: {Typography.EXTRABOLD};
-                background: transparent;
-                letter-spacing: -0.5px;
-            }}
-        """)
-        layout.addWidget(value_widget)
-
-        # Cambio/indicador (si existe)
-        if change:
-            change_widget = QLabel(change)
-            change_widget.setStyleSheet(f"""
+        if change_percent is not None:
+            change_color = "#10b981" if change_positive else "#ef4444"
+            sign = "+" if change_positive else ""
+            change_label = QLabel(f"{sign}{change_percent}%")
+            change_label.setStyleSheet(f"""
                 QLabel {{
-                    color: rgba(255, 255, 255, 0.7);
-                    font-size: {Typography.CAPTION}px;
+                    color: {change_color};
+                    font-size: 11px;
+                    font-weight: 600;
                     background: transparent;
                 }}
             """)
-            layout.addWidget(change_widget)
+            top_layout.addWidget(change_label)
 
-        layout.addStretch()
+        main_layout.addLayout(top_layout)
 
-    def paintEvent(self, event):
-        """Dibuja fondo (sólido si compact, gradiente si normal)"""
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        # ===================== FILA 2: VALOR GRANDE =====================
+        value_label = QLabel(value)
+        self._value_widget = value_label
+        value_label.setStyleSheet("""
+            QLabel {
+                color: #1a1a1a;
+                font-size: 24px;
+                font-weight: 700;
+                background: transparent;
+                letter-spacing: -0.5px;
+            }
+        """)
+        main_layout.addWidget(value_label)
 
-        if self.compact:
-            # Color sólido para modo compacto
-            color_hex = self.SOLID_COLORS.get(self.gradient_type, "#3b82f6")
-            painter.setBrush(QColor(color_hex))
-        else:
-            # Gradiente para modo normal
-            gradient = QLinearGradient(0, 0, self.width(), self.height())
+        # ===================== FILA 3: LINK "See all" =====================
+        see_all_label = QLabel('<a href="#" style="color: #3b82f6; text-decoration: none; font-size: 11px;">See all &gt;</a>')
+        see_all_label.setOpenExternalLinks(False)
+        see_all_label.setStyleSheet("background: transparent;")
+        main_layout.addWidget(see_all_label)
 
-            if self.gradient_type == "cyan":
-                gradient.setColorAt(0, QColor(Colors.GRADIENT_CYAN_START))
-                gradient.setColorAt(1, QColor(Colors.GRADIENT_CYAN_END))
-            elif self.gradient_type == "green":
-                gradient.setColorAt(0, QColor(Colors.GRADIENT_GREEN_START))
-                gradient.setColorAt(1, QColor(Colors.GRADIENT_GREEN_END))
-            elif self.gradient_type == "pink":
-                gradient.setColorAt(0, QColor(Colors.GRADIENT_PINK_START))
-                gradient.setColorAt(1, QColor(Colors.GRADIENT_PINK_END))
-            elif self.gradient_type == "purple":
-                gradient.setColorAt(0, QColor(Colors.GRADIENT_PURPLE_START))
-                gradient.setColorAt(1, QColor(Colors.GRADIENT_PURPLE_END))
-            elif self.gradient_type == "blue":
-                gradient.setColorAt(0, QColor(Colors.GRADIENT_BLUE_START))
-                gradient.setColorAt(1, QColor(Colors.GRADIENT_BLUE_END))
-            elif self.gradient_type == "orange":
-                gradient.setColorAt(0, QColor(Colors.GRADIENT_ORANGE_START))
-                gradient.setColorAt(1, QColor(Colors.GRADIENT_ORANGE_END))
-            else:
-                gradient.setColorAt(0, QColor(Colors.PRIMARY))
-                gradient.setColorAt(1, QColor("#1e40af"))
-
-            painter.setBrush(QBrush(gradient))
-
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.drawRoundedRect(self.rect(), BorderRadius.XL, BorderRadius.XL)
+        main_layout.addStretch()
 
     def set_value(self, value):
-        """Actualiza el valor mostrado en la card"""
-        for child in self.findChildren(QLabel):
-            # El QLabel del valor tiene color blanco y font-size H1
-            if "color: rgb(255, 255, 255)" in child.styleSheet() and f"font-size: {Typography.H1}px" in child.styleSheet():
-                child.setText(value)
-                break
+        """Actualiza el valor mostrado"""
+        if hasattr(self, '_value_widget'):
+            self._value_widget.setText(value)
 
-    def set_change(self, change_text, positive=True):
-        """Actualiza o agrega el indicador de cambio/tendencia"""
-        # Buscar si ya existe un widget de cambio
+    def set_change(self, percent, positive=True):
+        """Actualiza el indicador de cambio/tendencia"""
+        # Buscar el widget de cambio existente y actualizarlo
         for child in self.findChildren(QLabel):
             style = child.styleSheet()
-            if "rgba(255, 255, 255, 0.6)" in style or "font-size: {Typography.CAPTION}px" in style:
-                # Es el widget de cambio existente
-                child.setText(change_text)
-                change_color = Colors.SUCCESS if positive else Colors.DANGER
-                # Actualizar color para indicar tendencia positiva/negativa
+            if "font-size: 11px" in style and "font-weight: 600" in style:
+                sign = "+" if positive else ""
+                color = "#10b981" if positive else "#ef4444"
+                child.setText(f"{sign}{percent}%")
                 child.setStyleSheet(f"""
                     QLabel {{
-                        color: {change_color};
-                        font-size: {Typography.CAPTION}px;
-                        font-weight: {Typography.SEMIBOLD};
+                        color: {color};
+                        font-size: 11px;
+                        font-weight: 600;
                         background: transparent;
                     }}
                 """)
-                return
-        # Si no existe, crear uno nuevo
-        change_widget = QLabel(change_text)
-        change_color = Colors.SUCCESS if positive else Colors.DANGER
-        change_widget.setStyleSheet(f"""
-            QLabel {{
-                color: {change_color};
-                font-size: {Typography.CAPTION}px;
-                font-weight: {Typography.SEMIBOLD};
-                background: transparent;
-            }}
-        """)
-        # Insertar antes del stretch
-        layout = self.layout()
-        layout.insertWidget(layout.count() - 1, change_widget)
+                break
 
+
+# ==============================================================================
+# CHART CARD MAXTON
+# ==============================================================================
 
 class ChartCardMaxton(QFrame):
-    """
-    Card con gráfico estilo Maxton
+    """Card premium con espacio para gráficos"""
 
-    USO:
-    card = ChartCardMaxton(title="Ventas últimos 7 días")
-    """
-
-    def __init__(self, title, subtitle=None, parent=None):
+    def __init__(self, title="Gráfico", subtitle="", parent=None):
         super().__init__(parent)
 
         self.setStyleSheet(f"""
             QFrame {{
-                background: {Colors.BG_CARD};
-                border: 1px solid {Colors.BORDER_SUBTLE};
+                background-color: {Colors.BG_CARD};
                 border-radius: {BorderRadius.XL}px;
+                border: 1px solid {Colors.BORDER_DEFAULT};
             }}
         """)
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(24, 24, 24, 24)
-        layout.setSpacing(16)
-
-        # Header
-        header_layout = QHBoxLayout()
+        layout.setContentsMargins(24, 20, 24, 20)
+        layout.setSpacing(8)
 
         title_label = QLabel(title)
         title_label.setStyleSheet(f"""
             QLabel {{
                 color: {Colors.TEXT_PRIMARY};
                 font-size: {Typography.H4}px;
-                font-weight: {Typography.SEMIBOLD};
-            }}
-        """)
-        header_layout.addWidget(title_label)
-
-        header_layout.addStretch()
-
-        # Botón options (3 puntos)
-        btn_options = QPushButton("⋮")
-        btn_options.setStyleSheet(f"""
-            QPushButton {{
+                font-weight: {Typography.BOLD};
                 background: transparent;
-                color: {Colors.TEXT_TERTIARY};
-                border: none;
-                font-size: {Typography.H3}px;
-                padding: 0;
-                max-width: 24px;
-            }}
-            QPushButton:hover {{
-                color: {Colors.TEXT_PRIMARY};
             }}
         """)
-        header_layout.addWidget(btn_options)
+        layout.addWidget(title_label)
 
-        layout.addLayout(header_layout)
-
-        # Subtitle (si existe)
         if subtitle:
             subtitle_label = QLabel(subtitle)
             subtitle_label.setStyleSheet(f"""
                 QLabel {{
-                    color: {Colors.TEXT_TERTIARY};
+                    color: {Colors.TEXT_MUTED};
                     font-size: {Typography.CAPTION}px;
+                    background: transparent;
                 }}
             """)
             layout.addWidget(subtitle_label)
 
-        # Espacio para contenido del gráfico
         self.content_layout = QVBoxLayout()
+        self.content_layout.setContentsMargins(0, 12, 0, 0)
         layout.addLayout(self.content_layout)
 
 
-class InputPremium(QWidget):
-    """Input premium con label"""
-
-    def __init__(self, label, placeholder="", parent=None):
-        super().__init__(parent)
-
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(Spacing.XS)
-
-        label_widget = QLabel(label)
-        label_widget.setStyleSheet(f"color: {Colors.TEXT_SECONDARY}; font-size: {Typography.CAPTION}px; font-weight: {Typography.SEMIBOLD}; text-transform: uppercase; letter-spacing: 0.5px;")
-        layout.addWidget(label_widget)
-
-        self.input = QLineEdit()
-        self.input.setPlaceholderText(placeholder)
-        self.input.setStyleSheet(f"""
-            QLineEdit {{
-                background: {Colors.BG_INPUT};
-                color: {Colors.TEXT_PRIMARY};
-                border: 1px solid {Colors.BORDER_DEFAULT};
-                border-radius: {BorderRadius.MD}px;
-                padding: {Spacing.MD}px {Spacing.LG}px;
-                font-size: {Typography.BODY}px;
-                min-height: 20px;
-            }}
-            QLineEdit:hover {{
-                border-color: {Colors.BORDER_STRONG};
-            }}
-            QLineEdit:focus {{
-                border-color: {Colors.BORDER_FOCUS};
-                background: {Colors.BG_ELEVATED};
-            }}
-            QLineEdit::placeholder {{
-                color: {Colors.TEXT_MUTED};
-            }}
-        """)
-        layout.addWidget(self.input)
+# Alias para compatibilidad con código existente
+CardPremium = ChartCardMaxton
 
 
-# ESTILOS PARA TABLAS (estilo Clientes)
+# ==============================================================================
+# ESTILO DE TABLA PREMIUM
+# ==============================================================================
+
 TABLE_STYLE_PREMIUM = f"""
     QTableWidget {{
         background-color: {Colors.BG_CARD};
-        color: {Colors.TEXT_PRIMARY};
         border: none;
-        border-radius: {BorderRadius.XL}px;
+        border-radius: {BorderRadius.LG}px;
         gridline-color: {Colors.BORDER_DEFAULT};
+        color: {Colors.TEXT_PRIMARY};
         font-size: {Typography.BODY}px;
     }}
     QTableWidget::item {{
-        padding: {Spacing.SM}px {Spacing.MD}px;
-        border: none;
+        padding: 8px 12px;
         border-bottom: 1px solid {Colors.BORDER_DEFAULT};
     }}
-    QTableWidget::item:selected {{
-        background: {Colors.PRIMARY};
-        color: white;
-    }}
     QTableWidget::item:hover {{
-        background: {Colors.BG_HOVER};
+        background-color: {Colors.BG_HOVER};
+    }}
+    QTableWidget::item:selected {{
+        background-color: {Colors.PRIMARY}44;
+    }}
+    QTableWidget::item:nth-child(even) {{
+        background-color: rgba(255,255,255,0.02);
     }}
     QHeaderView::section {{
         background-color: {Colors.BG_ELEVATED};
         color: {Colors.TEXT_SECONDARY};
-        padding: {Spacing.SM}px {Spacing.MD}px;
+        font-weight: {Typography.BOLD};
+        font-size: {Typography.CAPTION}px;
+        padding: 10px 12px;
         border: none;
         border-bottom: 2px solid {Colors.BORDER_DEFAULT};
-        font-weight: {Typography.SEMIBOLD};
-        font-size: {Typography.CAPTION}px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
     }}
     QScrollBar:vertical {{
-        background: {Colors.BG_CARD};
-        width: 12px;
-        border-radius: 6px;
+        background: {Colors.BG_APP};
+        width: 8px;
+        border-radius: 4px;
     }}
     QScrollBar::handle:vertical {{
-        background: {Colors.BG_ELEVATED};
-        border-radius: 6px;
+        background: {Colors.BORDER_DEFAULT};
+        border-radius: 4px;
+        min-height: 30px;
     }}
     QScrollBar::handle:vertical:hover {{
-        background: {Colors.BG_HOVER};
+        background: {Colors.BORDER_FOCUS};
+    }}
+    QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
+        height: 0px;
+    }}
+    QScrollBar:horizontal {{
+        background: {Colors.BG_APP};
+        height: 8px;
+        border-radius: 4px;
+    }}
+    QScrollBar::handle:horizontal {{
+        background: {Colors.BORDER_DEFAULT};
+        border-radius: 4px;
+        min-width: 30px;
+    }}
+    QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {{
+        width: 0px;
     }}
 """

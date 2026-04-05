@@ -24,7 +24,7 @@ from PySide6.QtGui import (
 
 from tucajero.models.cajero import Cajero
 from tucajero.services.cajero_service import CajeroService
-from ui.design_tokens import DarkColors as DC, Typography, Spacing, BorderRadius
+from tucajero.ui.design_tokens import DarkColors as DC, Typography, Spacing, BorderRadius
 
 
 class GradientWidget(QWidget):
@@ -404,11 +404,13 @@ class LoginCajeroDialog(QDialog):
             self.mostrar_error("No se pudo obtener información del cajero")
             return
 
-        if self.cajero_service.verificar_login(cajero.id, pin):
+        cajero, success, error_msg = self.cajero_service.verificar_login(cajero.id, pin)
+
+        if success:
             self.cajero_seleccionado = cajero
             self.accept()
         else:
-            self.mostrar_error("PIN incorrecto")
+            self.mostrar_error(error_msg or "PIN incorrecto")
             self.input_pin.clear()
             self.input_pin.setFocus()
 

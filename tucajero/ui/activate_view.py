@@ -13,7 +13,6 @@ from tucajero.ui.design_tokens import Colors, Typography, Spacing, BorderRadius
 from tucajero.ui.components_premium import ButtonPremium
 from tucajero.security.license_manager import (
     get_machine_id,
-    generar_licencia,
     guardar_licencia,
     validar_licencia,
 )
@@ -96,34 +95,38 @@ class ActivateView(QWidget):
         import logging
 
         try:
-            licencia = self.licencia_input.text().strip().upper()
+            licencia = self.licencia_input.text().strip()
 
             if not licencia:
                 QMessageBox.warning(self, "Error", "Ingrese una licencia")
                 return
 
+            # SEC-001 FIX: License is now an Ed25519 signature (hex).
+            # We save it and validate. The vendor generated this signature
+            # offline using GeneradorLicencias.py with the machine_id.
             machine_id = get_machine_id()
-            licencia_correcta = generar_licencia(machine_id)
+            guardar_licencia(machine_id, licencia)
 
-            if licencia == licencia_correcta:
-                guardar_licencia(licencia)
+            # Verify the license was saved and is valid
+            if validar_licencia():
                 QMessageBox.information(
                     self,
                     "Sistema Activado",
-                    f"{get_store_name()} ha sido activado correctamente.\n\nEl sistema se cerrará. Vuelve a abrirlo.",
+                    f"{get_store_name()} ha sido activado correctamente.\n\nEl sistema se cerrara. Vuelve a abrirlo.",
                 )
                 self.activation_success = True
                 self.close()
             else:
                 QMessageBox.critical(
                     self,
-                    "Licencia Inválida",
-                    "La licencia ingresada no es válida para esta computadora.",
+                    "Licencia Invalida",
+                    "La licencia ingresada no es valida para esta computadora.\n\n"
+                    "Asegurese de que la licencia fue generada con su Machine ID.",
                 )
                 self.licencia_input.clear()
         except Exception as e:
             logging.error(f"Error al activar licencia: {e}", exc_info=True)
-            QMessageBox.critical(self, "Error", f"Ocurrió un error:\n{str(e)}")
+            QMessageBox.critical(self, "Error", f"Ocurrio un error:\n{str(e)}")
 
 
 class ActivationDialog(QDialog):
@@ -224,37 +227,35 @@ class ActivationDialog(QDialog):
         import logging
 
         try:
-            licencia = self.licencia_input.text().strip().upper()
+            licencia = self.licencia_input.text().strip()
 
             if not licencia:
                 QMessageBox.warning(self, "Error", "Ingrese una licencia")
                 return
 
-            if len(licencia) != 16:
-                QMessageBox.warning(
-                    self, "Error", "La licencia debe tener 16 caracteres"
-                )
-                return
-
+            # SEC-001 FIX: License is now an Ed25519 signature (hex).
+            # We save it and validate. The vendor generated this signature
+            # offline using GeneradorLicencias.py with the machine_id.
             machine_id = get_machine_id()
-            licencia_correcta = generar_licencia(machine_id)
+            guardar_licencia(machine_id, licencia)
 
-            if licencia == licencia_correcta:
-                guardar_licencia(licencia)
+            # Verify the license was saved and is valid
+            if validar_licencia():
                 QMessageBox.information(
                     self,
                     "Sistema Activado",
-                    f"{get_store_name()} ha sido activado correctamente.\n\nEl sistema se cerrará. Vuélvelo a abrir.",
+                    f"{get_store_name()} ha sido activado correctamente.\n\nEl sistema se cerrara. Vuelvelo a abrir.",
                 )
                 self.activation_success = True
                 self.accept()
             else:
                 QMessageBox.critical(
                     self,
-                    "Licencia Inválida",
-                    "La licencia ingresada no es válida para esta computadora.",
+                    "Licencia Invalida",
+                    "La licencia ingresada no es valida para esta computadora.\n\n"
+                    "Asegurese de que la licencia fue generada con su Machine ID.",
                 )
                 self.licencia_input.clear()
         except Exception as e:
             logging.error(f"Error al activar licencia: {e}", exc_info=True)
-            QMessageBox.critical(self, "Error", f"Ocurrió un error:\n{str(e)}")
+            QMessageBox.critical(self, "Error", f"Ocurrio un error:\n{str(e)}")

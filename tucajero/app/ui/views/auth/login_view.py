@@ -315,10 +315,12 @@ class LoginView(QDialog):
 
         from tucajero.services.cajero_service import CajeroService
 
-        if CajeroService(self.session).verificar_login(cajero.id, password):
+        cajero, success, error_msg = CajeroService(self.session).verificar_login(cajero.id, password)
+
+        if success:
             self.cajero_seleccionado = cajero
             self.accept()
         else:
-            QMessageBox.warning(self, "Error", "Contraseña incorrecta")
+            QMessageBox.warning(self, "Error", error_msg or "Contraseña incorrecta")
             self.input_pass.clear()
             self.input_pass.setFocus()

@@ -30,11 +30,22 @@ def global_exception_handler(exc_type, exc_value, exc_traceback):
     logging.critical("UNHANDLED EXCEPTION:\n" + error_msg)
 
     try:
+        # SEC-012 FIX: Generate a short reference ID for the error
+        import uuid
+        error_ref = uuid.uuid4().hex[:8]
+        logging.critical(f"[{error_ref}] Full error context logged above")
+
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Critical)
         msg.setWindowTitle("Error inesperado")
-        msg.setText("Ocurrió un error inesperado.\nLa aplicación seguirá funcionando.")
-        msg.setDetailedText(str(exc_value))
+        msg.setText(
+            "Ocurrio un error inesperado.\n"
+            "La aplicacion seguira funcionando.\n\n"
+            f"Referencia: {error_ref}\n"
+            "Contacte a soporte tecnico con este codigo."
+        )
+        # SEC-012 FIX: Do NOT show stack traces to users — log only
+        # msg.setDetailedText(str(exc_value))  # REMOVED for security
         # Override global dark styles for this dialog
         msg.setStyleSheet("""
             QMessageBox {
@@ -62,8 +73,9 @@ def global_exception_handler(exc_type, exc_value, exc_traceback):
             }
         """)
         msg.exec()
-    except:
-        pass
+    except Exception as e:
+        # SEC-004 FIX: Log the error instead of silently swallowing it
+        logging.error(f"Error in global_exception_handler QMessageBox display: {e}", exc_info=True)
 
 
 sys.excepthook = global_exception_handler
@@ -144,6 +156,24 @@ def main():
     if result != QDialog.DialogCode.Accepted:
         sys.exit(0)
     cajero_activo = login.cajero_seleccionado
+
+    # SEC-008: Force PIN setup if this is the first login with default admin
+    if cajero_activo and getattr(cajero_activo, 'pin_must_be_set', False):
+        try:
+            from tucajero.app.ui.views.auth.pin_setup_dialog import PinSetupDialog
+
+            pin_dialog = PinSetupDialog(session, cajero_activo)
+            if pin_dialog.exec():
+                nuevo_pin = pin_dialog.get_pin()
+                if nuevo_pin:
+                    CajeroService(session).cambiar_pin(cajero_activo.id, nuevo_pin)
+                    cajero_activo.pin_must_be_set = False
+                    session.commit()
+            else:
+                sys.exit(0)
+        except Exception as e:
+            logging.error(f"SEC-008: PIN setup dialog error: {e}")
+            # Continue with app — user can change PIN manually in settings
 
     # Registrar login en auditoría
     try:
@@ -276,11 +306,22 @@ def main():
         logging.critical(f"FATAL ERROR en main: {e}", exc_info=True)
         import traceback
         error_msg = traceback.format_exc()
+        
+        # SEC-012 FIX: Generate error reference ID for support tracking
+        import uuid
+        error_ref = uuid.uuid4().hex[:8]
+        logging.critical(f"[{error_ref}] Full error details logged above")
+        
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Critical)
         msg.setWindowTitle("Error fatal")
-        msg.setText(f"Error al iniciar la aplicación:\n{e}")
-        msg.setDetailedText(error_msg)
+        msg.setText(
+            f"Error al iniciar la aplicacion.\n\n"
+            f"Referencia: {error_ref}\n"
+            f"Contacte a soporte tecnico con este codigo."
+        )
+        # SEC-012 FIX: Do NOT expose stack trace to users
+        # msg.setDetailedText(error_msg)  # REMOVED - stack traces logged only
         msg.setStyleSheet("""
             QMessageBox { background-color: #FFFFFF; }
             QMessageBox QLabel { color: #0F172A; background: transparent; }
@@ -296,12 +337,13 @@ if __name__ == "__main__":
     except Exception as e:
         import traceback
 
-        err_msg = f"Error crítico: {e}\n{traceback.format_exc()}"
+        err_msg = f"Error critico: {e}\n{traceback.format_exc()}"
         # Write to both log file and debug file
         try:
             logging.error(err_msg)
-        except:
-            pass
+        except (OSError, IOError, ValueError) as log_err:
+            # SEC-004 FIX: If logging fails, at least we tried — no silent failures
+            print(f"FALLBACK: Could not log error: {log_err}")
         try:
             debug_file = os.path.join(
                 os.environ.get("LOCALAPPDATA", "."), "TuCajero", "debug_error.txt"
@@ -309,17 +351,21 @@ if __name__ == "__main__":
             os.makedirs(os.path.dirname(debug_file), exist_ok=True)
             with open(debug_file, "w") as f:
                 f.write(err_msg)
-        except:
-            pass
+        except (OSError, IOError, PermissionError) as file_err:
+            # SEC-004 FIX: Log file write failures
+            print(f"FALLBACK: Could not write debug file: {file_err}")
         try:
             from PySide6.QtWidgets import QApplication, QMessageBox
 
+            # SEC-012 FIX: Show generic error message, no stack traces to users
             app = QApplication(sys.argv)
             QMessageBox.critical(
                 None,
-                "Error crítico",
-                f"Ha ocurrido un error inesperado:\n\n{str(e)}\n\nRevise logs/app.log",
+                "Error critico",
+                "Ha ocurrido un error inesperado.\n\n"
+                "Contacte a soporte tecnico con la informacion en el archivo de logs.",
             )
-        except:
-            print(f"Error crítico: {e}")
+        except Exception as ui_err:
+            print(f"Error critico (fallback): {e}")
+            print(f"UI error: {ui_err}")
         sys.exit(1)

@@ -20,7 +20,9 @@
       "Bash(set *)",
       "Bash(get-content *)",
       "Bash(tucajero.exe)",
-      "Bash(taskkill *)"
+      "Bash(taskkill *)",
+      "Bash(pip install *)",
+      "Bash(select-object *)"
     ]
   },
   "$version": 3

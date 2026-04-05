@@ -587,6 +587,8 @@ class CorteView(QWidget):
         import os
 
         pdf_path = get_factura_diaria_path()
+
+        # SEC-009 FIX: Validation 1 - Path must exist
         if not os.path.exists(pdf_path):
             QMessageBox.information(
                 self,
@@ -595,13 +597,52 @@ class CorteView(QWidget):
             )
             return
 
+        # SEC-009 FIX: Validation 2 - Must be a .pdf file (extension check)
+        if not pdf_path.lower().endswith(".pdf"):
+            QMessageBox.critical(
+                self,
+                "Error de seguridad",
+                "El archivo no tiene un formato valido.",
+            )
+            return
+
+        # SEC-009 FIX: Validation 3 - Resolve to absolute path to prevent path traversal
+        pdf_path = os.path.realpath(pdf_path)
+        expected_dir = os.path.realpath(os.path.join(os.environ.get("LOCALAPPDATA", "."), "TuCajero"))
+        if not pdf_path.startswith(expected_dir):
+            QMessageBox.critical(
+                self,
+                "Error de seguridad",
+                "El archivo se encuentra en una ubicacion no esperada.",
+            )
+            return
+
+        # SEC-009 FIX: Validation 4 - User confirmation before opening external file
+        confirm = QMessageBox.question(
+            self,
+            "Abrir factura",
+            "¿Desea abrir el archivo de facturas del dia?\n\n"
+            f"Archivo: {os.path.basename(pdf_path)}",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.Yes,
+        )
+        if confirm != QMessageBox.StandardButton.Yes:
+            return
+
         try:
             if os.name == "nt":
                 os.startfile(pdf_path)
             else:
-                subprocess.run(["xdg-open", pdf_path])
-        except Exception as e:
-            QMessageBox.warning(self, "Error", f"No se pudo abrir el archivo: {str(e)}")
+                subprocess.run(["xdg-open", pdf_path], check=True, timeout=5)
+        except subprocess.TimeoutExpired:
+            QMessageBox.warning(self, "Error", "La apertura del archivo tardo demasiado.")
+        except Exception:
+            # SEC-009 FIX: Do NOT expose the error details or path to the user
+            QMessageBox.warning(
+                self,
+                "Error",
+                "No se pudo abrir el archivo. Intente abrirlo manualmente desde la carpeta de documentos.",
+            )
 
     def reimprimir_ultimo(self):
         from tucajero.services.corte_service import CorteCajaService
