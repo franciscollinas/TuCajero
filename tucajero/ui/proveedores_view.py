@@ -339,8 +339,8 @@ class ProveedorDialog(QDialog):
         # Card wrapper
         card = QFrame()
         card.setStyleSheet(
-            f"background-color: #FFFFFF; border-radius: 12px; "
-            f"border: 1px solid #E2E8F0;"
+            f"background-color: {Colors.BG_CARD}; border-radius: 12px; "
+            f"border: 1px solid {Colors.BORDER_DEFAULT};"
         )
         card_layout = QVBoxLayout()
         card_layout.setSpacing(16)
@@ -371,8 +371,8 @@ class ProveedorDialog(QDialog):
         self.direccion = QLineEdit()
 
         input_style = (
-            f"background-color: #FFFFFF; color: {Colors.TEXT_PRIMARY}; "
-            f"border: 1px solid #E2E8F0; border-radius: 8px; "
+            f"background-color: {Colors.BG_CARD}; color: {Colors.TEXT_PRIMARY}; "
+            f"border: 1px solid {Colors.BORDER_DEFAULT}; border-radius: 8px; "
             f"padding: 8px 12px; font-size: 14px; min-height: 40px;"
         )
         label_style = (
@@ -487,8 +487,8 @@ class OrdenCompraDialog(QDialog):
         # Card wrapper
         card = QFrame()
         card.setStyleSheet(
-            f"background-color: #FFFFFF; border-radius: 12px; "
-            f"border: 1px solid #E2E8F0;"
+            f"background-color: {Colors.BG_CARD}; border-radius: 12px; "
+            f"border: 1px solid {Colors.BORDER_DEFAULT};"
         )
         card_layout = QVBoxLayout()
         card_layout.setSpacing(16)
@@ -513,8 +513,8 @@ class OrdenCompraDialog(QDialog):
         prov_layout.addWidget(prov_label)
         self.combo_prov = QComboBox()
         self.combo_prov.setStyleSheet(
-            f"background-color: #FFFFFF; color: {Colors.TEXT_PRIMARY}; "
-            f"border: 1px solid #E2E8F0; border-radius: 8px; "
+            f"background-color: {Colors.BG_CARD}; color: {Colors.TEXT_PRIMARY}; "
+            f"border: 1px solid {Colors.BORDER_DEFAULT}; border-radius: 8px; "
             f"padding: 8px 12px; font-size: 14px; min-height: 40px;"
         )
         self._cargar_proveedores()
@@ -534,8 +534,8 @@ class OrdenCompraDialog(QDialog):
 
         self.combo_prod = QComboBox()
         self.combo_prod.setStyleSheet(
-            f"background-color: #FFFFFF; color: {Colors.TEXT_PRIMARY}; "
-            f"border: 1px solid #E2E8F0; border-radius: 8px; "
+            f"background-color: {Colors.BG_CARD}; color: {Colors.TEXT_PRIMARY}; "
+            f"border: 1px solid {Colors.BORDER_DEFAULT}; border-radius: 8px; "
             f"padding: 8px 12px; font-size: 14px; min-height: 40px;"
         )
         agregar_layout.addWidget(self.combo_prod, 3)
@@ -545,8 +545,8 @@ class OrdenCompraDialog(QDialog):
         self.spin_cant.setValue(1)
         self.spin_cant.setPrefix("Cant: ")
         self.spin_cant.setStyleSheet(
-            f"background-color: #FFFFFF; color: {Colors.TEXT_PRIMARY}; "
-            f"border: 1px solid #E2E8F0; border-radius: 8px; "
+            f"background-color: {Colors.BG_CARD}; color: {Colors.TEXT_PRIMARY}; "
+            f"border: 1px solid {Colors.BORDER_DEFAULT}; border-radius: 8px; "
             f"padding: 8px 12px; font-size: 14px; min-height: 40px;"
         )
         agregar_layout.addWidget(self.spin_cant)
@@ -556,8 +556,8 @@ class OrdenCompraDialog(QDialog):
         self.spin_precio.setDecimals(2)
         self.spin_precio.setPrefix("$ ")
         self.spin_precio.setStyleSheet(
-            f"background-color: #FFFFFF; color: {Colors.TEXT_PRIMARY}; "
-            f"border: 1px solid #E2E8F0; border-radius: 8px; "
+            f"background-color: {Colors.BG_CARD}; color: {Colors.TEXT_PRIMARY}; "
+            f"border: 1px solid {Colors.BORDER_DEFAULT}; border-radius: 8px; "
             f"padding: 8px 12px; font-size: 14px; min-height: 40px;"
         )
         agregar_layout.addWidget(self.spin_precio)
@@ -573,7 +573,7 @@ class OrdenCompraDialog(QDialog):
         # Separator
         separator = QFrame()
         separator.setFrameShape(QFrame.Shape.HLine)
-        separator.setStyleSheet(f"background-color: #E2E8F0; border: none; max-height: 1px;")
+        separator.setStyleSheet(f"background-color: {Colors.BORDER_DEFAULT}; border: none; max-height: 1px;")
         card_layout.addWidget(separator)
 
         # Table
@@ -600,8 +600,8 @@ class OrdenCompraDialog(QDialog):
         self.notas = QLineEdit()
         self.notas.setPlaceholderText("Notas (opcional)")
         self.notas.setStyleSheet(
-            f"background-color: #FFFFFF; color: {Colors.TEXT_PRIMARY}; "
-            f"border: 1px solid #E2E8F0; border-radius: 8px; "
+            f"background-color: {Colors.BG_CARD}; color: {Colors.TEXT_PRIMARY}; "
+            f"border: 1px solid {Colors.BORDER_DEFAULT}; border-radius: 8px; "
             f"padding: 8px 12px; font-size: 14px; min-height: 40px;"
         )
         card_layout.addWidget(self.notas)
@@ -734,8 +734,8 @@ class DetalleOrdenDialog(QDialog):
         # Card wrapper
         card = QFrame()
         card.setStyleSheet(
-            f"background-color: #FFFFFF; border-radius: 12px; "
-            f"border: 1px solid #E2E8F0;"
+            f"background-color: {Colors.BG_CARD}; border-radius: 12px; "
+            f"border: 1px solid {Colors.BORDER_DEFAULT};"
         )
         card_layout = QVBoxLayout()
         card_layout.setSpacing(16)
@@ -759,8 +759,8 @@ class DetalleOrdenDialog(QDialog):
         )
         info.setStyleSheet(
             f"font-size: 13px; color: {Colors.TEXT_PRIMARY}; padding: 12px; "
-            f"background-color: #F8FAFC; border-radius: 8px; "
-            f"border: 1px solid #E2E8F0;"
+            f"background-color: {Colors.BG_ELEVATED}; border-radius: 8px; "
+            f"border: 1px solid {Colors.BORDER_DEFAULT};"
         )
         info.setWordWrap(True)
         card_layout.addWidget(info)
@@ -802,7 +802,7 @@ class DetalleOrdenDialog(QDialog):
         # Separator
         separator = QFrame()
         separator.setFrameShape(QFrame.Shape.HLine)
-        separator.setStyleSheet(f"background-color: #E2E8F0; border: none; max-height: 1px;")
+        separator.setStyleSheet(f"background-color: {Colors.BORDER_DEFAULT}; border: none; max-height: 1px;")
         card_layout.addWidget(separator)
 
         # Close button

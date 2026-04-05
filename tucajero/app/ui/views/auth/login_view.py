@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 
-from tucajero.app.ui.theme.theme import app_style, PRIMARY, ACCENT, CARD_BG, CARD_BORDER
+from tucajero.ui.design_tokens import DarkColors as DC, Typography, Spacing, BorderRadius
 
 
 class LoginView(QDialog):
@@ -27,7 +27,12 @@ class LoginView(QDialog):
         self.setWindowTitle("TuCajero POS - Login")
         self.setFixedSize(1100, 650)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
-        self.setStyleSheet(app_style())
+        self.setStyleSheet(f"""
+            QDialog {{
+                background: {DC.BG_APP};
+                border: none;
+            }}
+        """)
 
         root_layout = QHBoxLayout(self)
         root_layout.setContentsMargins(0, 0, 0, 0)
@@ -41,7 +46,7 @@ class LoginView(QDialog):
 
     def create_left_panel(self):
         container = QWidget()
-        container.setStyleSheet("background: #0F172A;")
+        container.setStyleSheet(f"background: {DC.BG_APP};")
 
         layout = QVBoxLayout(container)
         layout.setContentsMargins(40, 40, 40, 40)
@@ -54,40 +59,40 @@ class LoginView(QDialog):
 
         avatar = QLabel("👤")
         avatar.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        avatar.setStyleSheet("""
-            QLabel {
+        avatar.setStyleSheet(f"""
+            QLabel {{
                 font-size: 56px;
-                background: rgba(124, 58, 237, 0.15);
-                border: 3px solid #7C3AED;
+                background: rgba(139, 92, 246, 0.15);
+                border: 3px solid {DC.PURPLE};
                 border-radius: 50px;
                 min-width: 100px;
                 max-width: 100px;
                 min-height: 100px;
                 max-height: 100px;
-            }
+            }}
         """)
         center_layout.addWidget(avatar, 0, Qt.AlignmentFlag.AlignCenter)
 
         title = QLabel("Iniciar sesión")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title.setStyleSheet("""
-            QLabel {
-                color: #FFFFFF;
-                font-size: 24px;
-                font-weight: bold;
+        title.setStyleSheet(f"""
+            QLabel {{
+                color: {DC.TEXT_PRIMARY};
+                font-size: {Typography.H3}px;
+                font-weight: {Typography.BOLD};
                 background: transparent;
-            }
+            }}
         """)
         center_layout.addWidget(title)
 
         subtitle = QLabel("Sistema POS profesional")
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        subtitle.setStyleSheet("""
-            QLabel {
-                color: #94A3B8;
-                font-size: 14px;
+        subtitle.setStyleSheet(f"""
+            QLabel {{
+                color: {DC.TEXT_TERTIARY};
+                font-size: {Typography.BODY}px;
                 background: transparent;
-            }
+            }}
         """)
         center_layout.addWidget(subtitle)
 
@@ -95,50 +100,52 @@ class LoginView(QDialog):
 
         user_label = QLabel("Usuario")
         user_label.setStyleSheet(
-            "color: #94A3B8; font-size: 12px; font-weight: 600; background: transparent;"
+            f"color: {DC.TEXT_TERTIARY}; font-size: {Typography.CAPTION}px; "
+            f"font-weight: {Typography.SEMIBOLD}; background: transparent;"
         )
         center_layout.addWidget(user_label)
 
         self.combo_usuario = QComboBox()
         self.combo_usuario.setFixedHeight(40)
-        self.combo_usuario.setStyleSheet("""
-            QComboBox {
+        self.combo_usuario.setStyleSheet(f"""
+            QComboBox {{
                 background-color: rgba(255,255,255,0.05);
                 border: 1px solid rgba(255,255,255,0.1);
-                border-radius: 8px;
+                border-radius: {BorderRadius.MD}px;
                 padding: 8px 12px;
                 color: white;
-                font-size: 14px;
-            }
-            QComboBox:hover {
-                border-color: #7C3AED;
-            }
-            QComboBox:focus {
-                border-color: #7C3AED;
-            }
-            QComboBox::drop-down {
+                font-size: {Typography.BODY}px;
+            }}
+            QComboBox:hover {{
+                border-color: {DC.PURPLE};
+            }}
+            QComboBox:focus {{
+                border-color: {DC.PURPLE};
+            }}
+            QComboBox::drop-down {{
                 border: none;
                 width: 30px;
-            }
-            QComboBox::down-arrow {
+            }}
+            QComboBox::down-arrow {{
                 border-left: 5px solid transparent;
                 border-right: 5px solid transparent;
-                border-top: 6px solid #94A3B8;
-            }
-            QComboBox QAbstractItemView {
+                border-top: 6px solid {DC.TEXT_TERTIARY};
+            }}
+            QComboBox QAbstractItemView {{
                 background: rgba(15, 23, 42, 0.98);
                 color: white;
-                border: 1px solid #7C3AED;
-                border-radius: 8px;
+                border: 1px solid {DC.PURPLE};
+                border-radius: {BorderRadius.MD}px;
                 padding: 4px;
-                selection-background-color: #7C3AED;
-            }
+                selection-background-color: {DC.PURPLE};
+            }}
         """)
         center_layout.addWidget(self.combo_usuario)
 
         pass_label = QLabel("Contraseña")
         pass_label.setStyleSheet(
-            "color: #94A3B8; font-size: 12px; font-weight: 600; background: transparent; margin-top: 8px;"
+            f"color: {DC.TEXT_TERTIARY}; font-size: {Typography.CAPTION}px; "
+            f"font-weight: {Typography.SEMIBOLD}; background: transparent; margin-top: 8px;"
         )
         center_layout.addWidget(pass_label)
 
@@ -146,25 +153,25 @@ class LoginView(QDialog):
         self.input_pass.setFixedHeight(40)
         self.input_pass.setPlaceholderText("••••••••")
         self.input_pass.setEchoMode(QLineEdit.EchoMode.Password)
-        self.input_pass.setStyleSheet("""
-            QLineEdit {
+        self.input_pass.setStyleSheet(f"""
+            QLineEdit {{
                 background-color: rgba(255,255,255,0.05);
                 border: 1px solid rgba(255,255,255,0.1);
-                border-radius: 8px;
+                border-radius: {BorderRadius.MD}px;
                 padding: 8px 12px;
                 color: white;
-                font-size: 14px;
-            }
-            QLineEdit:hover {
-                border-color: #7C3AED;
-            }
-            QLineEdit:focus {
-                border-color: #7C3AED;
+                font-size: {Typography.BODY}px;
+            }}
+            QLineEdit:hover {{
+                border-color: {DC.PURPLE};
+            }}
+            QLineEdit:focus {{
+                border-color: {DC.PURPLE};
                 background-color: rgba(255,255,255,0.08);
-            }
-            QLineEdit::placeholder {
-                color: #64748B;
-            }
+            }}
+            QLineEdit::placeholder {{
+                color: {DC.TEXT_MUTED};
+            }}
         """)
         self.input_pass.returnPressed.connect(self.validar_login)
         center_layout.addWidget(self.input_pass)
@@ -174,57 +181,58 @@ class LoginView(QDialog):
         btn_login = QPushButton("INICIAR SESIÓN")
         btn_login.setFixedHeight(45)
         btn_login.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn_login.setStyleSheet("""
-            QPushButton {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #7C3AED, stop:1 #EC4899);
+        btn_login.setStyleSheet(f"""
+            QPushButton {{
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 {DC.PURPLE}, stop:1 #EC4899);
                 color: white;
                 border: none;
-                border-radius: 10px;
+                border-radius: {BorderRadius.LG}px;
                 padding: 12px 24px;
-                font-size: 14px;
-                font-weight: bold;
+                font-size: {Typography.BODY}px;
+                font-weight: {Typography.BOLD};
                 letter-spacing: 1px;
-            }
-            QPushButton:hover {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #8B5CF6, stop:1 #F472B6);
-            }
-            QPushButton:pressed {
-                background: #6D28D9;
-            }
+            }}
+            QPushButton:hover {{
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 {DC.PURPLE_LIGHT}, stop:1 #F472B6);
+                color: white;
+            }}
+            QPushButton:pressed {{
+                background: {DC.PURPLE_DARK};
+            }}
         """)
         btn_login.clicked.connect(self.validar_login)
         center_layout.addWidget(btn_login)
 
         remember_check = QCheckBox("Recordarme")
-        remember_check.setStyleSheet("""
-            QCheckBox {
-                color: #94A3B8;
-                font-size: 13px;
+        remember_check.setStyleSheet(f"""
+            QCheckBox {{
+                color: {DC.TEXT_TERTIARY};
+                font-size: {Typography.BODY_SM}px;
                 background: transparent;
-            }
-            QCheckBox::indicator {
+            }}
+            QCheckBox::indicator {{
                 width: 18px;
                 height: 18px;
                 border-radius: 4px;
-                border: 1px solid #64748B;
+                border: 1px solid {DC.TEXT_MUTED};
                 background: transparent;
-            }
-            QCheckBox::indicator:checked {
-                background: #7C3AED;
-                border-color: #7C3AED;
-            }
+            }}
+            QCheckBox::indicator:checked {{
+                background: {DC.PURPLE};
+                border-color: {DC.PURPLE};
+            }}
         """)
         center_layout.addWidget(remember_check)
 
         forgot_label = QLabel("¿Olvidaste tu contraseña?")
         forgot_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        forgot_label.setStyleSheet("""
-            QLabel {
-                color: #7C3AED;
-                font-size: 13px;
+        forgot_label.setStyleSheet(f"""
+            QLabel {{
+                color: {DC.PURPLE};
+                font-size: {Typography.BODY_SM}px;
                 background: transparent;
                 margin-top: 8px;
-            }
+            }}
         """)
         center_layout.addWidget(forgot_label)
 
@@ -236,10 +244,10 @@ class LoginView(QDialog):
 
     def create_right_panel(self):
         panel = QFrame()
-        panel.setStyleSheet("""
-            QFrame {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #7C3AED, stop:1 #06B6D4);
-            }
+        panel.setStyleSheet(f"""
+            QFrame {{
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 {DC.PURPLE}, stop:1 {DC.INFO});
+            }}
         """)
 
         layout = QVBoxLayout(panel)
@@ -249,24 +257,24 @@ class LoginView(QDialog):
         layout.addStretch()
 
         title = QLabel("Welcome.")
-        title.setStyleSheet("""
-            QLabel {
-                color: #FFFFFF;
+        title.setStyleSheet(f"""
+            QLabel {{
+                color: {DC.TEXT_PRIMARY};
                 font-size: 52px;
-                font-weight: bold;
+                font-weight: {Typography.BOLD};
                 background: transparent;
-            }
+            }}
         """)
         layout.addWidget(title)
 
         subtitle = QLabel("Sistema de punto de venta profesional")
-        subtitle.setStyleSheet("""
-            QLabel {
+        subtitle.setStyleSheet(f"""
+            QLabel {{
                 color: rgba(255, 255, 255, 0.75);
-                font-size: 16px;
+                font-size: {Typography.H5}px;
                 background: transparent;
                 margin-top: 8px;
-            }
+            }}
         """)
         layout.addWidget(subtitle)
 

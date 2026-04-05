@@ -87,7 +87,8 @@ class SetupDialog(QDialog):
         # Card container
         card = QFrame()
         card.setStyleSheet(
-            f"background-color: #FFFFFF; border-radius: 12px; border: 1px solid #E2E8F0;"
+            f"background-color: {Colors.BG_CARD}; border-radius: {BorderRadius.XL}px; "
+            f"border: 1px solid {Colors.BORDER_DEFAULT};"
         )
         card_layout = QVBoxLayout()
         card.setLayout(card_layout)
@@ -96,13 +97,18 @@ class SetupDialog(QDialog):
 
         def field_label(text):
             lbl = QLabel(text)
-            lbl.setStyleSheet(f"font-size: 13px; font-weight: 500; color: #0F172A; margin-bottom: 0px;")
+            lbl.setStyleSheet(
+                f"font-size: {Typography.BODY_SM}px; font-weight: {Typography.MEDIUM}; "
+                f"color: {Colors.TEXT_PRIMARY}; margin-bottom: 0px;"
+            )
             return lbl
 
         def input_style():
             return (
-                f"padding: 10px 14px; font-size: 14px; background: #FFFFFF; color: #0F172A; "
-                f"border: 1.5px solid #E2E8F0; border-radius: 8px; min-height: 42px; max-height: 44px;"
+                f"padding: {Spacing.SM}px {Spacing.LG}px; font-size: {Typography.BODY}px; "
+                f"background: {Colors.BG_INPUT}; color: {Colors.TEXT_PRIMARY}; "
+                f"border: 1.5px solid {Colors.BORDER_DEFAULT}; border-radius: {BorderRadius.MD}px; "
+                f"min-height: 42px; max-height: 44px;"
             )
 
         # Nombre
@@ -168,7 +174,8 @@ class SetupDialog(QDialog):
         self.logo_preview = QLabel()
         self.logo_preview.setFixedSize(56, 56)
         self.logo_preview.setStyleSheet(
-            f"border: 1.5px solid #E2E8F0; border-radius: 8px; background-color: #F8FAFC;"
+            f"border: 1.5px solid {Colors.BORDER_DEFAULT}; border-radius: {BorderRadius.MD}px; "
+            f"background-color: {Colors.BG_ELEVATED};"
         )
         self.logo_preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
@@ -319,10 +326,11 @@ class SetupView(QWidget):
         scroll_layout.setSpacing(0)
         scroll_layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignHCenter)
 
-        # Card container
+        # Card container (SetupView)
         card = QFrame()
         card.setStyleSheet(
-            f"background-color: #FFFFFF; border-radius: 12px; border: 1px solid #E2E8F0;"
+            f"background-color: {Colors.BG_CARD}; border-radius: {BorderRadius.XL}px; "
+            f"border: 1px solid {Colors.BORDER_DEFAULT};"
         )
         card_layout = QVBoxLayout()
         card.setLayout(card_layout)
@@ -331,13 +339,18 @@ class SetupView(QWidget):
 
         def field_label(text):
             lbl = QLabel(text)
-            lbl.setStyleSheet(f"font-size: 13px; font-weight: 500; color: #0F172A;")
+            lbl.setStyleSheet(
+                f"font-size: {Typography.BODY_SM}px; font-weight: {Typography.MEDIUM}; "
+                f"color: {Colors.TEXT_PRIMARY};"
+            )
             return lbl
 
         def input_style():
             return (
-                f"padding: 10px 14px; font-size: 14px; background: #FFFFFF; color: #0F172A; "
-                f"border: 1.5px solid #E2E8F0; border-radius: 8px; min-height: 42px; max-height: 44px;"
+                f"padding: {Spacing.SM}px {Spacing.LG}px; font-size: {Typography.BODY}px; "
+                f"background: {Colors.BG_INPUT}; color: {Colors.TEXT_PRIMARY}; "
+                f"border: 1.5px solid {Colors.BORDER_DEFAULT}; border-radius: {BorderRadius.MD}px; "
+                f"min-height: 42px; max-height: 44px;"
             )
 
         # Nombre
@@ -403,7 +416,8 @@ class SetupView(QWidget):
         self.logo_preview = QLabel()
         self.logo_preview.setFixedSize(56, 56)
         self.logo_preview.setStyleSheet(
-            f"border: 1.5px solid #E2E8F0; border-radius: 8px; background-color: #F8FAFC;"
+            f"border: 1.5px solid {Colors.BORDER_DEFAULT}; border-radius: {BorderRadius.MD}px; "
+            f"background-color: {Colors.BG_ELEVATED};"
         )
         self.logo_preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
@@ -416,11 +430,11 @@ class SetupView(QWidget):
 
         printer_group = QGroupBox("Impresora Térmica")
         printer_group.setStyleSheet(
-            f"QGroupBox {{ background-color: transparent; border: 1.5px solid #E2E8F0; "
-            f"border-radius: 10px; margin-top: 12px; padding-top: 16px; font-weight: 600; "
-            f"color: #0F172A; font-size: 14px; }} "
+            f"QGroupBox {{ background-color: transparent; border: 1.5px solid {Colors.BORDER_DEFAULT}; "
+            f"border-radius: {BorderRadius.LG}px; margin-top: 12px; padding-top: 16px; font-weight: {Typography.SEMIBOLD}; "
+            f"color: {Colors.TEXT_PRIMARY}; font-size: {Typography.BODY}px; }} "
             f"QGroupBox::title {{ subcontrol-origin: margin; subcontrol-position: top left; "
-            f"left: 14px; padding: 0 10px; color: #64748B; font-size: 12px; "
+            f"left: 14px; padding: 0 10px; color: {Colors.TEXT_MUTED}; font-size: {Typography.CAPTION}px; "
             f"text-transform: uppercase; letter-spacing: 0.5px; }}"
         )
         printer_layout = QFormLayout()
@@ -430,7 +444,7 @@ class SetupView(QWidget):
 
         self.chk_impresora = QCheckBox("Usar impresora térmica")
         self.chk_impresora.setStyleSheet(
-            f"color: #0F172A; font-size: 13px; spacing: 8px;"
+            f"color: {Colors.TEXT_PRIMARY}; font-size: {Typography.BODY_SM}px; spacing: 8px;"
         )
         self.chk_impresora.toggled.connect(self.on_impresora_toggled)
         printer_layout.addRow("", self.chk_impresora)
