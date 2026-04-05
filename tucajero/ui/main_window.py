@@ -102,24 +102,22 @@ class MainWindow(QMainWindow):
         logo.setFixedSize(56, 56)
         logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        # Usar el logo de TuCajero POS (nuestro producto), no el del cliente
-        tucajero_logo = os.path.join(
+        # Usar el logo de TuCajero POS desde assets/store/logo.png
+        store_logo = os.path.join(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            "assets", "icons", "logo.png"
+            "assets", "store", "logo.png"
         )
-        if os.path.exists(tucajero_logo):
+        if os.path.exists(store_logo):
             from PySide6.QtGui import QPixmap
 
-            pix = QPixmap(tucajero_logo).scaled(
+            pix = QPixmap(store_logo).scaled(
                 52,
                 52,
-                Qt.AspectRatioMode.KeepAspectRatioByExpanding,
+                Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation,
             )
             logo.setPixmap(pix)
-            logo.setStyleSheet(
-                f"border-radius: 12px; border: 2px solid {Colors.BORDER_DEFAULT}; background: transparent;"
-            )
+            logo.setStyleSheet("background: transparent; border: none;")
         else:
             logo.setText("🏪")
             logo.setStyleSheet(
