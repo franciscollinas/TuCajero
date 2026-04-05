@@ -64,13 +64,13 @@ class CotizacionesView(QWidget):
         card = QFrame()
         card.setStyleSheet(f"""
             QFrame {{
-                background-color: {Colors.BG_CARD};
+                background: transparent;
                 border: 1px solid {Colors.BORDER_DEFAULT};
                 border-radius: {BorderRadius.XL}px;
             }}
         """)
         card_layout = QVBoxLayout()
-        card_layout.setContentsMargins(0, 0, 0, 0)
+        card_layout.setContentsMargins(1, 1, 1, 1)
         card_layout.setSpacing(0)
         card.setLayout(card_layout)
 

@@ -500,6 +500,7 @@ TABLE_STYLE_PREMIUM = f"""
         background-color: {Colors.BG_CARD};
         color: {Colors.TEXT_PRIMARY};
         border: none;
+        border-radius: {BorderRadius.XL}px;
         gridline-color: {Colors.BORDER_DEFAULT};
         font-size: {Typography.BODY}px;
     }}

@@ -91,14 +91,13 @@ class ClientesView(QWidget):
         card = QFrame()
         card.setStyleSheet(f"""
             QFrame {{
-                background-color: {Colors.BG_CARD};
-                border-radius: {BorderRadius.MD}px;
+                background: transparent;
                 border: 1px solid {Colors.BORDER_DEFAULT};
-                padding: 0px;
+                border-radius: {BorderRadius.XL}px;
             }}
         """)
         card_layout = QVBoxLayout()
-        card_layout.setContentsMargins(16, 16, 16, 16)
+        card_layout.setContentsMargins(1, 1, 1, 1)
         card_layout.setSpacing(0)
         card.setLayout(card_layout)
 

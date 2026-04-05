@@ -133,13 +133,13 @@ class HistorialView(QWidget):
         cierres_card = QFrame()
         cierres_card.setStyleSheet(f"""
             QFrame {{
-                background-color: {Colors.BG_CARD};
+                background: transparent;
                 border: 1px solid {Colors.BORDER_DEFAULT};
                 border-radius: {BorderRadius.XL}px;
             }}
         """)
         cierres_card_layout = QVBoxLayout()
-        cierres_card_layout.setContentsMargins(0, 0, 0, 0)
+        cierres_card_layout.setContentsMargins(1, 1, 1, 1)
         cierres_card_layout.setSpacing(0)
         cierres_card.setLayout(cierres_card_layout)
 
@@ -169,13 +169,13 @@ class HistorialView(QWidget):
         ranking_card = QFrame()
         ranking_card.setStyleSheet(f"""
             QFrame {{
-                background-color: {Colors.BG_CARD};
+                background: transparent;
                 border: 1px solid {Colors.BORDER_DEFAULT};
                 border-radius: {BorderRadius.XL}px;
             }}
         """)
         ranking_card_layout = QVBoxLayout()
-        ranking_card_layout.setContentsMargins(0, 0, 0, 0)
+        ranking_card_layout.setContentsMargins(1, 1, 1, 1)
         ranking_card_layout.setSpacing(0)
         ranking_card.setLayout(ranking_card_layout)
 

@@ -140,13 +140,13 @@ class DashboardView(QWidget):
         table_card = QFrame()
         table_card.setStyleSheet(f"""
             QFrame {{
-                background-color: {Colors.BG_CARD};
+                background: transparent;
                 border: 1px solid {Colors.BORDER_DEFAULT};
                 border-radius: {BorderRadius.XL}px;
             }}
         """)
         table_card_layout = QVBoxLayout()
-        table_card_layout.setContentsMargins(0, 0, 0, 0)
+        table_card_layout.setContentsMargins(1, 1, 1, 1)
         table_card_layout.setSpacing(0)
         table_card.setLayout(table_card_layout)
 
