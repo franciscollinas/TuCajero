@@ -206,16 +206,17 @@ class MainWindow(QMainWindow):
 
         # ── Header del sidebar ──────────────────────────────────
         header = QWidget()
-        header.setFixedHeight(80)
+        header.setFixedHeight(90)
         header.setStyleSheet(f"""
             QWidget {{
                 background: {Colors.BG_PANEL};
                 border-bottom: 1px solid {Colors.BORDER_SUBTLE};
             }}
         """)
-        h_layout = QHBoxLayout(header)
-        h_layout.setContentsMargins(12, 8, 12, 8)
-        h_layout.setSpacing(10)
+        h_layout = QVBoxLayout(header)
+        h_layout.setContentsMargins(16, 10, 16, 8)
+        h_layout.setSpacing(4)
+        h_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         # Logo de TuCajero POS desde assets/store/logo.png
         logo = QLabel()
@@ -229,29 +230,29 @@ class MainWindow(QMainWindow):
         if os.path.exists(tucajero_logo):
             from PySide6.QtGui import QPixmap
 
-            # Tamaño ancho para logo horizontal sin pixelado
-            logo.setFixedSize(160, 56)
+            logo.setFixedSize(140, 40)
             pix = QPixmap(tucajero_logo).scaled(
-                155,
-                52,
+                135,
+                36,
                 Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation,
             )
             logo.setPixmap(pix)
             logo.setStyleSheet("background: transparent; border: none;")
         else:
-            logo.setFixedSize(56, 56)
+            logo.setFixedSize(40, 40)
             logo.setText("🏪")
             logo.setStyleSheet(
                 f"background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 {Colors.PRIMARY}, stop:1 {Colors.INFO}); "
-                f"border-radius: 12px; font-size: 28px; border: none;"
+                f"border-radius: 10px; font-size: 22px; border: none;"
             )
         h_layout.addWidget(logo)
 
-        # Nombre del software al lado del logo
+        # Nombre del software debajo del logo
         app_name = QLabel("TuCajero")
+        app_name.setAlignment(Qt.AlignmentFlag.AlignCenter)
         app_name.setStyleSheet(
-            f"color: {Colors.TEXT_PRIMARY}; font-size: {Typography.H3}px; "
+            f"color: {Colors.TEXT_PRIMARY}; font-size: {Typography.H5}px; "
             f"font-weight: {Typography.BOLD}; background: transparent; border: none;"
         )
         h_layout.addWidget(app_name)
