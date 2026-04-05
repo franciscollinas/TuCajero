@@ -188,6 +188,9 @@ class MainWindow(QMainWindow):
         return header
 
     def _build_sidebar(self):
+        from tucajero.utils.store_config import get_logo_path
+        import os
+
         sidebar = QWidget()
         sidebar.setFixedWidth(240)
         sidebar.setStyleSheet(f"""
@@ -211,17 +214,39 @@ class MainWindow(QMainWindow):
             }}
         """)
         h_layout = QHBoxLayout(header)
-        h_layout.setContentsMargins(16, 8, 16, 8)
-        h_layout.setSpacing(14)
+        h_layout.setContentsMargins(12, 8, 12, 8)
+        h_layout.setSpacing(10)
 
-        # Logo texto limpio (sin imagen pixelada)
-        logo_text = QLabel("📊 TuCajero")
-        logo_text.setStyleSheet(
-            f"font-size: 20px; font-weight: {Typography.BOLD}; "
-            f"color: {Colors.TEXT_PRIMARY}; background: transparent; "
-            f"border: none;"
+        # Logo de TuCajero POS desde assets/store/logo.png
+        logo = QLabel()
+        logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        # Usar el logo de TuCajero POS (nuestra marca)
+        tucajero_logo = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "assets", "store", "logo.png"
         )
-        h_layout.addWidget(logo_text)
+        if os.path.exists(tucajero_logo):
+            from PySide6.QtGui import QPixmap
+
+            # Tamaño ancho para logo horizontal sin pixelado
+            logo.setFixedSize(200, 56)
+            pix = QPixmap(tucajero_logo).scaled(
+                195,
+                52,
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation,
+            )
+            logo.setPixmap(pix)
+            logo.setStyleSheet("background: transparent; border: none;")
+        else:
+            logo.setFixedSize(56, 56)
+            logo.setText("🏪")
+            logo.setStyleSheet(
+                f"background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 {Colors.PRIMARY}, stop:1 {Colors.INFO}); "
+                f"border-radius: 12px; font-size: 28px; border: none;"
+            )
+        h_layout.addWidget(logo)
         h_layout.addStretch()
         layout.addWidget(header)
 
