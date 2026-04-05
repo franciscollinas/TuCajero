@@ -146,7 +146,7 @@ class DashboardView(QWidget):
             }}
         """)
         table_card_layout = QVBoxLayout()
-        table_card_layout.setContentsMargins(1, 1, 1, 1)
+        table_card_layout.setContentsMargins(8, 8, 8, 8)
         table_card_layout.setSpacing(0)
         table_card.setLayout(table_card_layout)
 

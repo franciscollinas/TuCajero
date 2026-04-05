@@ -139,7 +139,7 @@ class HistorialView(QWidget):
             }}
         """)
         cierres_card_layout = QVBoxLayout()
-        cierres_card_layout.setContentsMargins(1, 1, 1, 1)
+        cierres_card_layout.setContentsMargins(8, 8, 8, 8)
         cierres_card_layout.setSpacing(0)
         cierres_card.setLayout(cierres_card_layout)
 
@@ -175,7 +175,7 @@ class HistorialView(QWidget):
             }}
         """)
         ranking_card_layout = QVBoxLayout()
-        ranking_card_layout.setContentsMargins(1, 1, 1, 1)
+        ranking_card_layout.setContentsMargins(8, 8, 8, 8)
         ranking_card_layout.setSpacing(0)
         ranking_card.setLayout(ranking_card_layout)
 

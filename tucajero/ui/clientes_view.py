@@ -97,7 +97,7 @@ class ClientesView(QWidget):
             }}
         """)
         card_layout = QVBoxLayout()
-        card_layout.setContentsMargins(1, 1, 1, 1)
+        card_layout.setContentsMargins(8, 8, 8, 8)
         card_layout.setSpacing(0)
         card.setLayout(card_layout)
 
