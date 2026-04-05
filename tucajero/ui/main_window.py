@@ -206,7 +206,7 @@ class MainWindow(QMainWindow):
 
         # ── Header del sidebar ──────────────────────────────────
         header = QWidget()
-        header.setFixedHeight(90)
+        header.setFixedHeight(100)
         header.setStyleSheet(f"""
             QWidget {{
                 background: {Colors.BG_PANEL};
@@ -230,10 +230,10 @@ class MainWindow(QMainWindow):
         if os.path.exists(tucajero_logo):
             from PySide6.QtGui import QPixmap
 
-            logo.setFixedSize(140, 40)
+            logo.setFixedSize(182, 52)
             pix = QPixmap(tucajero_logo).scaled(
-                135,
-                36,
+                175,
+                47,
                 Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation,
             )
