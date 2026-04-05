@@ -19,7 +19,7 @@ from PySide6.QtCore import Qt
 from datetime import datetime
 from tucajero.utils.formato import fmt_moneda
 from tucajero.ui.design_tokens import Colors, Typography, Spacing, BorderRadius
-from tucajero.ui.components_premium import ButtonPremium
+from tucajero.ui.components_premium import ButtonPremium, TABLE_STYLE_PREMIUM
 
 
 class CorteView(QWidget):
@@ -212,7 +212,9 @@ class CorteView(QWidget):
         self.tabla_ventas.horizontalHeader().setSectionResizeMode(
             1, QHeaderView.ResizeMode.Stretch
         )
-        self.tabla_ventas.setStyleSheet(f"font-size: {Typography.H5}px;")
+        self.tabla_ventas.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.tabla_ventas.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.tabla_ventas.setStyleSheet(TABLE_STYLE_PREMIUM)
         self.tabla_ventas.setMinimumHeight(120)
         ventas_inner.addWidget(self.tabla_ventas)
 
@@ -245,7 +247,9 @@ class CorteView(QWidget):
         self.tabla_gastos.horizontalHeader().setSectionResizeMode(
             1, QHeaderView.ResizeMode.Stretch
         )
-        self.tabla_gastos.setStyleSheet(f"font-size: {Typography.BODY}px;")
+        self.tabla_gastos.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.tabla_gastos.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.tabla_gastos.setStyleSheet(TABLE_STYLE_PREMIUM)
         self.tabla_gastos.setMinimumHeight(80)
         gastos_inner.addWidget(self.tabla_gastos)
 

@@ -16,7 +16,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QDate
 from datetime import datetime
 from tucajero.ui.design_tokens import Colors, Typography, Spacing, BorderRadius
-from tucajero.ui.components_premium import ButtonPremium
+from tucajero.ui.components_premium import ButtonPremium, TABLE_STYLE_PREMIUM
 import os
 from tucajero.utils.formato import fmt_moneda
 
@@ -136,7 +136,9 @@ class HistorialView(QWidget):
         self.tabla_cierres.horizontalHeader().setSectionResizeMode(
             1, QHeaderView.ResizeMode.Stretch
         )
-        self.tabla_cierres.setStyleSheet(f"font-size: {Typography.H5}px;")
+        self.tabla_cierres.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.tabla_cierres.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.tabla_cierres.setStyleSheet(TABLE_STYLE_PREMIUM)
         self.tabla_cierres.setMinimumHeight(200)
         layout.addWidget(self.tabla_cierres)
 
@@ -154,7 +156,9 @@ class HistorialView(QWidget):
         self.tabla_ranking.horizontalHeader().setSectionResizeMode(
             1, QHeaderView.ResizeMode.Stretch
         )
-        self.tabla_ranking.setStyleSheet(f"font-size: {Typography.H5}px;")
+        self.tabla_ranking.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.tabla_ranking.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.tabla_ranking.setStyleSheet(TABLE_STYLE_PREMIUM)
         self.tabla_ranking.setMaximumHeight(250)
         layout.addWidget(self.tabla_ranking)
 

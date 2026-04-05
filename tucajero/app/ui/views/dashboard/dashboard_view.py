@@ -8,6 +8,7 @@ from PySide6.QtWidgets import (
     QTableWidget,
     QTableWidgetItem,
     QGridLayout,
+    QHeaderView,
 )
 from PySide6.QtCore import Qt
 
@@ -146,9 +147,9 @@ class DashboardView(QWidget):
             "Fecha", "Cliente", "Total", "Método", "Productos"
         ])
         self.table_ventas.setStyleSheet(TABLE_STYLE_PREMIUM)
-        self.table_ventas.setShowGrid(False)
-        self.table_ventas.verticalHeader().setVisible(False)
-        self.table_ventas.horizontalHeader().setStretchLastSection(True)
+        self.table_ventas.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.table_ventas.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.table_ventas.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
 
         table_card.content_layout.addWidget(self.table_ventas)
 

@@ -494,20 +494,19 @@ class InputPremium(QWidget):
         layout.addWidget(self.input)
 
 
-# ESTILOS PARA TABLAS
+# ESTILOS PARA TABLAS (estilo Clientes)
 TABLE_STYLE_PREMIUM = f"""
     QTableWidget {{
-        background: {Colors.BG_CARD};
+        background-color: {Colors.BG_CARD};
         color: {Colors.TEXT_PRIMARY};
-        border: 1px solid {Colors.BORDER_SUBTLE};
-        border-radius: {BorderRadius.LG}px;
-        gridline-color: {Colors.BORDER_SUBTLE};
-        font-size: {Typography.BODY_SM}px;
+        border: none;
+        gridline-color: {Colors.BORDER_DEFAULT};
+        font-size: {Typography.BODY}px;
     }}
     QTableWidget::item {{
-        padding: {Spacing.MD}px;
+        padding: {Spacing.SM}px {Spacing.MD}px;
         border: none;
-        border-bottom: 1px solid {Colors.BORDER_SUBTLE};
+        border-bottom: 1px solid {Colors.BORDER_DEFAULT};
     }}
     QTableWidget::item:selected {{
         background: {Colors.PRIMARY};
@@ -516,13 +515,10 @@ TABLE_STYLE_PREMIUM = f"""
     QTableWidget::item:hover {{
         background: {Colors.BG_HOVER};
     }}
-    QTableWidget::item:nth-child(even) {{
-        background: rgba(255, 255, 255, 0.02);
-    }}
     QHeaderView::section {{
-        background: {Colors.BG_ELEVATED};
+        background-color: {Colors.BG_ELEVATED};
         color: {Colors.TEXT_SECONDARY};
-        padding: {Spacing.MD}px;
+        padding: {Spacing.SM}px {Spacing.MD}px;
         border: none;
         border-bottom: 2px solid {Colors.BORDER_DEFAULT};
         font-weight: {Typography.SEMIBOLD};

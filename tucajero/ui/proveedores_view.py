@@ -23,7 +23,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
 from tucajero.utils.formato import fmt_moneda
 from tucajero.ui.design_tokens import Colors, Typography, Spacing, BorderRadius
-from tucajero.ui.components_premium import ButtonPremium
+from tucajero.ui.components_premium import ButtonPremium, TABLE_STYLE_PREMIUM
 
 
 class ProveedoresView(QWidget):
@@ -101,6 +101,7 @@ class ProveedoresView(QWidget):
         )
         self.tabla_prov.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.tabla_prov.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.tabla_prov.setStyleSheet(TABLE_STYLE_PREMIUM)
         card_layout.addWidget(self.tabla_prov)
 
         layout.addWidget(card)
@@ -205,6 +206,7 @@ class ProveedoresView(QWidget):
         )
         self.tabla_ord.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.tabla_ord.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.tabla_ord.setStyleSheet(TABLE_STYLE_PREMIUM)
         self.tabla_ord.doubleClicked.connect(self.ver_detalle_orden)
         card_layout.addWidget(self.tabla_ord)
 
@@ -585,7 +587,9 @@ class OrdenCompraDialog(QDialog):
         self.tabla.horizontalHeader().setSectionResizeMode(
             0, QHeaderView.ResizeMode.Stretch
         )
-        self.tabla.setStyleSheet("font-size: 13px;")
+        self.tabla.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.tabla.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.tabla.setStyleSheet(TABLE_STYLE_PREMIUM)
         card_layout.addWidget(self.tabla)
 
         # Total

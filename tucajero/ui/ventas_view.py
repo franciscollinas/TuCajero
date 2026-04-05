@@ -464,10 +464,8 @@ class VentasView(QWidget):
         self.tabla_carrito.setColumnWidth(4, 120)  # Precio
         self.tabla_carrito.setColumnWidth(5, 100)  # IVA
         self.tabla_carrito.setColumnWidth(6, 130)  # Subtotal
+        self.tabla_carrito.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.tabla_carrito.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.tabla_carrito.setAlternatingRowColors(False)
-        self.tabla_carrito.verticalHeader().setVisible(False)
-        self.tabla_carrito.setShowGrid(False)
         self.tabla_carrito.setMinimumHeight(280)
         self.tabla_carrito.setStyleSheet(TABLE_STYLE_PREMIUM)
         cart_l.addWidget(self.tabla_carrito)

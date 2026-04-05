@@ -14,7 +14,7 @@ from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor
 from tucajero.utils.formato import fmt_moneda
 from tucajero.ui.design_tokens import Colors, Typography, Spacing, BorderRadius
-from tucajero.ui.components_premium import ButtonPremium
+from tucajero.ui.components_premium import ButtonPremium, TABLE_STYLE_PREMIUM
 
 
 class CotizacionesView(QWidget):
@@ -69,7 +69,7 @@ class CotizacionesView(QWidget):
         )
         self.tabla.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.tabla.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.tabla.setStyleSheet(f"font-size: {Typography.H5}px;")
+        self.tabla.setStyleSheet(TABLE_STYLE_PREMIUM)
         self.tabla.doubleClicked.connect(self.convertir_en_venta)
         layout.addWidget(self.tabla)
 

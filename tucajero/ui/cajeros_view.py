@@ -11,7 +11,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 from tucajero.ui.design_tokens import Colors, Typography, Spacing, BorderRadius
-from tucajero.ui.components_premium import ButtonPremium
+from tucajero.ui.components_premium import ButtonPremium, TABLE_STYLE_PREMIUM
 
 
 class CajerosView(QWidget):
@@ -64,6 +64,7 @@ class CajerosView(QWidget):
         )
         self.tabla.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.tabla.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.tabla.setStyleSheet(TABLE_STYLE_PREMIUM)
         layout.addWidget(self.tabla)
 
     def cargar_cajeros(self):
