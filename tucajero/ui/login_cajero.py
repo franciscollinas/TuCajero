@@ -13,7 +13,6 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import (
-    QFont,
     QLinearGradient,
     QGradient,
     QBrush,
@@ -25,6 +24,7 @@ from PySide6.QtGui import (
 
 from tucajero.models.cajero import Cajero
 from tucajero.services.cajero_service import CajeroService
+from ui.design_tokens import DarkColors as DC, Typography, Spacing, BorderRadius
 
 
 class GradientWidget(QWidget):
@@ -149,18 +149,18 @@ class LoginCajeroDialog(QDialog):
 
         user_icon_label = QLabel("👤")
         user_icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        user_icon_label.setStyleSheet("""
-            QLabel {
+        user_icon_label.setStyleSheet(f"""
+            QLabel {{
                 font-size: 80px;
-                color: #00CED1;
-                background: rgba(0, 206, 209, 0.15);
-                border: 3px solid #00CED1;
+                color: {DC.INFO};
+                background: rgba(6, 182, 212, 0.15);
+                border: 3px solid {DC.INFO};
                 border-radius: 75px;
                 min-width: 150px;
                 max-width: 150px;
                 min-height: 150px;
                 max-height: 150px;
-            }
+            }}
         """)
         layout.addWidget(user_icon_label, 0, Qt.AlignmentFlag.AlignCenter)
 
@@ -185,8 +185,8 @@ class LoginCajeroDialog(QDialog):
         user_layout.addWidget(user_label)
 
         self.combo_cajero = QComboBox()
-        self.combo_cajero.setStyleSheet("""
-            QComboBox {
+        self.combo_cajero.setStyleSheet(f"""
+            QComboBox {{
                 background: rgba(255, 255, 255, 0.1);
                 color: white;
                 border: 2px solid rgba(255, 255, 255, 0.2);
@@ -194,42 +194,42 @@ class LoginCajeroDialog(QDialog):
                 padding: 15px 20px;
                 font-size: 15px;
                 min-height: 25px;
-            }
-            QComboBox:hover {
-                border-color: #00CED1;
+            }}
+            QComboBox:hover {{
+                border-color: {DC.INFO};
                 background: rgba(255, 255, 255, 0.15);
-            }
-            QComboBox:focus {
-                border-color: #00CED1;
-            }
-            QComboBox::drop-down {
+            }}
+            QComboBox:focus {{
+                border-color: {DC.INFO};
+            }}
+            QComboBox::drop-down {{
                 border: none;
                 width: 30px;
-            }
-            QComboBox::down-arrow {
+            }}
+            QComboBox::down-arrow {{
                 image: none;
                 border-left: 5px solid transparent;
                 border-right: 5px solid transparent;
                 border-top: 6px solid white;
                 margin-right: 10px;
-            }
-            QComboBox QAbstractItemView {
+            }}
+            QComboBox QAbstractItemView {{
                 background: rgba(30, 30, 50, 0.95);
                 color: white;
-                border: 2px solid #00CED1;
+                border: 2px solid {DC.INFO};
                 border-radius: 10px;
                 padding: 5px;
-                selection-background-color: #00CED1;
+                selection-background-color: {DC.INFO};
                 selection-color: white;
                 outline: none;
-            }
-            QComboBox QAbstractItemView::item {
+            }}
+            QComboBox QAbstractItemView::item {{
                 padding: 10px;
                 border-radius: 5px;
-            }
-            QComboBox QAbstractItemView::item:hover {
-                background: rgba(0, 206, 209, 0.3);
-            }
+            }}
+            QComboBox QAbstractItemView::item:hover {{
+                background: rgba(6, 182, 212, 0.3);
+            }}
         """)
 
         self.combo_cajero.view().window().setWindowFlags(
@@ -261,8 +261,8 @@ class LoginCajeroDialog(QDialog):
         self.input_pin.setPlaceholderText("••••")
         self.input_pin.setEchoMode(QLineEdit.EchoMode.Password)
         self.input_pin.setMaxLength(4)
-        self.input_pin.setStyleSheet("""
-            QLineEdit {
+        self.input_pin.setStyleSheet(f"""
+            QLineEdit {{
                 background: rgba(255, 255, 255, 0.1);
                 color: white;
                 border: 2px solid rgba(255, 255, 255, 0.2);
@@ -271,15 +271,15 @@ class LoginCajeroDialog(QDialog):
                 font-size: 20px;
                 letter-spacing: 10px;
                 min-height: 25px;
-            }
-            QLineEdit:hover {
-                border-color: #00CED1;
+            }}
+            QLineEdit:hover {{
+                border-color: {DC.INFO};
                 background: rgba(255, 255, 255, 0.15);
-            }
-            QLineEdit:focus {
-                border-color: #00CED1;
+            }}
+            QLineEdit:focus {{
+                border-color: {DC.INFO};
                 background: rgba(255, 255, 255, 0.2);
-            }
+            }}
         """)
         self.input_pin.returnPressed.connect(self.validar_login)
 
@@ -287,31 +287,31 @@ class LoginCajeroDialog(QDialog):
         layout.addWidget(pin_container)
 
         btn_login = QPushButton("INICIAR SESIÓN")
-        btn_login.setStyleSheet("""
-            QPushButton {
+        btn_login.setStyleSheet(f"""
+            QPushButton {{
                 background: qlineargradient(
                     x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #FF1493,
-                    stop:1 #FF69B4
+                    stop:0 {DC.PURPLE_DARK},
+                    stop:1 #EC4899
                 );
                 color: white;
                 border: none;
                 border-radius: 12px;
                 padding: 18px;
-                font-size: 15px;
-                font-weight: bold;
+                font-size: {Typography.BODY}px;
+                font-weight: {Typography.BOLD};
                 letter-spacing: 1px;
-            }
-            QPushButton:hover {
+            }}
+            QPushButton:hover {{
                 background: qlineargradient(
                     x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #FF69B4,
-                    stop:1 #FF1493
+                    stop:0 #EC4899,
+                    stop:1 {DC.PURPLE_DARK}
                 );
-            }
-            QPushButton:pressed {
-                background: #C71585;
-            }
+            }}
+            QPushButton:pressed {{
+                background: {DC.PURPLE_DARK};
+            }}
         """)
         btn_login.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_login.clicked.connect(self.validar_login)
@@ -419,7 +419,7 @@ class LoginCajeroDialog(QDialog):
     def mostrar_info(self):
         """Muestra información del sistema"""
         info_text = (
-            "<h2 style='color: #00CED1;'>TuCajero POS</h2>"
+            f"<h2 style='color: {DC.INFO};'>TuCajero POS</h2>"
             "<p><b>Version:</b> 2.1.0</p>"
             "<p><b>Fecha:</b> Marzo 2026</p>"
             "<p><b>Estado:</b> Produccion ✅</p>"
@@ -427,7 +427,7 @@ class LoginCajeroDialog(QDialog):
             "<p><b>Creado por:</b><br>"
             "Ingeniero Francisco Llinas Pisciotti</p>"
             "<hr>"
-            "<p style='font-size: 11px; color: #888;'>"
+            f"<p style='font-size: 11px; color: {DC.TEXT_MUTED};'>"
             "© 2026 TuCajero POS. Todos los derechos reservados.<br>"
             "Software propietario para gestión de punto de venta."
             "</p>"
@@ -439,24 +439,24 @@ class LoginCajeroDialog(QDialog):
         msg.setText(info_text)
         msg.setIconPixmap(QMessageBox.Icon.Information.pixmap(QSize(64, 64)))
         msg.setStandardButtons(QMessageBox.StandardButton.Ok)
-        msg.setStyleSheet("""
-            QMessageBox {
-                background: #1e1e32;
-            }
-            QMessageBox QLabel {
-                color: white;
+        msg.setStyleSheet(f"""
+            QMessageBox {{
+                background: {DC.BG_ELEVATED};
+            }}
+            QMessageBox QLabel {{
+                color: {DC.TEXT_PRIMARY};
                 min-width: 400px;
-            }
-            QPushButton {
-                background: #00CED1;
+            }}
+            QPushButton {{
+                background: {DC.INFO};
                 color: white;
                 border: none;
                 border-radius: 6px;
                 padding: 8px 24px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background: #00B8BB;
-            }
+                font-weight: {Typography.BOLD};
+            }}
+            QPushButton:hover {{
+                background: {DC.INFO_DARK};
+            }}
         """)
         msg.exec()

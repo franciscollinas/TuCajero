@@ -19,6 +19,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, QEvent
 from PySide6.QtGui import QColor, QPixmap
+from ui.design_tokens import Colors, Typography, Spacing, BorderRadius
 
 
 def get_logo_path():
@@ -59,46 +60,46 @@ class PINBox(QPushButton):
 
     def update_style(self):
         if self._focused:
-            self.setStyleSheet("""
-                QPushButton {
-                    background-color: #DBEAFE;
-                    border: 2px solid #2563EB;
-                    border-radius: 10px;
-                    font-size: 24px;
-                    font-weight: 700;
-                    color: #0F172A;
+            self.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: {Colors.FOCUS_BG};
+                    border: 2px solid {Colors.PRIMARY};
+                    border-radius: {BorderRadius.LG}px;
+                    font-size: {Typography.H3}px;
+                    font-weight: {Typography.BOLD};
+                    color: {Colors.TEXT_PRIMARY};
                     padding: 0px;
-                }
-                QPushButton:hover {
-                    background-color: #DBEAFE;
-                }
+                }}
+                QPushButton:hover {{
+                    background-color: {Colors.FOCUS_BG};
+                }}
             """)
         elif self._hovered:
-            self.setStyleSheet("""
-                QPushButton {
-                    background-color: #FFFFFF;
-                    border: 1px solid #CBD5E1;
-                    border-radius: 10px;
-                    font-size: 24px;
-                    font-weight: 700;
-                    color: #0F172A;
+            self.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: {Colors.BG_CARD};
+                    border: 1px solid {Colors.BORDER_STRONG};
+                    border-radius: {BorderRadius.LG}px;
+                    font-size: {Typography.H3}px;
+                    font-weight: {Typography.BOLD};
+                    color: {Colors.TEXT_PRIMARY};
                     padding: 0px;
-                }
+                }}
             """)
         else:
-            self.setStyleSheet("""
-                QPushButton {
-                    background-color: #FFFFFF;
-                    border: 1px solid #E2E8F0;
-                    border-radius: 10px;
-                    font-size: 24px;
-                    font-weight: 700;
-                    color: #0F172A;
+            self.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: {Colors.BG_CARD};
+                    border: 1px solid {Colors.BORDER_DEFAULT};
+                    border-radius: {BorderRadius.LG}px;
+                    font-size: {Typography.H3}px;
+                    font-weight: {Typography.BOLD};
+                    color: {Colors.TEXT_PRIMARY};
                     padding: 0px;
-                }
-                QPushButton:hover {
-                    border: 1px solid #CBD5E1;
-                }
+                }}
+                QPushButton:hover {{
+                    border: 1px solid {Colors.BORDER_STRONG};
+                }}
             """)
 
     def enterEvent(self, event):
@@ -173,23 +174,23 @@ class LoginView(QDialog):
 
         # 5. LOGIN CARD - Professional design with shadow
         card = QWidget()
-        card.setStyleSheet("""
-            QWidget {
-                background-color: #FFFFFF;
-                border: 1px solid #E2E8F0;
-                border-radius: 12px;
-            }
+        card.setStyleSheet(f"""
+            QWidget {{
+                background-color: {Colors.BG_CARD};
+                border: 1px solid {Colors.BORDER_DEFAULT};
+                border-radius: {BorderRadius.XL}px;
+            }}
         """)
 
         # Shadow effect
         shadow = QGraphicsDropShadowEffect()
         shadow.setBlurRadius(30)
         shadow.setOffset(0, 10)
-        shadow.setColor(QColor(15, 23, 42, 20))  # rgba(15, 23, 42, 0.08)
+        shadow.setColor(QColor(15, 23, 42, 20))
         card.setGraphicsEffect(shadow)
 
         card_layout = QVBoxLayout(card)
-        card_layout.setContentsMargins(36, 36, 36, 36)
+        card_layout.setContentsMargins(Spacing.XXXL, Spacing.XXXL, Spacing.XXXL, Spacing.XXXL)
         card_layout.setSpacing(0)
 
         # ═══════════════════════════════════════
@@ -217,21 +218,21 @@ class LoginView(QDialog):
         username_input = QLineEdit()
         username_input.setPlaceholderText("👤 Usuario")
         username_input.setFixedHeight(44)
-        username_input.setStyleSheet("""
-            QLineEdit {
-                background-color: #FFFFFF;
-                border: 1px solid #E2E8F0;
-                border-radius: 8px;
-                padding: 0 16px;
-                font-size: 14px;
-                color: #0F172A;
-            }
-            QLineEdit:focus {
-                border: 2px solid #2563EB;
-            }
-            QLineEdit::placeholder {
-                color: #94A3B8;
-            }
+        username_input.setStyleSheet(f"""
+            QLineEdit {{
+                background-color: {Colors.BG_INPUT};
+                border: 1px solid {Colors.BORDER_DEFAULT};
+                border-radius: {BorderRadius.MD}px;
+                padding: 0 {Spacing.LG}px;
+                font-size: {Typography.BODY}px;
+                color: {Colors.TEXT_PRIMARY};
+            }}
+            QLineEdit:focus {{
+                border: 2px solid {Colors.BORDER_FOCUS};
+            }}
+            QLineEdit::placeholder {{
+                color: {Colors.TEXT_MUTED};
+            }}
         """)
         self.username_input = username_input
         username_input.returnPressed.connect(self._on_username_enter)
@@ -242,13 +243,13 @@ class LoginView(QDialog):
         pin_label = QLabel("Ingresa tu PIN")
         pin_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         pin_label.setStyleSheet(
-            "QLabel { "
-            "color: #64748B; "
-            "font-size: 14px; "
-            "font-weight: 400; "
-            "background: transparent; "
-            "border: none; "
-            "}"
+            f"QLabel {{ "
+            f"color: {Colors.TEXT_TERTIARY}; "
+            f"font-size: {Typography.BODY}px; "
+            f"font-weight: {Typography.REGULAR}; "
+            f"background: transparent; "
+            f"border: none; "
+            f"}}"
         )
         card_layout.addWidget(pin_label)
         card_layout.addSpacing(20)
@@ -269,25 +270,25 @@ class LoginView(QDialog):
         self.login_btn = QPushButton("Acceder")
         self.login_btn.setFixedHeight(52)
         self.login_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.login_btn.setStyleSheet("""
-            QPushButton {
+        self.login_btn.setStyleSheet(f"""
+            QPushButton {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #2563EB, stop:1 #1D4ED8);
-                color: #FFFFFF;
+                    stop:0 {Colors.PRIMARY}, stop:1 {Colors.PRIMARY_DARK});
+                color: {Colors.TEXT_INVERSE};
                 border: none;
-                border-radius: 10px;
-                font-size: 16px;
-                font-weight: 600;
+                border-radius: {BorderRadius.LG}px;
+                font-size: {Typography.H5}px;
+                font-weight: {Typography.SEMIBOLD};
                 letter-spacing: 0.3px;
-            }
-            QPushButton:hover {
+            }}
+            QPushButton:hover {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #1D4ED8, stop:1 #1E40AF);
-            }
-            QPushButton:pressed {
+                    stop:0 {Colors.PRIMARY_DARK}, stop:1 {Colors.PRIMARY_DEEPER});
+            }}
+            QPushButton:pressed {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #1E40AF, stop:1 #1E3A8A);
-            }
+                    stop:0 {Colors.PRIMARY_DEEPER}, stop:1 {Colors.PRIMARY_DEEPEST});
+            }}
         """)
         self.login_btn.clicked.connect(self.login)
         card_layout.addWidget(self.login_btn)
@@ -297,15 +298,15 @@ class LoginView(QDialog):
         footer = QLabel("Acceso seguro al sistema de ventas")
         footer.setAlignment(Qt.AlignmentFlag.AlignCenter)
         footer.setStyleSheet(
-            "QLabel { "
-            "color: #64748B; "
-            "font-size: 12px; "
-            "font-weight: 600; "
-            "background: transparent; "
-            "padding: 8px 12px; "
-            "border: 1px solid #E2E8F0; "
-            "border-radius: 6px; "
-            "}"
+            f"QLabel {{ "
+            f"color: {Colors.TEXT_TERTIARY}; "
+            f"font-size: {Typography.CAPTION}px; "
+            f"font-weight: {Typography.SEMIBOLD}; "
+            f"background: transparent; "
+            f"padding: {Spacing.SM}px {Spacing.MD}px; "
+            f"border: 1px solid {Colors.BORDER_DEFAULT}; "
+            f"border-radius: {BorderRadius.SM}px; "
+            f"}}"
         )
         card_layout.addWidget(footer)
 
