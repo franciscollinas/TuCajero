@@ -102,10 +102,10 @@ class MainWindow(QMainWindow):
         logo.setFixedSize(56, 56)
         logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        # Usar el logo de TuCajero POS desde assets/store/logo.png
+        # Usar el logo de TuCajero POS desde assets/store/Logo.png
         store_logo = os.path.join(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            "assets", "store", "logo.png"
+            "assets", "store", "Logo.png"
         )
         if os.path.exists(store_logo):
             from PySide6.QtGui import QPixmap
