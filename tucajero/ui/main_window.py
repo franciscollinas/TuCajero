@@ -275,27 +275,30 @@ class MainWindow(QMainWindow):
         layout.addWidget(menu_label)
 
         # ── Botones de navegación ──────────────────────────────
+        # (icon, label, key, admin_only)
         nav_items = [
-            ("📊", "Dashboard", "dashboard"),
-            ("🛒", "Punto de Venta", "ventas"),
-            ("📦", "Inventario", "productos"),
-            ("👥", "Clientes", "clientes"),
-            ("📋", "Cotizaciones", "cotizaciones"),
-            ("💰", "Corte de Caja", "corte"),
-            ("📉", "Historial", "historial"),
-            ("👤", "Cajeros", "cajeros"),
-            ("⚙", "Configuración", "setup"),
-            ("🏭", "Proveedores", "proveedores"),
+            ("📊", "Dashboard", "dashboard", False),
+            ("🛒", "Punto de Venta", "ventas", False),
+            ("📦", "Inventario", "productos", False),
+            ("👥", "Clientes", "clientes", False),
+            ("📋", "Cotizaciones", "cotizaciones", False),
+            ("💰", "Corte de Caja", "corte", False),
+            ("📉", "Historial", "historial", False),
+            ("👤", "Cajeros", "cajeros", True),       # Solo admin
+            ("⚙", "Configuración", "setup", True),     # Solo admin
+            ("🏭", "Proveedores", "proveedores", True), # Solo admin
         ]
 
         self._nav_buttons = {}
+        self._admin_buttons = []  # Referencia a botones que solo ve el admin
         self._nav_group = QButtonGroup(self)
         self._nav_group.setExclusive(True)
-        for icon, label, key in nav_items:
+        for icon, label, key, admin_only in nav_items:
             btn = QPushButton(f"  {icon}   {label}")
             btn.setFixedHeight(44)
             btn.setCheckable(True)
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn.setProperty("admin_only", admin_only)
             btn.setStyleSheet(f"""
                 QPushButton {{
                     background: transparent;
@@ -318,6 +321,8 @@ class MainWindow(QMainWindow):
                 }}
             """)
             btn.clicked.connect(lambda checked, k=key: self.switch_view_by_name(k))
+            if admin_only:
+                self._admin_buttons.append(btn)
             self._nav_buttons[key] = btn
             self._nav_group.addButton(btn)
             layout.addWidget(btn)
@@ -635,6 +640,11 @@ class MainWindow(QMainWindow):
             self.lbl_cajero_footer.setText(f"{icono}  {cajero.nombre}")
         if hasattr(self, "header_user_label") and self.header_user_label:
             self.header_user_label.setText(cajero.nombre)
+
+        # Mostrar/ocultar botones de admin según el rol
+        es_admin = cajero.rol == "admin"
+        for btn in self._admin_buttons:
+            btn.setVisible(es_admin)
         from PySide6.QtCore import QTimer
 
         QTimer.singleShot(1500, self._mostrar_alerta_stock)
