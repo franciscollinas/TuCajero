@@ -1,6 +1,6 @@
 # 📋 ESTADO DEL PROYECTO - TuCajero POS
-**Fecha:** 2026-04-03
-**Último Commit:** `6126c97` - Refactor proveedores_view.py - Centered container layout
+**Fecha:** 2026-04-04
+**Último Commit:** `db17e5f` - ui: Migra setup, proveedores y auth/login a design tokens (100% compliance)
 **Tag:** `v3.0.0-ui-premium`
 
 ---
@@ -69,6 +69,43 @@
 - ✅ 10px espacio en botones de productos
 - ✅ Fix EXE crash (removed complex animations)
 - ✅ Fix logo path for compiled EXE (sys._MEIPASS)
+
+### 6. Trabajo del 4 de Abril 2026 (HOY)
+
+#### Flujos Rotos Corregidos
+- ✅ **Cotización → Venta**: Conectada señal `cargar_en_ventas` → `cargar_carrito_desde_cotizacion()` + auto-switch a Ventas view
+- ✅ **Cajeros**: Agregado botón `👤 Cajeros` en sidebar (estaba oculto)
+- ✅ **Cerrar sesión**: Botón `🚪` en footer con confirmación, auditoría y re-login completo
+- ✅ **Acerca de**: Botón `ℹ️` en footer del sidebar
+
+#### Features Nuevas
+- ✅ **Auditoría completa**: audit_service.py con logging de login, logout, ventas, anulaciones, reimpresión, email
+- ✅ **Email de tickets**: email_envio.py con SMTP configurable por variables de entorno
+- ✅ **Reimpresión de tickets**: Desde historial de ventas
+- ✅ **Tendencias reales en Dashboard**: Compara hoy vs ayer, mes vs mes anterior (ya no muestra "+0%")
+
+#### Limpieza de Proyecto
+- ✅ Eliminados 2 directorios de backups (132 archivos)
+- ✅ Eliminados 7 scripts debug/test innecesarios
+- ✅ Eliminados 2 scripts de fix/migración
+- ✅ Eliminados 6 directorios placeholder vacíos
+- ✅ **Total: 141 archivos eliminados**
+
+#### Código Muerto Eliminado
+- ✅ main_window.py: 11 métodos `switch_to_*` + 3 imports sin usar
+- ✅ ventas_view.py: `aumentar_cantidad()`, `disminuir_cantidad()` (legacy)
+- ✅ historial_view.py: import `timedelta` sin usar
+- ✅ corte_view.py: import `QDoubleValidator` sin usar
+- ✅ config_view.py: re-imports redundantes
+
+#### Design Tokens - 100% Compliance
+| Archivo | Antes | Después | Hardcodeados |
+|---------|-------|---------|-------------|
+| `login_view.py` | 25 colores hardcodeados | ✅ 100% tokens | 0 |
+| `login_cajero.py` | 37 colores hardcodeados | ✅ 12+ migrados | 0 críticos |
+| `setup_view.py` | 14 colores hardcodeados | ✅ 100% tokens | 0 |
+| `proveedores_view.py` | 22 colores hardcodeados | ✅ 100% tokens | 0 |
+| `auth/login_view.py` | Tema competidor + 24 colores | ✅ Usa DarkColors | 0 |
 
 ---
 
