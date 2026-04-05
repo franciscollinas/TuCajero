@@ -15,13 +15,12 @@ class InventarioRepository:
     def __init__(self, session: Session):
         self.session = session
 
-    def create_movimiento(self, producto_id: int, tipo: str, cantidad: int, motivo: str = "") -> MovimientoInventario:
+    def create_movimiento(self, producto_id: int, tipo: str, cantidad: int) -> MovimientoInventario:
         """Crea un movimiento de inventario"""
         movimiento = MovimientoInventario(
             producto_id=producto_id,
             tipo=tipo,
             cantidad=cantidad,
-            motivo=motivo,
             fecha=datetime.now()
         )
         self.session.add(movimiento)

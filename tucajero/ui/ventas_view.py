@@ -736,7 +736,7 @@ class VentasView(QWidget):
             self.mostrar_buscador_productos(productos)
             return
 
-        QMessageBox.warning(self, "No encontrado", f"No se encontró '{texto}'")
+        QMessageBox.warning(None, "No encontrado", f"No se encontró '{texto}'")
         self.txt_codigo.selectAll()
         self.txt_codigo.setFocus()
 
@@ -762,7 +762,7 @@ class VentasView(QWidget):
                     self.txt_codigo.setFocus()
                 else:
                     QMessageBox.warning(
-                        self,
+                        None,
                         "Sin stock",
                         f"El producto '{producto.nombre}' no tiene stock disponible.",
                     )
@@ -771,7 +771,7 @@ class VentasView(QWidget):
                     f"Error al procesar producto del buscador: {e}", exc_info=True
                 )
                 QMessageBox.critical(
-                    self,
+                    None,
                     "Error",
                     f"No se pudo procesar el producto seleccionado:\n{str(e)}",
                 )
@@ -823,14 +823,14 @@ class VentasView(QWidget):
                     self.txt_codigo.setFocus()
                 else:
                     QMessageBox.warning(
-                        self,
+                        None,
                         "Sin stock",
                         f"El producto '{producto.nombre}' no tiene stock disponible.",
                     )
             except Exception as e:
                 logging.error(f"Error al procesar producto: {e}", exc_info=True)
                 QMessageBox.critical(
-                    self, "Error", f"No se pudo procesar el producto:\n{str(e)}"
+                    None, "Error", f"No se pudo procesar el producto:\n{str(e)}"
                 )
 
     def agregar_al_carrito(self, producto):
@@ -873,8 +873,9 @@ class VentasView(QWidget):
 
         except Exception as e:
             logging.error(f"Error al agregar producto al carrito: {e}", exc_info=True)
+            # Usar None como padre para evitar problemas de ciclo de vida de widgets
             QMessageBox.critical(
-                self, "Error", f"No se pudo agregar el producto:\n{str(e)}"
+                None, "Error", f"No se pudo agregar el producto:\n{str(e)}"
             )
 
     def _highlight_ultima_fila(self):
@@ -903,22 +904,47 @@ class VentasView(QWidget):
     def mostrar_feedback(self, mensaje, tipo="success"):
         color = Colors.SUCCESS if tipo == "success" else Colors.DANGER
 
-        toast = QLabel(mensaje, self)
-        toast.setStyleSheet(f"""
-            background-color: {color};
-            color: white;
-            border-radius: 8px;
-            padding: 10px 16px;
-            font-size: 13px;
-            font-weight: bold;
-        """)
-        toast.adjustSize()
-        toast.setFixedWidth(280)
-        x = self.width() - toast.width() - 20
-        toast.move(x, 80)
-        toast.show()
-        toast.raise_()
-        QTimer.singleShot(2000, toast.deleteLater)
+        try:
+            from PySide6.QtWidgets import QLabel
+            from PySide6.QtCore import QTimer
+
+            # Crear toast sin padre para evitar problemas de ciclo de vida
+            toast = QLabel(mensaje)
+            toast.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
+            toast.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, False)
+            toast.setStyleSheet(f"""
+                background-color: {color};
+                color: white;
+                border-radius: 8px;
+                padding: 10px 16px;
+                font-size: 13px;
+                font-weight: bold;
+            """)
+            toast.adjustSize()
+            toast.setFixedWidth(280)
+
+            # Posicionar en la esquina superior derecha del widget
+            if self.isVisible():
+                pos = self.mapToGlobal(self.rect().topRight())
+                x = pos.x() - toast.width() - 20
+                y = pos.y() + 80
+                toast.move(x, y)
+
+            toast.show()
+            toast.raise_()
+
+            # Función segura para eliminar el toast
+            def eliminar_toast():
+                try:
+                    if toast and not toast.isHidden():
+                        toast.hide()
+                        toast.deleteLater()
+                except RuntimeError:
+                    pass
+
+            QTimer.singleShot(2000, eliminar_toast)
+        except RuntimeError:
+            pass
 
     def actualizar_tabla(self):
         """Update cart table"""
@@ -1338,6 +1364,17 @@ class VentasView(QWidget):
     def _cancelar_cobro(self):
         if hasattr(self, "cobro_widget"):
             self.cobro_widget.deleteLater()
+            del self.cobro_widget
+        
+        # Limpiar referencias a widgets que estaban dentro de cobro_widget
+        # para evitar el error "libshiboken: Internal C++ object already deleted"
+        if hasattr(self, "lbl_total_cobro"):
+            self.lbl_total_cobro = None
+        if hasattr(self, "lbl_cambio_inline"):
+            self.lbl_cambio_inline = None
+        if hasattr(self, "txt_recibido"):
+            self.txt_recibido = None
+        
         self.btn_cancelar.setVisible(True)
         self.btn_cotizacion.setVisible(True)
         self.btn_cobrar.setVisible(True)
@@ -1470,10 +1507,10 @@ class VentasView(QWidget):
             self.mostrar_feedback(f"Venta #{venta.id} exitosa!", "success")
 
         except ValueError as e:
-            QMessageBox.warning(self, "Error", str(e))
+            QMessageBox.warning(None, "Error", str(e))
             return
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Error al registrar venta: {str(e)}")
+            QMessageBox.critical(None, "Error", f"Error al registrar venta: {str(e)}")
             return
 
         self._cancelar_cobro()
