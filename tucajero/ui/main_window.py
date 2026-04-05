@@ -230,9 +230,9 @@ class MainWindow(QMainWindow):
             from PySide6.QtGui import QPixmap
 
             # Tamaño ancho para logo horizontal sin pixelado
-            logo.setFixedSize(200, 56)
+            logo.setFixedSize(160, 56)
             pix = QPixmap(tucajero_logo).scaled(
-                195,
+                155,
                 52,
                 Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation,
@@ -247,6 +247,14 @@ class MainWindow(QMainWindow):
                 f"border-radius: 12px; font-size: 28px; border: none;"
             )
         h_layout.addWidget(logo)
+
+        # Nombre del software al lado del logo
+        app_name = QLabel("TuCajero")
+        app_name.setStyleSheet(
+            f"color: {Colors.TEXT_PRIMARY}; font-size: {Typography.H3}px; "
+            f"font-weight: {Typography.BOLD}; background: transparent; border: none;"
+        )
+        h_layout.addWidget(app_name)
         h_layout.addStretch()
         layout.addWidget(header)
 
