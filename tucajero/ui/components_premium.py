@@ -329,11 +329,11 @@ class FalconMetricCard(QFrame):
         self.setStyleSheet(f"""
             QFrame {{
                 background-color: white;
-                border-radius: {BorderRadius.LG}px;
+                border-radius: 16px;
                 border: 1px solid #edf2f9;
             }}
             QFrame:hover {{
-                border-color: {accent_color}44;
+                border: 2px solid {accent_color};
             }}
         """)
 
@@ -345,24 +345,24 @@ class FalconMetricCard(QFrame):
         header.setContentsMargins(0,0,0,0)
         
         self.lbl_title = QLabel(title)
-        self.lbl_title.setStyleSheet(f"color: #5e6e82; font-size: 13px; font-weight: 600; background: transparent;")
+        self.lbl_title.setStyleSheet(f"color: #5e6e82; font-size: 13px; font-weight: 600; background: transparent; border: none;")
         header.addWidget(self.lbl_title)
         header.addStretch()
 
         self.badge = QLabel(badge_text)
-        self.update_badge_style(badge_text, accent_color)
+        self.badge.setStyleSheet("background: transparent; border: none;")
         header.addWidget(self.badge)
-        
+
         layout.addLayout(header)
 
         self.lbl_value = QLabel(value)
-        self.lbl_value.setStyleSheet(f"color: {accent_color}; font-size: 34px; font-weight: 700; margin-top: 5px; background: transparent; letter-spacing: -0.5px;")
+        self.lbl_value.setStyleSheet(f"color: {accent_color}; font-size: 34px; font-weight: 700; margin-top: 5px; background: transparent; letter-spacing: -0.5px; border: none;")
         layout.addWidget(self.lbl_value)
 
         layout.addStretch()
 
         self.lbl_link = QLabel("Ver todos ›")
-        self.lbl_link.setStyleSheet(f"color: {accent_color}; font-size: 13px; font-weight: 600; background: transparent;")
+        self.lbl_link.setStyleSheet(f"color: {accent_color}; font-size: 13px; font-weight: 600; background: transparent; border: none;")
         layout.addWidget(self.lbl_link)
 
     def update_badge_style(self, text, accent):
@@ -379,21 +379,49 @@ class FalconMetricCard(QFrame):
 
     def paintEvent(self, event):
         super().paintEvent(event)
-        # Dibujar forma geométrica sutil en el fondo derecho (como en la imagen)
+        # Dibujar formas geométricas sutiles en el fondo derecho (como en la imagen)
         # Usando el color de acento
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         painter.setPen(Qt.PenStyle.NoPen)
-        
-        painter.setBrush(self.bg_color)
+
+        try:
+            from PySide6.QtGui import QColor
+            c = QColor(self.accent_color)
+            r, g, b = c.red(), c.green(), c.blue()
+        except:
+            r, g, b = 44, 123, 229
 
         w, h = self.width(), self.height()
-        path = QPainterPath()
-        path.moveTo(w * 0.65, 0)
-        path.lineTo(w, 0)
-        path.lineTo(w, h * 0.7)
-        path.closeSubpath()
-        painter.drawPath(path)
+
+        path1 = QPainterPath()
+        path1.moveTo(w * 0.60, 0)
+        path1.lineTo(w, 0)
+        path1.lineTo(w, h * 0.55)
+        path1.closeSubpath()
+        painter.fillPath(path1, QBrush(QColor(r, g, b, 22)))
+
+        path2 = QPainterPath()
+        path2.moveTo(w * 0.70, 0)
+        path2.lineTo(w, 0)
+        path2.lineTo(w, h * 0.70)
+        path2.closeSubpath()
+        painter.fillPath(path2, QBrush(QColor(r, g, b, 15)))
+
+        path3 = QPainterPath()
+        path3.moveTo(w * 0.50, h * 0.50)
+        path3.lineTo(w, h * 0.30)
+        path3.lineTo(w, h)
+        path3.closeSubpath()
+        painter.fillPath(path3, QBrush(QColor(r, g, b, 12)))
+
+        path4 = QPainterPath()
+        path4.moveTo(w * 0.65, h * 0.60)
+        path4.lineTo(w, h * 0.50)
+        path4.lineTo(w, h)
+        path4.lineTo(w * 0.55, h)
+        path4.closeSubpath()
+        painter.fillPath(path4, QBrush(QColor(r, g, b, 8)))
 
 
 

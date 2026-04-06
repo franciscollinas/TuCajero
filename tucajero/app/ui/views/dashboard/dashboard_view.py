@@ -94,30 +94,7 @@ class DashboardView(QWidget):
         self.hero_card.period_changed.connect(self._on_period_changed)
         content_layout.addWidget(self.hero_card)
 
-        # 2. INFO BAR (Payout info)
-        self.info_bar = QFrame()
-        self.info_bar.setMinimumHeight(48)
-        self.info_bar.setStyleSheet(f"""
-            QFrame {{
-                background-color: #edf2f9;
-                border: 1px solid #d8e2ef;
-                border-radius: {BorderRadius.MD}px;
-            }}
-        """)
-        info_layout = QHBoxLayout(self.info_bar)
-        info_layout.setContentsMargins(15, 0, 15, 0)
-        
-        icon_lbl = QLabel("⇅")
-        icon_lbl.setStyleSheet("color: #2c7be5; font-weight: bold; font-size: 16px;")
-        info_layout.addWidget(icon_lbl)
-        
-        self.info_text = QLabel("Un pago de $0.00 fue depositado hace 0 días. Tu próximo depósito se espera pronto.")
-        self.info_text.setStyleSheet("color: #5e6e82; font-size: 13px; font-weight: 500;")
-        info_layout.addWidget(self.info_text)
-        info_layout.addStretch()
-        content_layout.addWidget(self.info_bar)
-
-        # 3. METRICS ROW (3 Cards)
+        # 2. METRICS ROW (3 Cards)
         metrics_row = QHBoxLayout()
         metrics_row.setSpacing(16)
         
@@ -223,12 +200,14 @@ class DashboardView(QWidget):
     def refresh(self):
         """Actualizar datos reales en layout Falcon"""
         try:
+            self.session.expire_all()
+
             # Consultar ventas de hoy y ayer
             hoy = datetime.now().date()
             ayer = hoy - timedelta(days=1)
 
-            total_hoy = self.session.query(func.sum(Venta.total)).filter(and_(func.date(Venta.fecha) == hoy, Venta.anulada == False)).scalar() or 0
-            total_ayer = self.session.query(func.sum(Venta.total)).filter(and_(func.date(Venta.fecha) == ayer, Venta.anulada == False)).scalar() or 0
+            total_hoy = self.session.query(func.sum(Venta.total)).filter(and_(func.date(Venta.fecha) == hoy.isoformat(), Venta.anulada == False)).scalar() or 0
+            total_ayer = self.session.query(func.sum(Venta.total)).filter(and_(func.date(Venta.fecha) == ayer.isoformat(), Venta.anulada == False)).scalar() or 0
 
             # Actualizar Hero
             self.hero_card.lbl_title.setText(f"Hoy ${total_hoy:,.2f}")
@@ -244,9 +223,8 @@ class DashboardView(QWidget):
 
             self.card_customers.lbl_value.setText(f"{n_cust:,}")
             self.card_orders.lbl_value.setText(f"{n_orders:,}")
+            self.card_revenue.lbl_title.setText("Ingresos Totales")
             self.card_revenue.lbl_value.setText(f"${total_rev:,.0f}")
-
-            self.info_text.setText(f"Un pago de ${total_hoy:,.2f} fue depositado hace 0 días. Tu próximo depósito se espera pronto.")
 
             # Actualizar Tabla
             self._update_table()

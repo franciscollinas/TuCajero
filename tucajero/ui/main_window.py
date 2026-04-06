@@ -443,14 +443,52 @@ class MainWindow(QMainWindow):
 
     def do_logout(self):
         """Cierra sesión y regresa a la pantalla de login"""
-        reply = QMessageBox.question(
-            self,
-            "Cerrar sesión",
-            "¿Está seguro que desea cerrar sesión?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No,
-        )
-        if reply != QMessageBox.StandardButton.Yes:
+        from PySide6.QtWidgets import QMessageBox
+        
+        msg = QMessageBox(self)
+        msg.setWindowTitle("Cerrar sesión")
+        msg.setText("¿Está seguro que desea cerrar sesión?")
+        msg.setIcon(QMessageBox.Icon.Question)
+        
+        btn_si = msg.addButton("Sí", QMessageBox.ButtonRole.YesRole)
+        btn_no = msg.addButton("No", QMessageBox.ButtonRole.NoRole)
+        msg.setDefaultButton(btn_no)
+        
+        msg.setStyleSheet("""
+            QMessageBox {
+                background-color: #FFFFFF;
+                border-radius: 12px;
+            }
+            QMessageBox QLabel {
+                color: #0F172A;
+                font-size: 14px;
+                font-weight: 500;
+            }
+            QMessageBox QPushButton {
+                background-color: #2563EB;
+                color: #FFFFFF;
+                border: none;
+                border-radius: 6px;
+                padding: 6px 16px;
+                font-weight: 600;
+                min-width: 64px;
+                font-size: 12px;
+            }
+            QMessageBox QPushButton:hover {
+                background-color: #1D4ED8;
+            }
+            QMessageBox QPushButton[text="No"] {
+                background-color: #E2E8F0;
+                color: #475569;
+            }
+            QMessageBox QPushButton[text="No"]:hover {
+                background-color: #CBD5E1;
+            }
+        """)
+        
+        msg.exec()
+        
+        if msg.clickedButton() != btn_si:
             return
 
         # Registrar logout en auditoría
