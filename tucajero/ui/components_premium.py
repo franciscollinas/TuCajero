@@ -1,10 +1,10 @@
 """Componentes UI premium reutilizables - NO MODIFICAR SIN AUTORIZACIÓN"""
 
 from PySide6.QtWidgets import (
-    QWidget, QFrame, QLabel, QVBoxLayout, QHBoxLayout, QPushButton, QLineEdit, QGridLayout
+    QWidget, QFrame, QLabel, QVBoxLayout, QHBoxLayout, QPushButton, QLineEdit, QGridLayout, QComboBox, QMenu
 )
-from PySide6.QtGui import QColor, QPainter, QLinearGradient, QBrush, QPen, QPainterPath, QFont
-from PySide6.QtCore import QSize, QPointF, Qt
+from PySide6.QtGui import QColor, QPainter, QLinearGradient, QBrush, QPen, QPainterPath, QFont, QAction
+from PySide6.QtCore import QSize, QPointF, Qt, Signal
 
 from tucajero.ui.design_tokens import Colors, DarkColors, Typography, Spacing, BorderRadius
 
@@ -98,14 +98,20 @@ class ButtonPremium(QPushButton):
 # ==============================================================================
 
 # ==============================================================================
-# HERO CHART WIDGET (Gráfico de línea personalizado)
+# HERO CHART WIDGET (Gráfico de línea personalizado con datos dinámicos)
 # ==============================================================================
 
 class HeroChartWidget(QWidget):
-    """Widget que dibuja el gráfico de línea estilo Falcon"""
+    """Widget que dibuja el gráfico de línea estilo Falcon con datos reales"""
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setMinimumHeight(120)
+        self.setMinimumHeight(170)  # Más espacio para fechas sin recortar
+        self.data_points = []  # Lista de (fecha_str, valor)
+    
+    def set_data(self, data_points):
+        """Recibe lista de tuplas: [("01/04", 1000), ("02/04", 1500), ...]"""
+        self.data_points = data_points
+        self.update()  # Redibujar
     
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -114,24 +120,32 @@ class HeroChartWidget(QWidget):
         w = self.width()
         h = self.height()
         
-        if w <= 0 or h <= 0:
+        if w <= 0 or h <= 0 or len(self.data_points) < 2:
             return
         
         # Márgenes
-        margin_left = 5
-        margin_right = 5
-        margin_top = 20
-        margin_bottom = 10
+        margin_left = 35  # Más espacio lateral para que las fechas no se recorten
+        margin_right = 35
+        margin_top = 15
+        margin_bottom = 35
         
-        # Puntos distribuidos horizontalmente con variación vertical suave
-        import math
-        num_points = 12
+        chart_h = h - margin_top - margin_bottom
+        
+        # Obtener valores
+        valores = [v for _, v in self.data_points]
+        max_val = max(valores) if valores else 1
+        min_val = min(valores) if valores else 0
+        rango = max_val - min_val if max_val != min_val else 1
+        
+        # Calcular puntos
+        num_points = len(self.data_points)
         points = []
         
-        for i in range(num_points):
+        for i, (fecha, valor) in enumerate(self.data_points):
             x = margin_left + (w - margin_left - margin_right) * i / (num_points - 1)
-            # Variación sinusoidal para curva natural
-            y = margin_top + (h - margin_top - margin_bottom) * (0.4 + 0.35 * math.sin(i * 0.7 + 1.2))
+            # Normalizar valor a altura del gráfico (invertido porque Y crece hacia abajo)
+            y_ratio = (valor - min_val) / rango
+            y = margin_top + chart_h * (1 - y_ratio * 0.85)
             points.append((x, y))
         
         if len(points) < 2:
@@ -142,13 +156,13 @@ class HeroChartWidget(QWidget):
         area_path.moveTo(points[0][0], points[0][1])
         for i in range(1, len(points)):
             area_path.lineTo(points[i][0], points[i][1])
-        area_path.lineTo(points[-1][0], h - margin_bottom)
-        area_path.lineTo(points[0][0], h - margin_bottom)
+        area_path.lineTo(points[-1][0], margin_top + chart_h)
+        area_path.lineTo(points[0][0], margin_top + chart_h)
         area_path.closeSubpath()
         
-        gradient = QLinearGradient(0, 0, 0, h)
-        gradient.setColorAt(0, QColor(255, 255, 255, 35))
-        gradient.setColorAt(1, QColor(255, 255, 255, 3))
+        gradient = QLinearGradient(0, margin_top, 0, margin_top + chart_h)
+        gradient.setColorAt(0, QColor(255, 255, 255, 40))
+        gradient.setColorAt(1, QColor(255, 255, 255, 5))
         painter.fillPath(area_path, QBrush(gradient))
         
         # Dibujar línea blanca conectando puntos
@@ -157,7 +171,7 @@ class HeroChartWidget(QWidget):
         for i in range(1, len(points)):
             line_path.lineTo(points[i][0], points[i][1])
         
-        pen = QPen(QColor(255, 255, 255, 240), 2.5)
+        pen = QPen(QColor(255, 255, 255, 250), 2.5)
         pen.setCapStyle(Qt.PenCapStyle.RoundCap)
         pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
         painter.setPen(pen)
@@ -167,7 +181,16 @@ class HeroChartWidget(QWidget):
         painter.setBrush(QColor(255, 255, 255))
         painter.setPen(Qt.PenStyle.NoPen)
         for p in points:
-            painter.drawEllipse(QPointF(p[0], p[1]), 4, 4)
+            painter.drawEllipse(QPointF(p[0], p[1]), 3.5, 3.5)
+        
+        # Dibujar etiquetas de fecha en el eje X
+        painter.setPen(QColor(255, 255, 255, 200))
+        painter.setFont(QFont("Inter", 9, QFont.Weight.Medium))
+        
+        for i, (fecha, _) in enumerate(self.data_points):
+            x = margin_left + (w - margin_left - margin_right) * i / (num_points - 1)
+            y_text = int(margin_top + chart_h + 18)  # Centrado en el espacio inferior
+            painter.drawText(int(x) - 15, y_text, 30, 16, Qt.AlignmentFlag.AlignCenter, fecha)
 
 
 # ==============================================================================
@@ -176,9 +199,14 @@ class HeroChartWidget(QWidget):
 
 class FalconHeroCard(QFrame):
     """Card principal azul estilo Falcon con gráfico de línea blanco"""
+    
+    # Señal para notificar cambio de periodo
+    period_changed = Signal(str)  # "semana", "mes", "trimestre", "semestre", "año"
+    
     def __init__(self, title, subtitle, parent=None):
         super().__init__(parent)
         self.setMinimumHeight(280)
+        self.current_period = "semana"  # Periodo por defecto
         self.setStyleSheet(f"""
             QFrame {{
                 background-color: #2c7be5;
@@ -204,96 +232,166 @@ class FalconHeroCard(QFrame):
         header.addLayout(title_col)
         header.addStretch()
 
-        # Simular dropdown de la imagen
-        btn_opt = QPushButton("Pagos Exitosos ▾")
-        btn_opt.setStyleSheet("""
+        # Botón de periodo con menú desplegable personalizado
+        self.btn_periodo = QPushButton("Semana ▾")
+        self.btn_periodo.setStyleSheet("""
             QPushButton {
-                background: rgba(255,255,255,0.1);
+                background-color: rgba(255,255,255,0.15);
                 color: white;
-                border: 1px solid rgba(255,255,255,0.2);
+                border: 1px solid rgba(255,255,255,0.25);
                 border-radius: 6px;
                 padding: 6px 12px;
                 font-weight: 600;
+                font-size: 12px;
+                min-width: 110px;
+            }
+            QPushButton:hover {
+                background-color: rgba(255,255,255,0.25);
+            }
+            QPushButton:pressed {
+                background-color: rgba(255,255,255,0.35);
             }
         """)
-        header.addWidget(btn_opt, 0, Qt.AlignmentFlag.AlignTop)
+        
+        # Menú personalizado
+        self.menu_periodo = QMenu()
+        self.menu_periodo.setStyleSheet("""
+            QMenu {
+                background-color: #2c7be5;
+                color: white;
+                border: 1px solid rgba(255,255,255,0.3);
+                border-radius: 6px;
+                padding: 4px 0px;
+            }
+            QMenu::item {
+                padding: 8px 20px;
+                margin: 0px 4px;
+                border-radius: 4px;
+            }
+            QMenu::item:selected {
+                background-color: rgba(255,255,255,0.2);
+            }
+            QMenu::separator {
+                height: 1px;
+                background: rgba(255,255,255,0.2);
+                margin: 4px 0px;
+            }
+        """)
+        
+        periodos = ["Semana", "Mes", "Trimestre", "Semestre", "Año"]
+        for periodo in periodos:
+            action = QAction(periodo, self.menu_periodo)
+            action.triggered.connect(lambda checked, p=periodo.lower(): self._on_periodo_selected(p))
+            self.menu_periodo.addAction(action)
+        
+        self.btn_periodo.setMenu(self.menu_periodo)
+        header.addWidget(self.btn_periodo, 0, Qt.AlignmentFlag.AlignTop)
         layout.addLayout(header)
+        
+        # Variable para tracking
+        self.current_period = "semana"
 
         # Widget custom para el gráfico
         self.chart_area = HeroChartWidget()
         layout.addWidget(self.chart_area)
 
-        # Labels de tiempo abajo
-        times = QHBoxLayout()
-        for t in ["9:00", "10:00", "11:00", "12:00", "1:00", "2:00", "3:00", "4:00", "5:00", "6:00", "7:00", "8:00"]:
-            lbl = QLabel(t)
-            lbl.setStyleSheet("color: rgba(255,255,255,0.5); font-size: 11px; background: transparent;")
-            times.addWidget(lbl)
-            if t != "8:00": times.addStretch()
-        layout.addLayout(times)
+    def _on_periodo_selected(self, periodo):
+        """Maneja la selección de periodo desde el menú"""
+        self.current_period = periodo
+        self.btn_periodo.setText(f"{periodo.capitalize()} ▾")
+        self.period_changed.emit(periodo)
+
+    def update_chart(self, data_points):
+        """Actualiza el gráfico con datos reales: [("01/04", 1000), ...]"""
+        self.chart_area.set_data(data_points)
 
 
 # ==============================================================================
-# FALCON METRIC CARD (Blanca con acento geométrico)
+# FALCON METRIC CARD (Blanca con acento geométrico coloreado)
 # ==============================================================================
 
 class FalconMetricCard(QFrame):
-    """Métrica blanca individual estilo Falcon"""
-    def __init__(self, title, value, badge_text, badge_color="#eef2ff", parent=None):
+    """Métrica blanca individual estilo Falcon con acento de color"""
+    def __init__(self, title, value, badge_text, accent_color="#2c7be5", parent=None):
         super().__init__(parent)
         self.setMinimumHeight(150)
+        self.accent_color = accent_color
+        
+        # Parsear color para opacidad
+        try:
+            from PySide6.QtGui import QColor
+            c = QColor(accent_color)
+            opacity = 12 # Muy sutil
+            self.bg_color = QColor(c.red(), c.green(), c.blue(), opacity)
+        except:
+            self.bg_color = QColor(44, 123, 229, 12)
+
         self.setStyleSheet(f"""
             QFrame {{
                 background-color: white;
                 border-radius: {BorderRadius.LG}px;
                 border: 1px solid #edf2f9;
             }}
+            QFrame:hover {{
+                border-color: {accent_color}44;
+            }}
         """)
-        
+
         layout = QVBoxLayout(self)
         layout.setContentsMargins(24, 20, 24, 20)
-        
+        layout.setSpacing(10)
+
         header = QHBoxLayout()
-        self.lbl_title = QLabel(title)
-        self.lbl_title.setStyleSheet("color: #5e6e82; font-size: 13px; font-weight: 600; background: transparent;")
-        header.addWidget(self.lbl_title)
+        header.setContentsMargins(0,0,0,0)
         
+        self.lbl_title = QLabel(title)
+        self.lbl_title.setStyleSheet(f"color: #5e6e82; font-size: 13px; font-weight: 600; background: transparent;")
+        header.addWidget(self.lbl_title)
+        header.addStretch()
+
         self.badge = QLabel(badge_text)
+        self.update_badge_style(badge_text, accent_color)
+        header.addWidget(self.badge)
+        
+        layout.addLayout(header)
+
+        self.lbl_value = QLabel(value)
+        self.lbl_value.setStyleSheet(f"color: {accent_color}; font-size: 34px; font-weight: 700; margin-top: 5px; background: transparent; letter-spacing: -0.5px;")
+        layout.addWidget(self.lbl_value)
+
+        layout.addStretch()
+
+        self.lbl_link = QLabel("Ver todos ›")
+        self.lbl_link.setStyleSheet(f"color: {accent_color}; font-size: 13px; font-weight: 600; background: transparent;")
+        layout.addWidget(self.lbl_link)
+
+    def update_badge_style(self, text, accent):
+        is_negative = text.startswith("-")
+        # Color de fondo tenue del acento, texto del acento
         self.badge.setStyleSheet(f"""
-            background-color: {badge_color};
-            color: #2c7be5;
+            background-color: {accent}15;
+            color: {accent};
             padding: 2px 8px;
             border-radius: 10px;
             font-size: 11px;
             font-weight: 700;
         """)
-        header.addWidget(self.badge)
-        header.addStretch()
-        layout.addLayout(header)
-        
-        self.lbl_value = QLabel(value)
-        self.lbl_value.setStyleSheet("color: #344050; font-size: 32px; font-weight: 700; margin-top: 5px; background: transparent;")
-        layout.addWidget(self.lbl_value)
-        
-        layout.addStretch()
-        
-        self.lbl_link = QLabel("Ver todos ›")
-        self.lbl_link.setStyleSheet("color: #2c7be5; font-size: 13px; font-weight: 600; background: transparent;")
-        layout.addWidget(self.lbl_link)
 
     def paintEvent(self, event):
         super().paintEvent(event)
         # Dibujar forma geométrica sutil en el fondo derecho (como en la imagen)
+        # Usando el color de acento
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(QColor(44, 123, 229, 15)) # Azul muy tenue
         
+        painter.setBrush(self.bg_color)
+
         w, h = self.width(), self.height()
         path = QPainterPath()
-        path.moveTo(w * 0.7, 0)
+        path.moveTo(w * 0.65, 0)
         path.lineTo(w, 0)
-        path.lineTo(w, h * 0.6)
+        path.lineTo(w, h * 0.7)
         path.closeSubpath()
         painter.drawPath(path)
 
